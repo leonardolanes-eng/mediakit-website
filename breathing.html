@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejercicios de Respiraci&oacute;n - Relajate.com</title>
+  <meta name="description" content="Ejercicios de respiraci&oacute;n guiados: t&eacute;cnica 4-7-8, respiraci&oacute;n cuadrada y respiraci&oacute;n consciente. Reduce el estr&eacute;s en minutos.">
+  <meta name="theme-color" content="#9B8EC4">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .exercise-selector {
+      display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;
+      margin: 2rem auto; max-width: 700px; padding: 0 1rem;
+    }
+    .exercise-btn {
+      padding: 0.75rem 1.5rem; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-weight: 600; color: var(--text-secondary); transition: all var(--transition-fast);
+      cursor: pointer; font-size: 0.95rem;
+    }
+    .exercise-btn:hover, .exercise-btn.active {
+      border-color: var(--lavender); color: var(--lavender-dark);
+      background: rgba(155,142,196,0.08);
+    }
+
+    .exercise-panel {
+      display: none; max-width: 600px; margin: 0 auto; padding: 0 1rem;
+    }
+    .exercise-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+    /* 4-7-8 Circle */
+    .breath-478-circle {
+      width: 220px; height: 220px; border-radius: 50%; margin: 2rem auto;
+      background: linear-gradient(135deg, var(--lavender), var(--blue));
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      color: white; font-weight: 700; position: relative;
+      transition: transform 4s ease, background 1s ease;
+    }
+    .breath-478-circle .phase-text { font-size: 1.3rem; }
+    .breath-478-circle .timer-text { font-size: 2.5rem; margin-top: 0.25rem; }
+    .breath-478-circle.inhale { transform: scale(1.35); background: linear-gradient(135deg, var(--blue), var(--blue-light)); }
+    .breath-478-circle.hold { transform: scale(1.35); background: linear-gradient(135deg, var(--lavender), var(--lavender-light)); }
+    .breath-478-circle.exhale { transform: scale(1); background: linear-gradient(135deg, var(--sage), var(--sage-light)); }
+
+    .breath-478-circle::after {
+      content: ''; position: absolute; inset: -15px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.2); transition: all 4s ease;
+    }
+    .breath-478-circle.inhale::after { inset: -25px; border-color: rgba(107,155,210,0.4); }
+
+    /* Box Breathing */
+    .box-container {
+      width: 260px; height: 260px; margin: 2rem auto; position: relative;
+    }
+    .box-square {
+      width: 100%; height: 100%; border: 4px solid var(--border-color);
+      border-radius: var(--radius-md); position: relative;
+    }
+    .box-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--lavender); position: absolute;
+      transition: all 4s linear; box-shadow: 0 0 15px rgba(155,142,196,0.6);
+    }
+    .box-label {
+      position: absolute; font-weight: 600; font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .box-label.top { top: -25px; left: 50%; transform: translateX(-50%); }
+    .box-label.right { right: -80px; top: 50%; transform: translateY(-50%); }
+    .box-label.bottom { bottom: -25px; left: 50%; transform: translateX(-50%); }
+    .box-label.left { left: -80px; top: 50%; transform: translateY(-50%); }
+    .box-label.active { color: var(--lavender-dark); font-weight: 700; }
+
+    .box-phase-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      font-size: 1.3rem; font-weight: 700; color: var(--lavender-dark); text-align: center;
+    }
+    .box-phase-text .timer { font-size: 2rem; display: block; margin-top: 0.25rem; }
+
+    /* Mindful Breathing */
+    .mindful-container {
+      display: flex; flex-direction: column; align-items: center; padding: 2rem 0;
+    }
+    .particle-canvas {
+      width: 300px; height: 300px; position: relative; margin: 1rem auto;
+      border-radius: 50%; overflow: hidden;
+      background: radial-gradient(circle, rgba(107,155,210,0.1) 0%, transparent 70%);
+    }
+    .particle {
+      position: absolute; border-radius: 50%; opacity: 0.6;
+      animation: particleFloat linear infinite;
+    }
+    @keyframes particleFloat {
+      0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.6; }
+      100% { transform: translateY(-200px) translateX(var(--drift)) scale(0.3); opacity: 0; }
+    }
+    .mindful-text {
+      font-size: 1.4rem; font-weight: 600; color: var(--lavender-dark);
+      text-align: center; min-height: 2em;
+    }
+    .duration-selector {
+      display: flex; gap: 0.5rem; margin: 1rem 0;
+    }
+    .duration-btn {
+      padding: 0.5rem 1rem; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-weight: 600; cursor: pointer; transition: all var(--transition-fast);
+      color: var(--text-secondary);
+    }
+    .duration-btn.active, .duration-btn:hover {
+      border-color: var(--sage); color: var(--sage-dark);
+      background: rgba(135,174,115,0.08);
+    }
+
+    /* Controls */
+    .breath-controls {
+      display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem;
+    }
+    .rep-counter {
+      text-align: center; margin-top: 1rem; color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .session-complete {
+      text-align: center; padding: 2rem; animation: fadeInUp 0.5s ease;
+    }
+    .session-complete h3 { color: var(--sage-dark); margin-bottom: 0.5rem; }
+    .session-complete p { color: var(--text-secondary); }
+
+    .progress-ring {
+      width: 260px; height: 260px; margin: 1rem auto; position: relative;
+    }
+    .progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .progress-ring .bg { fill: none; stroke: var(--gray-200); stroke-width: 6; }
+    .progress-ring .fg { fill: none; stroke: var(--sage); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+    .progress-ring .center-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      text-align: center;
+    }
+    .progress-ring .center-text .time { font-size: 2rem; font-weight: 700; color: var(--sage-dark); }
+    .progress-ring .center-text .label { font-size: 0.9rem; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">Relajate.com</a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html" class="active">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header" style="background:linear-gradient(135deg,#9B8EC4 0%,#6B9BD2 50%,#87AE73 100%);">
+    <h1>Ejercicios de Respiraci&oacute;n</h1>
+    <p>Reduce el estr&eacute;s y encuentra la calma con t&eacute;cnicas guiadas</p>
+  </div>
+
+  <div class="exercise-selector">
+    <button class="exercise-btn active" data-exercise="478">&#127756; Respiraci&oacute;n 4-7-8</button>
+    <button class="exercise-btn" data-exercise="box">&#11036; Respiraci&oacute;n Cuadrada</button>
+    <button class="exercise-btn" data-exercise="mindful">&#127811; Respiraci&oacute;n Consciente</button>
+  </div>
+
+  <!-- Exercise 1: 4-7-8 -->
+  <div class="exercise-panel active" id="panel-478">
+    <div class="game-board">
+      <h3 style="text-align:center;">Respiraci&oacute;n 4-7-8</h3>
+      <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">Inhala 4s, mant&eacute;n 7s, exhala 8s. Ideal para reducir la ansiedad.</p>
+
+      <div class="breath-478-circle" id="circle478">
+        <span class="phase-text" id="phase478Text">Listo</span>
+        <span class="timer-text" id="timer478Text">--</span>
+      </div>
+
+      <div class="rep-counter" id="repCounter478">Repeticiones: 0</div>
+
+      <div class="breath-controls">
+        <button class="btn btn-solid" id="start478Btn">&#9654; Comenzar</button>
+        <button class="btn btn-outline" id="stop478Btn" style="display:none;">&#9632; Detener</button>
+      </div>
+
+      <div class="session-complete" id="complete478" style="display:none;">
+        <h3>&#127793; Sesi&oacute;n completada</h3>
+        <p id="complete478Msg"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 2: Box Breathing -->
+  <div class="exercise-panel" id="panel-box">
+    <div class="game-board">
+      <h3 style="text-align:center;">Respiraci&oacute;n Cuadrada</h3>
+      <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">4 fases iguales de 4 segundos. Usada por fuerzas especiales para mantener la calma.</p>
+
+      <div class="box-container" id="boxContainer">
+        <div class="box-square">
+          <div class="box-dot" id="boxDot" style="top:-10px;left:-10px;"></div>
+          <div class="box-phase-text">
+            <span id="boxPhaseLabel">Listo</span>
+            <span class="timer" id="boxTimerLabel">--</span>
+          </div>
+        </div>
+        <div class="box-label top" id="boxLabelTop">Inhalar</div>
+        <div class="box-label right" id="boxLabelRight">Mantener</div>
+        <div class="box-label bottom" id="boxLabelBottom">Exhalar</div>
+        <div class="box-label left" id="boxLabelLeft">Mantener</div>
+      </div>
+
+      <div class="rep-counter" id="repCounterBox">Repeticiones: 0</div>
+
+      <div class="breath-controls">
+        <button class="btn btn-solid" id="startBoxBtn">&#9654; Comenzar</button>
+        <button class="btn btn-outline" id="stopBoxBtn" style="display:none;">&#9632; Detener</button>
+      </div>
+
+      <div class="session-complete" id="completeBox" style="display:none;">
+        <h3>&#127793; Sesi&oacute;n completada</h3>
+        <p id="completeBoxMsg"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise 3: Mindful Breathing -->
+  <div class="exercise-panel" id="panel-mindful">
+    <div class="game-board">
+      <h3 style="text-align:center;">Respiraci&oacute;n Consciente</h3>
+      <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">Respira a tu propio ritmo con gu&iacute;a suave y visual relajante.</p>
+
+      <div class="duration-selector" style="justify-content:center;">
+        <button class="duration-btn active" data-mins="1">1 min</button>
+        <button class="duration-btn" data-mins="3">3 min</button>
+        <button class="duration-btn" data-mins="5">5 min</button>
+      </div>
+
+      <div class="progress-ring" id="mindfulRing">
+        <svg viewBox="0 0 100 100">
+          <circle class="bg" cx="50" cy="50" r="45"/>
+          <circle class="fg" id="mindfulProgress" cx="50" cy="50" r="45"
+            stroke-dasharray="282.74" stroke-dashoffset="0"/>
+        </svg>
+        <div class="center-text">
+          <div class="time" id="mindfulTime">1:00</div>
+          <div class="label" id="mindfulLabel">Elige la duraci&oacute;n</div>
+        </div>
+      </div>
+
+      <div class="particle-canvas" id="particleCanvas"></div>
+
+      <div class="mindful-text" id="mindfulGuide">Prep&aacute;rate para respirar</div>
+
+      <div class="breath-controls">
+        <button class="btn btn-solid" id="startMindfulBtn">&#9654; Comenzar</button>
+        <button class="btn btn-outline" id="stopMindfulBtn" style="display:none;">&#9632; Detener</button>
+      </div>
+
+      <div class="session-complete" id="completeMindful" style="display:none;">
+        <h3>&#127793; Sesi&oacute;n completada</h3>
+        <p id="completeMindfulMsg"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);">Tu pausa digital diaria.</p>
+      </div>
+      <div>
+        <h4>Navegar</h4>
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Relajate.com</div>
+  </footer>
+
+<script>
+// Nav
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Tab switching
+document.querySelectorAll('.exercise-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.exercise-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.exercise-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.exercise).classList.add('active');
+  });
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function incrementBreathSessions() {
+  const c = parseInt(localStorage.getItem('relajate_breath_sessions') || '0');
+  localStorage.setItem('relajate_breath_sessions', c + 1);
+}
+
+const encouragements = [
+  '\u00a1Excelente! Tu cuerpo y mente te lo agradecen.',
+  'Cada respiraci\u00f3n consciente es un regalo para ti.',
+  '\u00a1Bien hecho! La calma es tu superpoder.',
+  'Has invertido en tu bienestar. \u00a1Sigue as\u00ed!',
+  'Tu mente est\u00e1 m\u00e1s clara despu\u00e9s de esta sesi\u00f3n.',
+  'Respira profundo y siente la paz interior.',
+  '\u00a1Incre\u00edble! Cada sesi\u00f3n fortalece tu calma.',
+  'La relajaci\u00f3n es una habilidad. \u00a1La est\u00e1s dominando!'
+];
+
+function getEncouragement() {
+  return encouragements[Math.floor(Math.random() * encouragements.length)];
+}
+
+// ==================== EXERCISE 1: 4-7-8 ====================
+let timer478 = null, reps478 = 0;
+
+document.getElementById('start478Btn').addEventListener('click', () => {
+  document.getElementById('start478Btn').style.display = 'none';
+  document.getElementById('stop478Btn').style.display = '';
+  document.getElementById('complete478').style.display = 'none';
+  reps478 = 0;
+  document.getElementById('repCounter478').textContent = 'Repeticiones: 0';
+  run478Cycle();
+});
+
+document.getElementById('stop478Btn').addEventListener('click', () => {
+  stop478();
+  if (reps478 > 0) {
+    incrementBreathSessions();
+    document.getElementById('complete478').style.display = '';
+    document.getElementById('complete478Msg').textContent =
+      `${reps478} repeticiones completadas. ${getEncouragement()}`;
+  }
+});
+
+function stop478() {
+  clearTimeout(timer478);
+  timer478 = null;
+  document.getElementById('start478Btn').style.display = '';
+  document.getElementById('stop478Btn').style.display = 'none';
+  const circle = document.getElementById('circle478');
+  circle.className = 'breath-478-circle';
+  document.getElementById('phase478Text').textContent = 'Listo';
+  document.getElementById('timer478Text').textContent = '--';
+}
+
+function run478Cycle() {
+  runPhase478('Inhala', 4, 'inhale', () => {
+    runPhase478('Mant\u00e9n', 7, 'hold', () => {
+      runPhase478('Exhala', 8, 'exhale', () => {
+        reps478++;
+        document.getElementById('repCounter478').textContent = 'Repeticiones: ' + reps478;
+        if (timer478 !== null || document.getElementById('stop478Btn').style.display !== 'none') {
+          run478Cycle();
+        }
+      });
+    });
+  });
+}
+
+function runPhase478(label, duration, className, callback) {
+  const circle = document.getElementById('circle478');
+  const phaseText = document.getElementById('phase478Text');
+  const timerText = document.getElementById('timer478Text');
+
+  circle.className = 'breath-478-circle ' + className;
+  phaseText.textContent = label;
+
+  let remaining = duration;
+  timerText.textContent = remaining;
+
+  function tick() {
+    remaining--;
+    if (remaining <= 0) {
+      callback();
+      return;
+    }
+    timerText.textContent = remaining;
+    timer478 = setTimeout(tick, 1000);
+  }
+  timer478 = setTimeout(tick, 1000);
+}
+
+// ==================== EXERCISE 2: BOX BREATHING ====================
+let timerBox = null, repsBox = 0;
+const boxPhases = [
+  { label: 'Inhalar', labelId: 'boxLabelTop', top: -10, left: 'calc(100% - 10px)' },
+  { label: 'Mantener', labelId: 'boxLabelRight', top: 'calc(100% - 10px)', left: 'calc(100% - 10px)' },
+  { label: 'Exhalar', labelId: 'boxLabelBottom', top: 'calc(100% - 10px)', left: -10 },
+  { label: 'Mantener', labelId: 'boxLabelLeft', top: -10, left: -10 }
+];
+
+document.getElementById('startBoxBtn').addEventListener('click', () => {
+  document.getElementById('startBoxBtn').style.display = 'none';
+  document.getElementById('stopBoxBtn').style.display = '';
+  document.getElementById('completeBox').style.display = 'none';
+  repsBox = 0;
+  document.getElementById('repCounterBox').textContent = 'Repeticiones: 0';
+  runBoxCycle(0);
+});
+
+document.getElementById('stopBoxBtn').addEventListener('click', () => {
+  stopBox();
+  if (repsBox > 0) {
+    incrementBreathSessions();
+    document.getElementById('completeBox').style.display = '';
+    document.getElementById('completeBoxMsg').textContent =
+      `${repsBox} repeticiones completadas. ${getEncouragement()}`;
+  }
+});
+
+function stopBox() {
+  clearTimeout(timerBox);
+  timerBox = null;
+  document.getElementById('startBoxBtn').style.display = '';
+  document.getElementById('stopBoxBtn').style.display = 'none';
+  document.getElementById('boxPhaseLabel').textContent = 'Listo';
+  document.getElementById('boxTimerLabel').textContent = '--';
+  document.querySelectorAll('.box-label').forEach(l => l.classList.remove('active'));
+  const dot = document.getElementById('boxDot');
+  dot.style.transition = 'none';
+  dot.style.top = '-10px';
+  dot.style.left = '-10px';
+}
+
+function runBoxCycle(phaseIdx) {
+  if (phaseIdx >= 4) {
+    repsBox++;
+    document.getElementById('repCounterBox').textContent = 'Repeticiones: ' + repsBox;
+    runBoxCycle(0);
+    return;
+  }
+
+  const phase = boxPhases[phaseIdx];
+  const dot = document.getElementById('boxDot');
+  const phaseLabel = document.getElementById('boxPhaseLabel');
+  const timerLabel = document.getElementById('boxTimerLabel');
+
+  // Highlight active label
+  document.querySelectorAll('.box-label').forEach(l => l.classList.remove('active'));
+  document.getElementById(phase.labelId).classList.add('active');
+
+  phaseLabel.textContent = phase.label;
+  dot.style.transition = 'all 4s linear';
+
+  // Move dot - use requestAnimationFrame to ensure transition is applied
+  requestAnimationFrame(() => {
+    dot.style.top = typeof phase.top === 'number' ? phase.top + 'px' : phase.top;
+    dot.style.left = typeof phase.left === 'number' ? phase.left + 'px' : phase.left;
+  });
+
+  let remaining = 4;
+  timerLabel.textContent = remaining;
+
+  function tick() {
+    remaining--;
+    if (remaining <= 0) {
+      runBoxCycle(phaseIdx + 1);
+      return;
+    }
+    timerLabel.textContent = remaining;
+    timerBox = setTimeout(tick, 1000);
+  }
+  timerBox = setTimeout(tick, 1000);
+}
+
+// ==================== EXERCISE 3: MINDFUL BREATHING ====================
+let mindfulTimer = null, mindfulDuration = 60, mindfulRunning = false;
+
+// Duration selector
+document.querySelectorAll('.duration-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (mindfulRunning) return;
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mindfulDuration = parseInt(btn.dataset.mins) * 60;
+    updateMindfulDisplay(mindfulDuration);
+  });
+});
+
+function updateMindfulDisplay(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  document.getElementById('mindfulTime').textContent =
+    `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Create particles
+function createParticles() {
+  const canvas = document.getElementById('particleCanvas');
+  canvas.innerHTML = '';
+  const colors = ['rgba(107,155,210,0.5)','rgba(155,142,196,0.5)','rgba(135,174,115,0.5)','rgba(163,196,232,0.4)'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 10 + 4;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = Math.random() * 280 + 'px';
+    p.style.bottom = Math.random() * 50 + 'px';
+    p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+    p.style.animationDuration = (Math.random() * 5 + 4) + 's';
+    p.style.animationDelay = (Math.random() * 5) + 's';
+    canvas.appendChild(p);
+  }
+}
+createParticles();
+
+const mindfulGuides = [
+  'Inhala lentamente...',
+  'Exhala con suavidad...',
+  'Siente tu cuerpo relajarse...',
+  'Deja ir la tensi\u00f3n...',
+  'Respira con tranquilidad...',
+  'Est\u00e1s en paz...',
+  'Cada respiraci\u00f3n te calma...',
+  'Observa tu respiraci\u00f3n...',
+  'Siente la calma...',
+  'Deja fluir tus pensamientos...',
+  'Inhala paz...',
+  'Exhala estr\u00e9s...',
+  'Tu cuerpo se relaja...',
+  'Conf\u00eda en el proceso...',
+  'Este momento es tuyo...'
+];
+
+document.getElementById('startMindfulBtn').addEventListener('click', () => {
+  document.getElementById('startMindfulBtn').style.display = 'none';
+  document.getElementById('stopMindfulBtn').style.display = '';
+  document.getElementById('completeMindful').style.display = 'none';
+  mindfulRunning = true;
+
+  let remaining = mindfulDuration;
+  const total = mindfulDuration;
+  const circumference = 282.74;
+  const progress = document.getElementById('mindfulProgress');
+  let guideIdx = 0;
+
+  updateMindfulDisplay(remaining);
+  document.getElementById('mindfulLabel').textContent = 'Respira...';
+
+  function updateGuide() {
+    if (!mindfulRunning) return;
+    document.getElementById('mindfulGuide').textContent = mindfulGuides[guideIdx % mindfulGuides.length];
+    guideIdx++;
+  }
+  updateGuide();
+  const guideInterval = setInterval(updateGuide, 4000);
+
+  function tick() {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(guideInterval);
+      mindfulRunning = false;
+      document.getElementById('startMindfulBtn').style.display = '';
+      document.getElementById('stopMindfulBtn').style.display = 'none';
+      document.getElementById('mindfulTime').textContent = '0:00';
+      document.getElementById('mindfulLabel').textContent = 'Completado';
+      document.getElementById('mindfulGuide').textContent = '';
+      progress.style.strokeDashoffset = circumference;
+
+      incrementBreathSessions();
+      document.getElementById('completeMindful').style.display = '';
+      document.getElementById('completeMindfulMsg').textContent = getEncouragement();
+      return;
+    }
+
+    updateMindfulDisplay(remaining);
+    const pct = 1 - (remaining / total);
+    progress.style.strokeDashoffset = circumference * (1 - pct);
+
+    mindfulTimer = setTimeout(tick, 1000);
+  }
+  mindfulTimer = setTimeout(tick, 1000);
+});
+
+document.getElementById('stopMindfulBtn').addEventListener('click', () => {
+  clearTimeout(mindfulTimer);
+  mindfulRunning = false;
+  document.getElementById('startMindfulBtn').style.display = '';
+  document.getElementById('stopMindfulBtn').style.display = 'none';
+  document.getElementById('mindfulGuide').textContent = 'Prep\u00e1rate para respirar';
+  document.getElementById('mindfulLabel').textContent = 'Pausado';
+  incrementBreathSessions();
+  document.getElementById('completeMindful').style.display = '';
+  document.getElementById('completeMindfulMsg').textContent = getEncouragement();
+});
+</script>
+</body>
+</html>

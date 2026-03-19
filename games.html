@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juegos R&aacute;pidos - Relajate.com</title>
+  <meta name="description" content="Juegos diarios relajantes: Conecta Palabras, Flujo de Colores y Patr&oacute;n Zen. Ejercita tu mente mientras te relajas.">
+  <meta name="theme-color" content="#6B9BD2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Word Connect */
+    .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 1rem 0; }
+    .word-tile {
+      padding: 0.7rem 0.4rem; text-align: center; border-radius: var(--radius-sm);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      transition: all var(--transition-fast); user-select: none;
+    }
+    .word-tile:hover { border-color: var(--blue-light); }
+    .word-tile.selected { background: var(--blue); color: white; border-color: var(--blue-dark); }
+    .word-tile.solved { opacity: 0.5; pointer-events: none; }
+    .solved-group {
+      padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 8px;
+      text-align: center; font-weight: 600; animation: fadeInUp 0.4s ease;
+    }
+    .solved-group .cat-name { font-size: 0.8rem; opacity: 0.8; margin-bottom: 2px; }
+    .solved-group .cat-words { font-size: 0.95rem; }
+    .attempts-display { display: flex; gap: 6px; justify-content: center; margin: 0.75rem 0; }
+    .attempt-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gray-300); }
+    .attempt-dot.used { background: var(--lavender); }
+    .attempt-dot.wrong { background: #e74c3c; }
+
+    /* Color Flow */
+    .color-grid { display: grid; gap: 4px; margin: 1rem auto; max-width: 400px; }
+    .color-cell {
+      aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+      transition: all var(--transition-fast); border: 2px solid transparent;
+    }
+    .color-cell:hover { transform: scale(1.1); }
+    .color-cell.selected { border-color: var(--gray-800); transform: scale(1.15); }
+    .color-cell.clearing { animation: popOut 0.3s ease forwards; }
+    @keyframes popOut {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    /* Zen Pattern */
+    .pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 300px; margin: 1.5rem auto; }
+    .pattern-tile {
+      aspect-ratio: 1; border-radius: var(--radius-md); background: var(--gray-200);
+      cursor: pointer; transition: all var(--transition-fast);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pattern-tile.lit { background: var(--blue); box-shadow: 0 0 20px rgba(107,155,210,0.5); }
+    .pattern-tile.wrong-lit { background: #e74c3c; box-shadow: 0 0 20px rgba(231,76,60,0.5); }
+    .pattern-tile.success-lit { background: var(--sage); box-shadow: 0 0 20px rgba(135,174,115,0.5); }
+    .pattern-tile:active { transform: scale(0.95); }
+    .level-display { font-size: 1.2rem; font-weight: 700; color: var(--blue-dark); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">Relajate.com</a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="index.html">Inicio</a>
+        <a href="games.html" class="active">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Juegos R&aacute;pidos</h1>
+    <p>Ejercita tu mente con nuestros juegos diarios relajantes</p>
+  </div>
+
+  <div class="game-tabs">
+    <button class="game-tab active" data-game="words">&#128172; Conecta Palabras</button>
+    <button class="game-tab" data-game="colors">&#127912; Flujo de Colores</button>
+    <button class="game-tab" data-game="pattern">&#129504; Patr&oacute;n Zen</button>
+  </div>
+
+  <!-- Game 1: Conecta Palabras -->
+  <div class="game-container" id="game-words">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Conecta Palabras</h3>
+        <span class="game-score">Juego del d&iacute;a</span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;">Encuentra los 4 grupos de 4 palabras relacionadas</p>
+      <div id="solvedGroups"></div>
+      <div class="word-grid" id="wordGrid"></div>
+      <div class="attempts-display" id="attemptsDisplay"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="deselectBtn">Deseleccionar</button>
+        <button class="btn btn-solid btn-sm" id="submitWordsBtn">Comprobar</button>
+      </div>
+      <div id="wordResult" style="text-align:center;margin-top:1rem;font-weight:600;"></div>
+      <div id="wordShareSection" style="display:none;margin-top:1rem;">
+        <button class="btn btn-solid btn-sm" id="shareWordsBtn" style="margin:0 auto;display:block;">&#128228; Compartir resultado</button>
+        <div class="share-result" id="wordShareText" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game 2: Flujo de Colores -->
+  <div class="game-container" id="game-colors" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Flujo de Colores</h3>
+        <span class="game-score">Puntos: <span id="colorScore">0</span></span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;">Toca grupos de 3+ colores iguales adyacentes para eliminarlos</p>
+      <div class="color-grid" id="colorGrid" style="grid-template-columns:repeat(7,1fr);"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="resetColorsBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-solid btn-sm" id="shareColorsBtn">&#128228; Compartir</button>
+      </div>
+      <div id="colorShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 3: Patr&oacute;n Zen -->
+  <div class="game-container" id="game-pattern" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Patr&oacute;n Zen</h3>
+        <span class="level-display">Nivel: <span id="patternLevel">1</span></span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;" id="patternInstruction">Observa el patr&oacute;n y rep&iacute;telo</p>
+      <div class="pattern-grid" id="patternGrid"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-solid btn-sm" id="startPatternBtn">&#9654; Comenzar</button>
+        <button class="btn btn-outline btn-sm" id="sharePatternBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="patternShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div id="confettiContainer"></div>
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);">Tu pausa digital diaria.</p>
+      </div>
+      <div>
+        <h4>Navegar</h4>
+        <a href="index.html">Inicio</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Relajate.com</div>
+  </footer>
+
+<script>
+// ==================== UTILITIES ====================
+function getDayIndex() {
+  const now = new Date();
+  const start = new Date(2024, 0, 1);
+  return Math.floor((now - start) / 86400000);
+}
+
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function shuffle(arr, rng) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor((rng ? rng() : Math.random()) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function launchConfetti() {
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML = '';
+  container.className = 'confetti-container';
+  const colors = ['#6B9BD2','#9B8EC4','#87AE73','#FFD700','#FF6B6B','#A3C4E8'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (Math.random() * 8 + 6) + 'px';
+    piece.style.height = (Math.random() * 8 + 6) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+    piece.style.animationDelay = (Math.random() * 0.5) + 's';
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.innerHTML = '', 4000);
+}
+
+function incrementGamesCompleted() {
+  const c = parseInt(localStorage.getItem('relajate_games_completed') || '0');
+  localStorage.setItem('relajate_games_completed', c + 1);
+}
+
+// Nav toggle
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Tab switching
+document.querySelectorAll('.game-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.game-container').forEach(g => g.style.display = 'none');
+    document.getElementById('game-' + tab.dataset.game).style.display = 'block';
+  });
+});
+
+// ==================== GAME 1: CONECTA PALABRAS ====================
+const allPuzzles = [
+  { groups: [
+    { name: 'Frutas', words: ['Manzana','Pera','Uva','Fresa'], color: '#6B9BD2' },
+    { name: 'Animales', words: ['Gato','Perro','Caballo','Le\u00f3n'], color: '#9B8EC4' },
+    { name: 'Colores', words: ['Rojo','Azul','Verde','Amarillo'], color: '#87AE73' },
+    { name: 'Pa\u00edses', words: ['M\u00e9xico','Espa\u00f1a','Argentina','Colombia'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Emociones', words: ['Alegr\u00eda','Tristeza','Miedo','Calma'], color: '#6B9BD2' },
+    { name: 'Deportes', words: ['F\u00fatbol','Tenis','Nataci\u00f3n','Boxeo'], color: '#9B8EC4' },
+    { name: 'Instrumentos', words: ['Guitarra','Piano','Flauta','Tambor'], color: '#87AE73' },
+    { name: 'Estaciones', words: ['Primavera','Verano','Oto\u00f1o','Invierno'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Bebidas', words: ['Caf\u00e9','T\u00e9','Jugo','Leche'], color: '#6B9BD2' },
+    { name: 'Ropa', words: ['Camisa','Pantal\u00f3n','Zapato','Sombrero'], color: '#9B8EC4' },
+    { name: 'Planetas', words: ['Marte','Venus','Saturno','J\u00fapiter'], color: '#87AE73' },
+    { name: 'Flores', words: ['Rosa','Girasol','Tulip\u00e1n','Margarita'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Verduras', words: ['Tomate','Zanahoria','Br\u00f3coli','Cebolla'], color: '#6B9BD2' },
+    { name: 'Muebles', words: ['Silla','Mesa','Cama','Armario'], color: '#9B8EC4' },
+    { name: 'Profesiones', words: ['Doctor','Maestro','Abogado','Chef'], color: '#87AE73' },
+    { name: 'Meses', words: ['Enero','Marzo','Julio','Octubre'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Partes del cuerpo', words: ['Mano','Pie','Cabeza','Brazo'], color: '#6B9BD2' },
+    { name: 'Materiales', words: ['Madera','Metal','Vidrio','Piedra'], color: '#9B8EC4' },
+    { name: 'D\u00edas', words: ['Lunes','Martes','Viernes','Domingo'], color: '#87AE73' },
+    { name: 'Sabores', words: ['Dulce','Salado','Amargo','\u00c1cido'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Postres', words: ['Helado','Pastel','Galleta','Flan'], color: '#6B9BD2' },
+    { name: 'Transportes', words: ['Avi\u00f3n','Barco','Tren','Bicicleta'], color: '#9B8EC4' },
+    { name: 'M\u00fasica', words: ['Rock','Jazz','Salsa','Reggae'], color: '#87AE73' },
+    { name: 'Herramientas', words: ['Martillo','Sierra','Destornillador','Taladro'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Cuerpos de agua', words: ['R\u00edo','Lago','Mar','Oc\u00e9ano'], color: '#6B9BD2' },
+    { name: 'Aves', words: ['\u00c1guila','Paloma','Loro','B\u00faho'], color: '#9B8EC4' },
+    { name: 'Joyas', words: ['Anillo','Collar','Pulsera','Arete'], color: '#87AE73' },
+    { name: 'Telas', words: ['Seda','Algod\u00f3n','Lana','Lino'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Elementos', words: ['Fuego','Agua','Tierra','Aire'], color: '#6B9BD2' },
+    { name: '\u00c1rboles', words: ['Pino','Roble','Olivo','Cerezo'], color: '#9B8EC4' },
+    { name: 'Quesos', words: ['Cheddar','Brie','Gouda','Manchego'], color: '#87AE73' },
+    { name: 'Danzas', words: ['Tango','Vals','Flamenco','Cumbia'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Insectos', words: ['Hormiga','Abeja','Mariposa','Mosca'], color: '#6B9BD2' },
+    { name: 'N\u00fameros', words: ['Cien','Mil','Mill\u00f3n','Doce'], color: '#9B8EC4' },
+    { name: 'Metales', words: ['Oro','Plata','Cobre','Hierro'], color: '#87AE73' },
+    { name: 'Monedas', words: ['Peso','Euro','D\u00f3lar','Libra'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Formas', words: ['C\u00edrculo','Cuadrado','Tri\u00e1ngulo','Estrella'], color: '#6B9BD2' },
+    { name: 'Especias', words: ['Canela','Pimienta','Or\u00e9gano','Comino'], color: '#9B8EC4' },
+    { name: 'Ciencias', words: ['F\u00edsica','Qu\u00edmica','Biolog\u00eda','Matem\u00e1ticas'], color: '#87AE73' },
+    { name: 'Sentidos', words: ['Vista','O\u00eddo','Olfato','Tacto'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Vegetales verdes', words: ['Espinaca','Lechuga','Apio','Pepino'], color: '#6B9BD2' },
+    { name: 'Bailes latinos', words: ['Bachata','Merengue','Cha-cha','Mambo'], color: '#9B8EC4' },
+    { name: 'Clima', words: ['Lluvia','Nieve','Sol','Viento'], color: '#87AE73' },
+    { name: 'Emociones positivas', words: ['Amor','Paz','Esperanza','Gratitud'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Frutas tropicales', words: ['Mango','Papaya','Pi\u00f1a','Coco'], color: '#6B9BD2' },
+    { name: 'Peces', words: ['Salm\u00f3n','Tilapia','Trucha','At\u00fan'], color: '#9B8EC4' },
+    { name: 'Idiomas', words: ['Franc\u00e9s','Alem\u00e1n','Japon\u00e9s','Portugu\u00e9s'], color: '#87AE73' },
+    { name: 'G\u00e9neros literarios', words: ['Novela','Poes\u00eda','Ensayo','Cuento'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Materias escolares', words: ['Historia','Geograf\u00eda','Arte','M\u00fasica'], color: '#6B9BD2' },
+    { name: 'Electrodom\u00e9sticos', words: ['Licuadora','Microondas','Tostadora','Cafetera'], color: '#9B8EC4' },
+    { name: 'Reptiles', words: ['Iguana','Cocodrilo','Tortuga','Serpiente'], color: '#87AE73' },
+    { name: 'Tipos de pan', words: ['Baguette','Brioche','Ciabatta','Focaccia'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Capitales', words: ['Lima','Roma','Tokio','Par\u00eds'], color: '#6B9BD2' },
+    { name: 'Piedras preciosas', words: ['Rub\u00ed','Esmeralda','Zafiro','Diamante'], color: '#9B8EC4' },
+    { name: 'L\u00e1cteos', words: ['Yogur','Queso','Mantequilla','Crema'], color: '#87AE73' },
+    { name: 'Artes marciales', words: ['Karate','Judo','Taekwondo','Kung-fu'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Pasta', words: ['Espagueti','Fettuccine','Penne','Ravioli'], color: '#6B9BD2' },
+    { name: 'Constelaciones', words: ['Ori\u00f3n','Casiopea','Escorpio','Pegaso'], color: '#9B8EC4' },
+    { name: 'Zapatos', words: ['Bota','Sandalia','Tac\u00f3n','Tenis'], color: '#87AE73' },
+    { name: 'Mam\u00edferos marinos', words: ['Delf\u00edn','Ballena','Foca','Morsa'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Cereales', words: ['Arroz','Trigo','Ma\u00edz','Avena'], color: '#6B9BD2' },
+    { name: 'Tejidos', words: ['Sat\u00e9n','Terciopelo','Denim','Encaje'], color: '#9B8EC4' },
+    { name: 'Movimientos art\u00edsticos', words: ['Barroco','Cubismo','Surrealismo','Impresionismo'], color: '#87AE73' },
+    { name: 'Juegos de mesa', words: ['Ajedrez','Damas','Domin\u00f3','Parcheesi'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Condimentos', words: ['Mostaza','Ketchup','Mayonesa','Salsa'], color: '#6B9BD2' },
+    { name: 'Continentes', words: ['Asia','Europa','Am\u00e9rica','\u00c1frica'], color: '#9B8EC4' },
+    { name: 'Parques', words: ['Selva','Bosque','Jard\u00edn','Pradera'], color: '#87AE73' },
+    { name: 'Tipos de nubes', words: ['Cirro','C\u00famulo','Estrato','Nimbo'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Dulces', words: ['Chocolate','Caramelo','Malvavisco','Paleta'], color: '#6B9BD2' },
+    { name: 'Sistemas del cuerpo', words: ['Nervioso','Digestivo','Circulatorio','Respiratorio'], color: '#9B8EC4' },
+    { name: 'Velocidades', words: ['R\u00e1pido','Lento','Veloz','Pausado'], color: '#87AE73' },
+    { name: 'Texturas', words: ['Suave','\u00c1spero','Liso','Rugoso'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'R\u00edos', words: ['Amazonas','Nilo','Danubio','Misisipi'], color: '#6B9BD2' },
+    { name: 'Hongos', words: ['Champi\u00f1\u00f3n','Trufa','Shiitake','Portobello'], color: '#9B8EC4' },
+    { name: 'Sombreros', words: ['Boina','Gorra','Fedora','Turbante'], color: '#87AE73' },
+    { name: 'Nudos', words: ['Lazo','Corbata','Marinero','Pajarita'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Volcanes', words: ['Vesubio','Etna','Popocat\u00e9petl','Krakatoa'], color: '#6B9BD2' },
+    { name: 'Telas art\u00edsticas', words: ['Lienzo','Acuarela','\u00d3leo','Pastel'], color: '#9B8EC4' },
+    { name: 'Legumbres', words: ['Lenteja','Garbanzo','Frijol','Soja'], color: '#87AE73' },
+    { name: 'Desiertos', words: ['Sahara','Gobi','Atacama','Mojave'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Felinos', words: ['Tigre','Leopardo','Pantera','Lince'], color: '#6B9BD2' },
+    { name: 'Vinos', words: ['Merlot','Malbec','Riesling','Tempranillo'], color: '#9B8EC4' },
+    { name: 'Cosm\u00e9ticos', words: ['Labial','R\u00edmel','Rubor','Base'], color: '#87AE73' },
+    { name: 'Filosof\u00eda', words: ['Estoicismo','Existencialismo','Empirismo','Idealismo'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Frutos secos', words: ['Almendra','Nuez','Casta\u00f1a','Pistacho'], color: '#6B9BD2' },
+    { name: 'Dan\u00e9s', words: ['Hygge','Fiordo','Viking','Lego'], color: '#9B8EC4' },
+    { name: 'Islas', words: ['Cuba','Creta','Bali','Tahit\u00ed'], color: '#87AE73' },
+    { name: 'Danzas cl\u00e1sicas', words: ['Ballet','Polka','Minueto','Gavota'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'T\u00e9cnicas de cocina', words: ['Hornear','Freir','Hervir','Asar'], color: '#6B9BD2' },
+    { name: 'Arquitectura', words: ['G\u00f3tico','Rom\u00e1nico','Moderno','Colonial'], color: '#9B8EC4' },
+    { name: 'Animales de granja', words: ['Vaca','Cerdo','Oveja','Gallina'], color: '#87AE73' },
+    { name: 'Tipos de caf\u00e9', words: ['Espresso','Capuchino','Americano','Latte'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Montañas', words: ['Everest','Aconcagua','Kilimanjaro','Cervino'], color: '#6B9BD2' },
+    { name: 'Bayas', words: ['Ar\u00e1ndano','Frambuesa','Mora','Grosella'], color: '#9B8EC4' },
+    { name: 'V\u00ednculos familiares', words: ['T\u00eda','Primo','Sobrino','Abuelo'], color: '#87AE73' },
+    { name: 'Deportes acu\u00e1ticos', words: ['Surf','Kayak','Vela','Buceo'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Hierbas', words: ['Albahaca','Romero','Menta','Perejil'], color: '#6B9BD2' },
+    { name: 'M\u00fasica cl\u00e1sica', words: ['Sinf\u00f3nica','Sonata','Concierto','\u00d3pera'], color: '#9B8EC4' },
+    { name: 'Signos del zodiaco', words: ['Aries','Tauro','G\u00e9minis','Leo'], color: '#87AE73' },
+    { name: 'Supermercado', words: ['Pasillo','Caja','Carrito','Estante'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Salsas', words: ['Pesto','Bols\u00e9sa','Carbonara','Alfredo'], color: '#6B9BD2' },
+    { name: 'Pel\u00edculas', words: ['Comedia','Drama','Terror','Acci\u00f3n'], color: '#9B8EC4' },
+    { name: 'Materiales de arte', words: ['Arcilla','Yeso','Resina','Bronce'], color: '#87AE73' },
+    { name: 'Tipos de lluvia', words: ['Llovizna','Aguacero','Chaparr\u00f3n','Tormenta'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Vitaminas', words: ['Calcio','Hierro','Zinc','Magnesio'], color: '#6B9BD2' },
+    { name: 'Mares', words: ['Caribe','Mediterr\u00e1neo','Rojo','Negro'], color: '#9B8EC4' },
+    { name: 'Oficina', words: ['Escritorio','Impresora','Carpeta','Gr\u00e1padora'], color: '#87AE73' },
+    { name: 'Redes sociales', words: ['Instagram','Twitter','TikTok','Facebook'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Mariscos', words: ['Camar\u00f3n','Langosta','Pulpo','Calamar'], color: '#6B9BD2' },
+    { name: 'Tama\u00f1os', words: ['Enorme','Diminuto','Mediano','Gigante'], color: '#9B8EC4' },
+    { name: 'Sonidos', words: ['Susurro','Trueno','Eco','Murmullo'], color: '#87AE73' },
+    { name: 'Juguetes', words: ['Mu\u00f1eca','Pelota','Rompecabezas','Cometa'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'Minerales', words: ['Cuarzo','Amatista','Jade','Topacio'], color: '#6B9BD2' },
+    { name: 'Escritores', words: ['Borges','Neruda','Garc\u00eda','Cervantes'], color: '#9B8EC4' },
+    { name: 'Helados', words: ['Vainilla','Fresa','Menta','Chocolate'], color: '#87AE73' },
+    { name: 'Festividades', words: ['Navidad','Pascua','Carnaval','Halloween'], color: '#e67e22' }
+  ]},
+  { groups: [
+    { name: 'T\u00e9s', words: ['Manzanilla','Hibisco','Jengibre','Matcha'], color: '#6B9BD2' },
+    { name: 'Galaxias', words: ['Andr\u00f3meda','V\u00eda L\u00e1ctea','Sombrero','Remolino'], color: '#9B8EC4' },
+    { name: 'Cosechas', words: ['Vendimia','Siega','Recolecci\u00f3n','Zafra'], color: '#87AE73' },
+    { name: 'Yoga', words: ['Asana','Pranayama','Chakra','Mantra'], color: '#e67e22' }
+  ]}
+];
+
+let wordState = { selected: [], solved: [], attempts: 4, gameOver: false };
+
+function initWordGame() {
+  const dayIdx = getDayIndex() % allPuzzles.length;
+  const puzzle = allPuzzles[dayIdx];
+  const rng = seededRandom(getDayIndex() + 42);
+  const allWords = shuffle(puzzle.groups.flatMap(g => g.words), rng);
+
+  wordState = { selected: [], solved: [], attempts: 4, gameOver: false, puzzle, allWords };
+
+  // Check if already completed today
+  const saved = localStorage.getItem('relajate_words_' + getDayIndex());
+  if (saved) {
+    const data = JSON.parse(saved);
+    wordState.solved = data.solved || [];
+    wordState.attempts = data.attempts;
+    wordState.gameOver = data.gameOver;
+  }
+
+  renderWordGame();
+}
+
+function renderWordGame() {
+  const grid = document.getElementById('wordGrid');
+  const solvedDiv = document.getElementById('solvedGroups');
+  const attDiv = document.getElementById('attemptsDisplay');
+
+  // Render solved groups
+  solvedDiv.innerHTML = '';
+  wordState.solved.forEach(groupName => {
+    const group = wordState.puzzle.groups.find(g => g.name === groupName);
+    if (group) {
+      solvedDiv.innerHTML += `<div class="solved-group" style="background:${group.color};color:white;">
+        <div class="cat-name">${group.name}</div>
+        <div class="cat-words">${group.words.join(' \u2022 ')}</div>
+      </div>`;
+    }
+  });
+
+  // Render remaining words
+  const solvedWords = wordState.solved.flatMap(name =>
+    wordState.puzzle.groups.find(g => g.name === name)?.words || []
+  );
+  const remaining = wordState.allWords.filter(w => !solvedWords.includes(w));
+
+  grid.innerHTML = '';
+  remaining.forEach(word => {
+    const tile = document.createElement('button');
+    tile.className = 'word-tile' + (wordState.selected.includes(word) ? ' selected' : '');
+    tile.textContent = word;
+    tile.disabled = wordState.gameOver;
+    tile.addEventListener('click', () => toggleWordSelection(word));
+    grid.appendChild(tile);
+  });
+
+  // Attempts
+  attDiv.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'attempt-dot' + (i >= wordState.attempts ? ' wrong' : '');
+    attDiv.appendChild(dot);
+  }
+
+  // Check if game complete
+  if (wordState.solved.length === 4) {
+    document.getElementById('wordResult').innerHTML = '\u00a1Felicidades! \u00a1Completaste el puzzle de hoy! &#127881;';
+    document.getElementById('wordShareSection').style.display = 'block';
+    wordState.gameOver = true;
+  } else if (wordState.attempts <= 0) {
+    document.getElementById('wordResult').innerHTML = 'Sin intentos. \u00a1Ma\u00f1ana hay un nuevo puzzle!';
+    document.getElementById('wordShareSection').style.display = 'block';
+    wordState.gameOver = true;
+    // Reveal remaining
+    wordState.puzzle.groups.forEach(g => {
+      if (!wordState.solved.includes(g.name)) wordState.solved.push(g.name);
+    });
+    renderWordGame();
+  }
+}
+
+function toggleWordSelection(word) {
+  if (wordState.gameOver) return;
+  const idx = wordState.selected.indexOf(word);
+  if (idx >= 0) {
+    wordState.selected.splice(idx, 1);
+  } else if (wordState.selected.length < 4) {
+    wordState.selected.push(word);
+  }
+  renderWordGame();
+}
+
+document.getElementById('deselectBtn').addEventListener('click', () => {
+  wordState.selected = [];
+  renderWordGame();
+});
+
+document.getElementById('submitWordsBtn').addEventListener('click', () => {
+  if (wordState.selected.length !== 4 || wordState.gameOver) {
+    if (wordState.selected.length !== 4) showToast('Selecciona exactamente 4 palabras');
+    return;
+  }
+
+  const match = wordState.puzzle.groups.find(g =>
+    !wordState.solved.includes(g.name) &&
+    g.words.every(w => wordState.selected.includes(w))
+  );
+
+  if (match) {
+    wordState.solved.push(match.name);
+    wordState.selected = [];
+    if (wordState.solved.length === 4) {
+      launchConfetti();
+      incrementGamesCompleted();
+    }
+    showToast('\u00a1Correcto! ' + match.name);
+  } else {
+    // Check for "one away"
+    let oneAway = false;
+    wordState.puzzle.groups.forEach(g => {
+      if (!wordState.solved.includes(g.name)) {
+        const overlap = g.words.filter(w => wordState.selected.includes(w)).length;
+        if (overlap === 3) oneAway = true;
+      }
+    });
+    wordState.attempts--;
+    wordState.selected = [];
+    showToast(oneAway ? '\u00a1Casi! Te falt\u00f3 una' : 'Incorrecto, intenta de nuevo');
+  }
+
+  localStorage.setItem('relajate_words_' + getDayIndex(), JSON.stringify({
+    solved: wordState.solved, attempts: wordState.attempts, gameOver: wordState.gameOver
+  }));
+  renderWordGame();
+});
+
+document.getElementById('shareWordsBtn').addEventListener('click', () => {
+  const emojis = wordState.solved.map((_, i) => {
+    const colors = ['\ud83d\udfe6','\ud83d\udfe3','\ud83d\udfe2','\ud83d\udfe0'];
+    return colors[i] + colors[i] + colors[i] + colors[i];
+  }).join('\n');
+  const text = `Relajate.com - Conecta Palabras\nD\u00eda ${getDayIndex() % allPuzzles.length + 1}\n${wordState.solved.length}/4 grupos\nIntentos: ${wordState.attempts}/4\n\n${emojis}\n\nrelajate.com`;
+  document.getElementById('wordShareText').style.display = 'block';
+  document.getElementById('wordShareText').textContent = text;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado al portapapeles!'));
+});
+
+// ==================== GAME 2: FLUJO DE COLORES ====================
+const FLOW_COLORS = ['#6B9BD2','#9B8EC4','#87AE73','#e67e22','#e74c3c','#f1c40f'];
+const FLOW_ROWS = 8, FLOW_COLS = 7;
+let colorGrid = [], colorScore = 0;
+
+function initColorGame() {
+  const saved = localStorage.getItem('relajate_colors_' + getDayIndex());
+  if (saved) {
+    const data = JSON.parse(saved);
+    colorGrid = data.grid;
+    colorScore = data.score;
+  } else {
+    const rng = seededRandom(getDayIndex() + 100);
+    colorGrid = [];
+    for (let r = 0; r < FLOW_ROWS; r++) {
+      colorGrid[r] = [];
+      for (let c = 0; c < FLOW_COLS; c++) {
+        colorGrid[r][c] = FLOW_COLORS[Math.floor(rng() * FLOW_COLORS.length)];
+      }
+    }
+    colorScore = 0;
+  }
+  renderColorGame();
+}
+
+function renderColorGame() {
+  const grid = document.getElementById('colorGrid');
+  grid.innerHTML = '';
+  document.getElementById('colorScore').textContent = colorScore;
+  for (let r = 0; r < FLOW_ROWS; r++) {
+    for (let c = 0; c < FLOW_COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'color-cell';
+      if (colorGrid[r][c]) {
+        cell.style.background = colorGrid[r][c];
+      } else {
+        cell.style.background = 'transparent';
+        cell.style.cursor = 'default';
+      }
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.addEventListener('click', () => handleColorClick(r, c));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function findConnected(row, col, color, visited = new Set()) {
+  const key = `${row},${col}`;
+  if (row < 0 || row >= FLOW_ROWS || col < 0 || col >= FLOW_COLS) return [];
+  if (visited.has(key)) return [];
+  if (colorGrid[row][col] !== color || !color) return [];
+  visited.add(key);
+  let cells = [{r: row, c: col}];
+  cells = cells.concat(findConnected(row-1, col, color, visited));
+  cells = cells.concat(findConnected(row+1, col, color, visited));
+  cells = cells.concat(findConnected(row, col-1, color, visited));
+  cells = cells.concat(findConnected(row, col+1, color, visited));
+  return cells;
+}
+
+function handleColorClick(row, col) {
+  if (!colorGrid[row][col]) return;
+  const color = colorGrid[row][col];
+  const connected = findConnected(row, col, color);
+
+  if (connected.length < 3) {
+    showToast('Necesitas 3 o m\u00e1s colores iguales');
+    return;
+  }
+
+  // Clear cells
+  connected.forEach(({r, c}) => { colorGrid[r][c] = null; });
+  colorScore += connected.length * 10 + (connected.length > 5 ? 50 : 0);
+
+  // Gravity: drop cells down
+  for (let c = 0; c < FLOW_COLS; c++) {
+    let emptyRow = FLOW_ROWS - 1;
+    for (let r = FLOW_ROWS - 1; r >= 0; r--) {
+      if (colorGrid[r][c]) {
+        if (r !== emptyRow) {
+          colorGrid[emptyRow][c] = colorGrid[r][c];
+          colorGrid[r][c] = null;
+        }
+        emptyRow--;
+      }
+    }
+  }
+
+  localStorage.setItem('relajate_colors_' + getDayIndex(), JSON.stringify({
+    grid: colorGrid, score: colorScore
+  }));
+
+  // Update best
+  const best = parseInt(localStorage.getItem('relajate_colors_best') || '0');
+  if (colorScore > best) localStorage.setItem('relajate_colors_best', colorScore);
+
+  renderColorGame();
+}
+
+document.getElementById('resetColorsBtn').addEventListener('click', () => {
+  localStorage.removeItem('relajate_colors_' + getDayIndex());
+  initColorGame();
+});
+
+document.getElementById('shareColorsBtn').addEventListener('click', () => {
+  const best = localStorage.getItem('relajate_colors_best') || colorScore;
+  const text = `Relajate.com - Flujo de Colores\nPuntuaci\u00f3n: ${colorScore}\nMejor: ${best}\n\n\ud83c\udfa8 relajate.com`;
+  document.getElementById('colorShareText').style.display = 'block';
+  document.getElementById('colorShareText').textContent = text;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
+});
+
+// ==================== GAME 3: PATR\u00d3N ZEN ====================
+let patternState = { sequence: [], playerSeq: [], level: 1, playing: false, showing: false, gameOver: false, bestLevel: 1 };
+
+function initPatternGame() {
+  const best = parseInt(localStorage.getItem('relajate_pattern_best') || '1');
+  patternState = { sequence: [], playerSeq: [], level: 1, playing: false, showing: false, gameOver: false, bestLevel: best };
+
+  const grid = document.getElementById('patternGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'pattern-tile';
+    tile.dataset.idx = i;
+    tile.addEventListener('click', () => handlePatternClick(i));
+    grid.appendChild(tile);
+  }
+  document.getElementById('patternLevel').textContent = '1';
+  document.getElementById('patternInstruction').textContent = 'Pulsa "Comenzar" para iniciar';
+  document.getElementById('startPatternBtn').style.display = '';
+  document.getElementById('sharePatternBtn').style.display = 'none';
+}
+
+function startPatternRound() {
+  patternState.showing = true;
+  patternState.playerSeq = [];
+  patternState.sequence.push(Math.floor(Math.random() * 9));
+  document.getElementById('patternLevel').textContent = patternState.level;
+  document.getElementById('patternInstruction').textContent = 'Observa el patr\u00f3n...';
+  document.getElementById('startPatternBtn').style.display = 'none';
+
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= patternState.sequence.length) {
+      clearInterval(interval);
+      patternState.showing = false;
+      patternState.playing = true;
+      document.getElementById('patternInstruction').textContent = 'Tu turno: repite el patr\u00f3n';
+      return;
+    }
+    const tiles = document.querySelectorAll('.pattern-tile');
+    tiles[patternState.sequence[i]].classList.add('lit');
+    setTimeout(() => tiles[patternState.sequence[i]].classList.remove('lit'), 500);
+    i++;
+  }, 700);
+}
+
+function handlePatternClick(idx) {
+  if (!patternState.playing || patternState.showing || patternState.gameOver) return;
+
+  const tiles = document.querySelectorAll('.pattern-tile');
+  patternState.playerSeq.push(idx);
+  const seqIdx = patternState.playerSeq.length - 1;
+
+  if (patternState.sequence[seqIdx] !== idx) {
+    // Wrong
+    tiles[idx].classList.add('wrong-lit');
+    setTimeout(() => tiles[idx].classList.remove('wrong-lit'), 500);
+    patternState.gameOver = true;
+    patternState.playing = false;
+    document.getElementById('patternInstruction').textContent = `\u00a1Fin! Llegaste al nivel ${patternState.level}`;
+    document.getElementById('startPatternBtn').textContent = '\u21bb Reiniciar';
+    document.getElementById('startPatternBtn').style.display = '';
+    document.getElementById('sharePatternBtn').style.display = '';
+
+    if (patternState.level > patternState.bestLevel) {
+      localStorage.setItem('relajate_pattern_best', patternState.level);
+      patternState.bestLevel = patternState.level;
+    }
+    return;
+  }
+
+  tiles[idx].classList.add('success-lit');
+  setTimeout(() => tiles[idx].classList.remove('success-lit'), 300);
+
+  if (patternState.playerSeq.length === patternState.sequence.length) {
+    // Round complete
+    patternState.playing = false;
+    patternState.level++;
+    document.getElementById('patternInstruction').textContent = '\u00a1Correcto! Siguiente nivel...';
+
+    if (patternState.level > patternState.bestLevel) {
+      localStorage.setItem('relajate_pattern_best', patternState.level);
+      patternState.bestLevel = patternState.level;
+    }
+
+    if (patternState.level % 5 === 0) launchConfetti();
+
+    setTimeout(() => startPatternRound(), 1200);
+  }
+}
+
+document.getElementById('startPatternBtn').addEventListener('click', () => {
+  if (patternState.gameOver) {
+    patternState.sequence = [];
+    patternState.level = 1;
+    patternState.gameOver = false;
+    document.getElementById('startPatternBtn').textContent = '\u25b6 Comenzar';
+    document.getElementById('sharePatternBtn').style.display = 'none';
+  }
+  startPatternRound();
+});
+
+document.getElementById('sharePatternBtn').addEventListener('click', () => {
+  const text = `Relajate.com - Patr\u00f3n Zen\nNivel alcanzado: ${patternState.level}\nMejor nivel: ${patternState.bestLevel}\n\n\ud83e\udde0 relajate.com`;
+  document.getElementById('patternShareText').style.display = 'block';
+  document.getElementById('patternShareText').textContent = text;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
+  incrementGamesCompleted();
+});
+
+// Init all games
+initWordGame();
+initColorGame();
+initPatternGame();
+</script>
+</body>
+</html>

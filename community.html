@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunidad - Relajate.com</title>
+  <meta name="description" content="&Uacute;nete a la comunidad Relajate. Desaf&iacute;os diarios, tabla de rachas y comparte tu momento zen.">
+  <meta name="theme-color" content="#6B9BD2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .community-page { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .community-hero {
+      text-align: center; padding: 2rem; margin-bottom: 2rem;
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+    }
+    .community-hero h2 { margin-bottom: 0.5rem; }
+    .community-hero p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem; }
+    .community-stats {
+      display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;
+    }
+    .community-stat { text-align: center; }
+    .community-stat .num { font-size: 2rem; font-weight: 800; color: var(--blue-dark); }
+    .community-stat .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    .section-heading {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; margin-top: 2.5rem;
+    }
+    .section-heading h3 { font-size: 1.3rem; }
+
+    .challenge-progress {
+      height: 6px; background: var(--gray-200); border-radius: 3px;
+      margin-top: 0.5rem; overflow: hidden;
+    }
+    .challenge-progress .fill {
+      height: 100%; border-radius: 3px; transition: width var(--transition-slow);
+    }
+
+    .share-section {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 2rem; border: 1px solid var(--border-color); text-align: center;
+    }
+    .share-section textarea {
+      width: 100%; min-height: 80px; padding: 1rem;
+      border: 2px solid var(--border-color); border-radius: var(--radius-md);
+      font-family: var(--font-body); font-size: 1rem; resize: vertical;
+      background: var(--bg-primary); color: var(--text-primary);
+      margin: 1rem 0;
+    }
+    .share-section textarea:focus { outline: none; border-color: var(--blue); }
+
+    .shared-moments {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem; margin-top: 1.5rem; text-align: left;
+    }
+    .moment-card {
+      background: var(--bg-card); border-radius: var(--radius-md);
+      padding: 1.25rem; border: 1px solid var(--border-color);
+    }
+    .moment-card .user {
+      font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .moment-card .user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; color: white; font-weight: 700;
+    }
+    .moment-card .moment-text {
+      color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;
+    }
+    .moment-card .moment-time {
+      font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;
+    }
+
+    .newsletter-section {
+      background: linear-gradient(135deg, var(--blue), var(--lavender));
+      border-radius: var(--radius-lg); padding: 2.5rem; text-align: center;
+      color: white; margin-top: 2.5rem;
+    }
+    .newsletter-section h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .newsletter-section p { opacity: 0.9; margin-bottom: 1.5rem; max-width: 450px; margin-left: auto; margin-right: auto; }
+    .newsletter-form {
+      display: flex; gap: 0.5rem; max-width: 400px; margin: 0 auto;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .newsletter-form input {
+      flex: 1; min-width: 200px; padding: 0.75rem 1rem;
+      border: 2px solid rgba(255,255,255,0.3); border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.15); color: white; font-size: 1rem;
+    }
+    .newsletter-form input::placeholder { color: rgba(255,255,255,0.6); }
+    .newsletter-form input:focus { outline: none; border-color: rgba(255,255,255,0.6); }
+    .newsletter-form button {
+      padding: 0.75rem 1.75rem; border-radius: var(--radius-full);
+      background: white; color: var(--blue-dark); font-weight: 700;
+      border: none; cursor: pointer; font-size: 1rem;
+      transition: all var(--transition-fast);
+    }
+    .newsletter-form button:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .social-grid {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .social-card {
+      background: var(--bg-card); border-radius: var(--radius-md);
+      padding: 1.25rem 2rem; border: 1px solid var(--border-color);
+      text-align: center; transition: all var(--transition-fast);
+      cursor: pointer; min-width: 140px;
+    }
+    .social-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .social-card .icon { font-size: 2rem; margin-bottom: 0.35rem; }
+    .social-card .name { font-weight: 600; font-size: 0.9rem; }
+    .social-card .handle { font-size: 0.8rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">Relajate.com</a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html" class="active">Comunidad</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Comunidad Relajate</h1>
+    <p>Comparte, inspira y crece junto a otros que buscan bienestar</p>
+  </div>
+
+  <div class="community-page">
+    <!-- Community Overview -->
+    <div class="community-hero">
+      <h2>Bienvenido/a a la Comunidad</h2>
+      <p>Miles de personas hacen su pausa diaria con Relajate. &Uacute;nete al movimiento de bienestar digital.</p>
+      <div class="community-stats">
+        <div class="community-stat">
+          <div class="num">12,847</div>
+          <div class="label">Miembros activos</div>
+        </div>
+        <div class="community-stat">
+          <div class="num">89,234</div>
+          <div class="label">Sesiones completadas</div>
+        </div>
+        <div class="community-stat">
+          <div class="num">1,456</div>
+          <div class="label">Rachas activas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Challenges -->
+    <div class="section-heading">
+      <h3>&#127919; Desaf&iacute;os del D&iacute;a</h3>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-icon">&#129693;</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;">Completa 3 ejercicios de respiraci&oacute;n</div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);">Respira profundo y encuentra tu calma interior</div>
+        <div class="challenge-progress"><div class="fill" id="breathChallenge" style="width:0%;background:var(--lavender);"></div></div>
+      </div>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-icon">&#127918;</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;">Juega los 3 juegos diarios</div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);">Ejercita tu mente con nuestros puzzles relajantes</div>
+        <div class="challenge-progress"><div class="fill" id="gameChallenge" style="width:0%;background:var(--blue);"></div></div>
+      </div>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-icon">&#128221;</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;">Escribe en tu micro diario</div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);">Reflexiona sobre tu d&iacute;a en 280 caracteres</div>
+        <div class="challenge-progress"><div class="fill" id="journalChallenge" style="width:0%;background:var(--sage);"></div></div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-heading">
+      <h3>&#127942; Tabla de Rachas</h3>
+    </div>
+
+    <div style="background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border-color);overflow:hidden;">
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank gold">1</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Mar&iacute;a G.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Ciudad de M&eacute;xico</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 127 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank silver">2</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Carlos R.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Buenos Aires</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 98 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank bronze">3</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Luc&iacute;a P.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Madrid</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 85 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank">4</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Andr&eacute;s M.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Bogot&aacute;</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 72 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank">5</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Valentina S.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Santiago</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 64 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank">6</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Diego L.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Lima</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 51 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="leaderboard-rank">7</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">Sof&iacute;a T.</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Barcelona</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);">&#128293; 43 d&iacute;as</div>
+      </div>
+      <div class="leaderboard-item" id="userRank" style="background:rgba(107,155,210,0.05);">
+        <div class="leaderboard-rank" style="background:var(--blue);color:white;">--</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;">T&uacute;</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Tu racha actual</div>
+        </div>
+        <div style="font-weight:700;color:var(--blue-dark);" id="userStreakDisplay">&#128293; 0 d&iacute;as</div>
+      </div>
+    </div>
+
+    <!-- Share Your Zen Moment -->
+    <div class="section-heading">
+      <h3>&#127804; Comparte tu Momento Zen</h3>
+    </div>
+
+    <div class="share-section">
+      <p style="color:var(--text-secondary);">Comparte con la comunidad qu&eacute; te ayud&oacute; a relajarte hoy</p>
+      <textarea id="zenMoment" placeholder="Hoy encontr&eacute; mi calma cuando..." maxlength="200"></textarea>
+      <button class="btn btn-solid" id="shareZenBtn">Compartir</button>
+
+      <div class="shared-moments" id="sharedMoments">
+        <div class="moment-card">
+          <div class="user">
+            <div class="avatar" style="background:var(--blue);">A</div>
+            Ana L.
+          </div>
+          <div class="moment-text">Hoy el ejercicio de respiraci&oacute;n 4-7-8 me ayud&oacute; a calmar mis nervios antes de una presentaci&oacute;n. &#127793;</div>
+          <div class="moment-time">Hace 2 horas</div>
+        </div>
+        <div class="moment-card">
+          <div class="user">
+            <div class="avatar" style="background:var(--lavender);">R</div>
+            Roberto F.
+          </div>
+          <div class="moment-text">El juego de Conecta Palabras es mi ritual de la ma&ntilde;ana con el caf&eacute;. Me encanta empezar el d&iacute;a as&iacute;.</div>
+          <div class="moment-time">Hace 4 horas</div>
+        </div>
+        <div class="moment-card">
+          <div class="user">
+            <div class="avatar" style="background:var(--sage);">P</div>
+            Patricia M.
+          </div>
+          <div class="moment-text">Escribir en el micro diario me ayuda a procesar mis emociones. Llevo 30 d&iacute;as seguidos. &#128170;</div>
+          <div class="moment-time">Hace 5 horas</div>
+        </div>
+        <div class="moment-card">
+          <div class="user">
+            <div class="avatar" style="background:#e67e22;">J</div>
+            Javier D.
+          </div>
+          <div class="moment-text">La respiraci&oacute;n cuadrada me salv&oacute; en medio del tr&aacute;fico. 4 segundos de paz hacen la diferencia.</div>
+          <div class="moment-time">Hace 7 horas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Links -->
+    <div class="section-heading">
+      <h3>&#128241; S&iacute;guenos</h3>
+    </div>
+
+    <div class="social-grid">
+      <a href="#" class="social-card">
+        <div class="icon">&#128247;</div>
+        <div class="name">Instagram</div>
+        <div class="handle">@relajate.com</div>
+      </a>
+      <a href="#" class="social-card">
+        <div class="icon">&#128038;</div>
+        <div class="name">Twitter / X</div>
+        <div class="handle">@relajatecom</div>
+      </a>
+      <a href="#" class="social-card">
+        <div class="icon">&#127909;</div>
+        <div class="name">TikTok</div>
+        <div class="handle">@relajate.com</div>
+      </a>
+      <a href="#" class="social-card">
+        <div class="icon">&#128101;</div>
+        <div class="name">Facebook</div>
+        <div class="handle">Relajate.com</div>
+      </a>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="newsletter-section">
+      <h3>&#128232; Recibe tu Dosis de Calma</h3>
+      <p>Tips de bienestar, nuevos juegos y ejercicios cada semana directo a tu correo.</p>
+      <div class="newsletter-form">
+        <input type="email" id="emailInput" placeholder="tu@correo.com">
+        <button id="subscribeBtn">Suscribirme</button>
+      </div>
+      <div id="subscribeMsg" style="margin-top:0.75rem;font-size:0.9rem;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);">Tu pausa digital diaria.</p>
+      </div>
+      <div>
+        <h4>Navegar</h4>
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Relajate.com</div>
+  </footer>
+
+<script>
+// Nav
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Load challenge progress
+function loadProgress() {
+  const breathSessions = parseInt(localStorage.getItem('relajate_breath_sessions') || '0');
+  const gamesCompleted = parseInt(localStorage.getItem('relajate_games_completed') || '0');
+  const entries = JSON.parse(localStorage.getItem('relajate_journal_entries') || '[]');
+  const today = new Date().toISOString().split('T')[0];
+  const hasJournal = entries.some(e => e.date === today);
+
+  document.getElementById('breathChallenge').style.width = Math.min(breathSessions / 3 * 100, 100) + '%';
+  document.getElementById('gameChallenge').style.width = Math.min(gamesCompleted / 3 * 100, 100) + '%';
+  document.getElementById('journalChallenge').style.width = hasJournal ? '100%' : '0%';
+
+  // User streak
+  const streak = JSON.parse(localStorage.getItem('relajate_streak') || '{"count":0}');
+  document.getElementById('userStreakDisplay').innerHTML = '&#128293; ' + streak.count + ' d\u00edas';
+}
+loadProgress();
+
+// Share zen moment
+document.getElementById('shareZenBtn').addEventListener('click', () => {
+  const text = document.getElementById('zenMoment').value.trim();
+  if (!text) {
+    showToast('Escribe algo para compartir');
+    return;
+  }
+
+  const container = document.getElementById('sharedMoments');
+  const card = document.createElement('div');
+  card.className = 'moment-card';
+  card.style.animation = 'fadeInUp 0.4s ease';
+  card.innerHTML = `
+    <div class="user">
+      <div class="avatar" style="background:var(--blue-dark);">T</div>
+      T\u00fa
+    </div>
+    <div class="moment-text">${text}</div>
+    <div class="moment-time">Ahora mismo</div>
+  `;
+  container.insertBefore(card, container.firstChild);
+  document.getElementById('zenMoment').value = '';
+  showToast('\u00a1Momento zen compartido!');
+});
+
+// Newsletter
+document.getElementById('subscribeBtn').addEventListener('click', () => {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    showToast('Ingresa un correo v\u00e1lido');
+    return;
+  }
+  const msg = document.getElementById('subscribeMsg');
+  msg.style.display = 'block';
+  msg.textContent = '\u00a1Gracias! Te enviamos un correo de confirmaci\u00f3n.';
+  document.getElementById('emailInput').value = '';
+  showToast('\u00a1Suscripci\u00f3n exitosa!');
+});
+</script>
+</body>
+</html>

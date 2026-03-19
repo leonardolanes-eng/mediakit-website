@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relajate.com - Tu Pausa Digital | Juegos, Respiraci&oacute;n y Bienestar</title>
+  <meta name="description" content="Relajate.com es tu espacio digital para relajarte con juegos interactivos, ejercicios de respiraci&oacute;n guiados y un micro diario personal. Tu pausa digital diaria.">
+  <meta name="keywords" content="relajaci&oacute;n, bienestar, juegos relajantes, ejercicios de respiraci&oacute;n, diario personal, mindfulness, meditaci&oacute;n, salud mental">
+  <meta name="author" content="Relajate.com">
+  <meta name="theme-color" content="#6B9BD2">
+  <meta property="og:title" content="Relajate.com - Tu Pausa Digital">
+  <meta property="og:description" content="Juegos relajantes, ejercicios de respiraci&oacute;n y micro diario. Tu momento de calma diario.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://relajate.com">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">Relajate.com</a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="#inicio" class="active">Inicio</a>
+        <a href="#funciones">Funciones</a>
+        <a href="#comunidad">Comunidad</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Diario</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="inicio">
+    <div class="floating-shapes" id="floatingShapes"></div>
+    <div class="hero-content">
+      <div class="streak-badge" id="streakBadge" style="margin-bottom:1.5rem;">
+        <span class="fire">&#128293;</span>
+        <span id="streakCount">0</span> d&iacute;as de racha
+      </div>
+      <h1>Relajate.com</h1>
+      <p class="subtitle">Tu Pausa Digital &mdash; Juegos, respiraci&oacute;n y reflexi&oacute;n para tu bienestar diario</p>
+      <div class="cta-group">
+        <a href="games.html" class="btn btn-primary btn-lg">Jugar Ahora</a>
+        <a href="breathing.html" class="btn btn-secondary btn-lg">Respirar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="funciones">
+    <h2 class="section-title">Tu momento de calma diario</h2>
+    <p class="section-subtitle">Tres herramientas dise&ntilde;adas para ayudarte a relajarte, reflexionar y recargar energ&iacute;a.</p>
+    <div class="card-grid">
+      <!-- Games Card -->
+      <div class="card animate-on-scroll">
+        <div class="card-icon blue">&#127918;</div>
+        <h3>Juegos R&aacute;pidos</h3>
+        <p>Tres juegos diarios dise&ntilde;ados para relajarte mientras ejercitas tu mente. Conecta palabras, combina colores y memoriza patrones.</p>
+        <a href="games.html" class="card-link">Jugar ahora &rarr;</a>
+      </div>
+      <!-- Breathing Card -->
+      <div class="card animate-on-scroll">
+        <div class="card-icon lavender">&#129693;</div>
+        <h3>Ejercicios de Respiraci&oacute;n</h3>
+        <p>Gu&iacute;as visuales interactivas para t&eacute;cnicas de respiraci&oacute;n comprobadas: 4-7-8, cuadrada y consciente. Reduce el estr&eacute;s en minutos.</p>
+        <a href="breathing.html" class="card-link">Respirar ahora &rarr;</a>
+      </div>
+      <!-- Journal Card -->
+      <div class="card animate-on-scroll">
+        <div class="card-icon sage">&#128221;</div>
+        <h3>Micro Diario</h3>
+        <p>Reflexiona en 280 caracteres. Un prompt diario, selector de estado de &aacute;nimo y calendario de entradas. Tu espacio seguro de reflexi&oacute;n.</p>
+        <a href="journal.html" class="card-link">Escribir ahora &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daily Stats -->
+  <section class="section" style="background:var(--gray-50);border-radius:var(--radius-xl);max-width:900px;margin:0 auto 3rem;">
+    <h2 class="section-title">Tu Progreso</h2>
+    <p class="section-subtitle">Mant&eacute;n tu racha diaria visitando Relajate.com cada d&iacute;a</p>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));text-align:center;">
+      <div class="card">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statStreak">0</div>
+        <div style="color:var(--text-secondary);font-weight:600;">D&iacute;as de racha</div>
+      </div>
+      <div class="card">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statGames">0</div>
+        <div style="color:var(--text-secondary);font-weight:600;">Juegos completados</div>
+      </div>
+      <div class="card">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statBreath">0</div>
+        <div style="color:var(--text-secondary);font-weight:600;">Sesiones de respiraci&oacute;n</div>
+      </div>
+      <div class="card">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statJournal">0</div>
+        <div style="color:var(--text-secondary);font-weight:600;">Entradas de diario</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community CTA -->
+  <section class="section" id="comunidad">
+    <h2 class="section-title">Comunidad Relajate</h2>
+    <p class="section-subtitle">&Uacute;nete a miles de personas que hacen una pausa diaria para su bienestar mental.</p>
+    <div style="text-align:center;">
+      <a href="community.html" class="btn btn-solid btn-lg">Explorar Comunidad</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);margin-bottom:1rem;">Tu pausa digital diaria para el bienestar mental.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram">&#128247;</a>
+          <a href="#" aria-label="Twitter">&#128038;</a>
+          <a href="#" aria-label="Facebook">&#128101;</a>
+        </div>
+      </div>
+      <div>
+        <h4>Funciones</h4>
+        <a href="games.html">Juegos R&aacute;pidos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html">Micro Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+      <div>
+        <h4>Recursos</h4>
+        <a href="#">Sobre Nosotros</a>
+        <a href="#">Pol&iacute;tica de Privacidad</a>
+        <a href="#">T&eacute;rminos de Uso</a>
+        <a href="#">Contacto</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 Relajate.com &mdash; Hecho con &#10084;&#65039; para tu bienestar
+    </div>
+  </footer>
+
+  <script>
+    // --- Nav toggle ---
+    document.getElementById('navToggle').addEventListener('click', () => {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    // Close nav on link click (mobile)
+    document.querySelectorAll('.navbar-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+
+    // --- Floating shapes ---
+    (function createShapes() {
+      const container = document.getElementById('floatingShapes');
+      const colors = ['#6B9BD2','#9B8EC4','#87AE73','#A3C4E8','#C4B8E0'];
+      for (let i = 0; i < 15; i++) {
+        const span = document.createElement('span');
+        const size = Math.random() * 60 + 20;
+        span.style.width = size + 'px';
+        span.style.height = size + 'px';
+        span.style.left = Math.random() * 100 + '%';
+        span.style.background = colors[Math.floor(Math.random() * colors.length)];
+        span.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        span.style.animationDelay = (Math.random() * 10) + 's';
+        container.appendChild(span);
+      }
+    })();
+
+    // --- Streak logic ---
+    function updateStreak() {
+      const today = new Date().toISOString().split('T')[0];
+      let streak = JSON.parse(localStorage.getItem('relajate_streak') || '{"count":0,"lastDate":""}');
+      const lastDate = streak.lastDate;
+
+      if (lastDate === today) {
+        // Already visited today
+      } else {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (lastDate === yesterdayStr) {
+          streak.count++;
+        } else {
+          streak.count = 1;
+        }
+        streak.lastDate = today;
+        localStorage.setItem('relajate_streak', JSON.stringify(streak));
+      }
+
+      document.getElementById('streakCount').textContent = streak.count;
+      document.getElementById('statStreak').textContent = streak.count;
+      return streak.count;
+    }
+    updateStreak();
+
+    // --- Load stats ---
+    function loadStats() {
+      const games = parseInt(localStorage.getItem('relajate_games_completed') || '0');
+      const breath = parseInt(localStorage.getItem('relajate_breath_sessions') || '0');
+      const entries = JSON.parse(localStorage.getItem('relajate_journal_entries') || '[]');
+      document.getElementById('statGames').textContent = games;
+      document.getElementById('statBreath').textContent = breath;
+      document.getElementById('statJournal').textContent = entries.length;
+    }
+    loadStats();
+
+    // --- Scroll animations ---
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+    // --- Register SW ---
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

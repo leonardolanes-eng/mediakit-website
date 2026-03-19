@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Micro Diario - Relajate.com</title>
+  <meta name="description" content="Tu micro diario personal. Reflexiona en 280 caracteres, registra tu estado de &aacute;nimo y construye el h&aacute;bito de la gratitud diaria.">
+  <meta name="theme-color" content="#87AE73">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .journal-page { max-width: 700px; margin: 0 auto; padding: 2rem 1rem; }
+    .prompt-card {
+      background: linear-gradient(135deg, var(--sage), var(--blue));
+      border-radius: var(--radius-lg); padding: 2rem; color: white;
+      text-align: center; margin-bottom: 2rem; position: relative; overflow: hidden;
+    }
+    .prompt-card::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 120px; height: 120px; border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+    .prompt-card .prompt-label {
+      font-size: 0.85rem; opacity: 0.85; margin-bottom: 0.5rem;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .prompt-card .prompt-text {
+      font-size: 1.3rem; font-weight: 700; font-family: var(--font-heading);
+      line-height: 1.4;
+    }
+    .prompt-card .prompt-date {
+      font-size: 0.8rem; opacity: 0.7; margin-top: 0.75rem;
+    }
+
+    .entry-form {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 1.5rem; border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm); margin-bottom: 2rem;
+    }
+
+    .gratitude-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: rgba(135,174,115,0.1); border: 2px solid var(--sage);
+      border-radius: var(--radius-full); padding: 0.6rem 1.25rem;
+      color: var(--sage-dark); font-weight: 600; cursor: pointer;
+      transition: all var(--transition-fast); margin: 0.75rem 0;
+    }
+    .gratitude-btn:hover { background: rgba(135,174,115,0.2); }
+
+    .journal-tabs {
+      display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+    }
+    .journal-tab {
+      padding: 0.6rem 1.25rem; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-weight: 600; color: var(--text-secondary); cursor: pointer;
+      transition: all var(--transition-fast); font-size: 0.9rem;
+    }
+    .journal-tab:hover, .journal-tab.active {
+      border-color: var(--sage); color: var(--sage-dark);
+      background: rgba(135,174,115,0.08);
+    }
+
+    .calendar-section {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 1.5rem; border: 1px solid var(--border-color); margin-bottom: 2rem;
+    }
+    .calendar-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem;
+    }
+    .calendar-nav h4 { font-size: 1.1rem; }
+    .calendar-nav button {
+      background: none; border: none; font-size: 1.2rem; cursor: pointer;
+      color: var(--text-secondary); padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm); transition: background var(--transition-fast);
+    }
+    .calendar-nav button:hover { background: var(--gray-100); }
+
+    .entries-list { margin-top: 1rem; }
+    .no-entries {
+      text-align: center; padding: 2rem; color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .entry-detail-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; padding: 1rem;
+    }
+    .entry-detail {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 2rem; max-width: 480px; width: 100%; box-shadow: var(--shadow-xl);
+      animation: fadeInUp 0.3s ease;
+    }
+
+    .streak-info {
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(135,174,115,0.08); border: 1px solid rgba(135,174,115,0.2);
+      border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;
+    }
+    .streak-info .streak-num {
+      font-size: 2rem; font-weight: 800; color: var(--sage-dark);
+    }
+    .streak-info .streak-label {
+      font-size: 0.9rem; color: var(--text-secondary);
+    }
+
+    .export-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--text-secondary); font-size: 0.85rem; background: none;
+      border: 1px solid var(--border-color); border-radius: var(--radius-full);
+      padding: 0.4rem 1rem; cursor: pointer; transition: all var(--transition-fast);
+    }
+    .export-btn:hover { border-color: var(--blue); color: var(--blue-dark); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">Relajate.com</a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="journal.html" class="active">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header" style="background:linear-gradient(135deg,#87AE73 0%,#6B9BD2 50%,#9B8EC4 100%);">
+    <h1>Micro Diario</h1>
+    <p>Reflexiona, agradece y crece &mdash; en 280 caracteres</p>
+  </div>
+
+  <div class="journal-page">
+    <!-- Streak -->
+    <div class="streak-info">
+      <div>
+        <div class="streak-num" id="journalStreak">0</div>
+      </div>
+      <div>
+        <div style="font-weight:600;color:var(--text-primary);">D&iacute;as escribiendo</div>
+        <div class="streak-label">Mant&eacute;n tu racha escribiendo cada d&iacute;a</div>
+      </div>
+    </div>
+
+    <!-- Daily Prompt -->
+    <div class="prompt-card">
+      <div class="prompt-label">Prompt del d&iacute;a</div>
+      <div class="prompt-text" id="dailyPrompt"></div>
+      <div class="prompt-date" id="promptDate"></div>
+    </div>
+
+    <!-- Entry Form -->
+    <div class="entry-form" id="entryForm">
+      <h3 style="margin-bottom:0.75rem;">Tu reflexi&oacute;n de hoy</h3>
+
+      <label style="font-weight:600;font-size:0.9rem;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">
+        &iquest;C&oacute;mo te sientes?
+      </label>
+      <div class="mood-selector" id="moodSelector">
+        <button class="mood-btn" data-mood="happy" title="Feliz">&#128522;</button>
+        <button class="mood-btn" data-mood="neutral" title="Normal">&#128528;</button>
+        <button class="mood-btn" data-mood="sad" title="Triste">&#128532;</button>
+        <button class="mood-btn" data-mood="angry" title="Frustrado/a">&#128548;</button>
+        <button class="mood-btn" data-mood="tired" title="Cansado/a">&#128564;</button>
+        <button class="mood-btn" data-mood="loved" title="Agradecido/a">&#129392;</button>
+      </div>
+
+      <textarea class="journal-input" id="journalText" placeholder="Escribe tu reflexi&oacute;n aqu&iacute;..." maxlength="280"></textarea>
+      <div class="char-counter" id="charCounter">0 / 280</div>
+
+      <button class="gratitude-btn" id="gratitudeBtn">&#128154; A&ntilde;adir gratitud r&aacute;pida</button>
+
+      <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+        <button class="btn btn-solid" id="saveEntryBtn">Guardar entrada</button>
+      </div>
+
+      <div id="savedMsg" style="display:none;text-align:center;margin-top:1rem;color:var(--sage-dark);font-weight:600;"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+      <div class="journal-tabs">
+        <button class="journal-tab active" data-view="calendar">Calendario</button>
+        <button class="journal-tab" data-view="list">Entradas</button>
+      </div>
+      <button class="export-btn" id="exportBtn">&#128229; Exportar</button>
+    </div>
+
+    <!-- Calendar View -->
+    <div id="calendarView" class="calendar-section">
+      <div class="calendar-nav">
+        <button id="prevMonth">&larr;</button>
+        <h4 id="calendarTitle"></h4>
+        <button id="nextMonth">&rarr;</button>
+      </div>
+      <div class="calendar-header-row">
+        <span>Lun</span><span>Mar</span><span>Mi&eacute;</span><span>Jue</span>
+        <span>Vie</span><span>S&aacute;b</span><span>Dom</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <!-- List View -->
+    <div id="listView" style="display:none;">
+      <div class="entries-list" id="entriesList"></div>
+    </div>
+  </div>
+
+  <!-- Entry detail overlay -->
+  <div id="entryOverlay" style="display:none;"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);">Tu pausa digital diaria.</p>
+      </div>
+      <div>
+        <h4>Navegar</h4>
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Relajate.com</div>
+  </footer>
+
+<script>
+// Nav
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== PROMPTS ====================
+const prompts = [
+  '\u00bfQu\u00e9 te hizo sonre\u00edr hoy?',
+  'Describe tu momento favorito del d\u00eda.',
+  '\u00bfPor qu\u00e9 est\u00e1s agradecido/a hoy?',
+  '\u00bfQu\u00e9 aprendiste hoy sobre ti mismo/a?',
+  'Si pudieras revivir un momento de hoy, \u00bfcu\u00e1l ser\u00eda?',
+  '\u00bfQu\u00e9 te dio energ\u00eda hoy?',
+  'Describe algo hermoso que viste hoy.',
+  '\u00bfQu\u00e9 har\u00edas diferente ma\u00f1ana?',
+  '\u00bfQui\u00e9n te hizo sentir especial hoy?',
+  'Escribe una cosa que te haga feliz ahora mismo.',
+  '\u00bfQu\u00e9 peque\u00f1o logro celebras hoy?',
+  '\u00bfC\u00f3mo cuidaste tu bienestar hoy?',
+  'Describe c\u00f3mo te sientes en este momento con una palabra.',
+  '\u00bfQu\u00e9 consejo le dar\u00edas a tu yo de esta ma\u00f1ana?',
+  'Menciona tres cosas buenas de tu d\u00eda.',
+  '\u00bfQu\u00e9 te inspir\u00f3 hoy?',
+  '\u00bfQu\u00e9 es lo m\u00e1s amable que hiciste o recibiste hoy?',
+  'Si tu d\u00eda fuera una canci\u00f3n, \u00bfcu\u00e1l ser\u00eda?',
+  '\u00bfQu\u00e9 te gustar\u00eda soltar o dejar ir?',
+  '\u00bfQu\u00e9 te hace sentir en paz?',
+  'Describe un sonido que te relaj\u00f3 hoy.',
+  '\u00bfQu\u00e9 comida disfrutaste m\u00e1s hoy?',
+  '\u00bfQu\u00e9 palabra describe mejor tu semana?',
+  'Escribe algo que esperas con ilusi\u00f3n.',
+  '\u00bfQu\u00e9 habilidad te gustar\u00eda desarrollar?',
+  '\u00bfCu\u00e1l fue tu pensamiento m\u00e1s positivo hoy?',
+  'Describe tu lugar seguro ideal.',
+  '\u00bfQu\u00e9 relaci\u00f3n valoras m\u00e1s y por qu\u00e9?',
+  '\u00bfQu\u00e9 te hace \u00fanico/a?',
+  'Si pudieras enviar un mensaje al futuro, \u00bfqu\u00e9 dir\u00eda?',
+  '\u00bfQu\u00e9 momento de calma tuviste hoy?',
+  '\u00bfQu\u00e9 color representa tu d\u00eda y por qu\u00e9?',
+  'Describe algo por lo que sientes curiosidad.',
+  '\u00bfC\u00f3mo te gustar\u00eda sentirte ma\u00f1ana?',
+  '\u00bfQu\u00e9 peque\u00f1a aventura viviste hoy?'
+];
+
+const moodEmojis = {
+  happy: '\ud83d\ude0a',
+  neutral: '\ud83d\ude10',
+  sad: '\ud83d\ude14',
+  angry: '\ud83d\ude24',
+  tired: '\ud83d\ude34',
+  loved: '\ud83e\udd70'
+};
+
+const gratitudes = [
+  'Agradezco mi salud.',
+  'Agradezco a mi familia.',
+  'Agradezco este momento de paz.',
+  'Agradezco poder respirar con calma.',
+  'Agradezco las peque\u00f1as cosas.',
+  'Agradezco un nuevo d\u00eda.',
+  'Agradezco la naturaleza.',
+  'Agradezco las personas que me rodean.',
+  'Agradezco poder aprender cada d\u00eda.',
+  'Agradezco este espacio para reflexionar.'
+];
+
+// ==================== STATE ====================
+let selectedMood = null;
+let calendarMonth, calendarYear;
+
+function getToday() { return new Date().toISOString().split('T')[0]; }
+function getDayIndex() {
+  const now = new Date();
+  const start = new Date(2024, 0, 1);
+  return Math.floor((now - start) / 86400000);
+}
+
+function getEntries() {
+  return JSON.parse(localStorage.getItem('relajate_journal_entries') || '[]');
+}
+function saveEntries(entries) {
+  localStorage.setItem('relajate_journal_entries', JSON.stringify(entries));
+}
+
+// ==================== INIT ====================
+function init() {
+  // Daily prompt
+  const dayIdx = getDayIndex();
+  const prompt = prompts[dayIdx % prompts.length];
+  document.getElementById('dailyPrompt').textContent = prompt;
+
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('promptDate').textContent = now.toLocaleDateString('es-ES', options);
+
+  calendarMonth = now.getMonth();
+  calendarYear = now.getFullYear();
+
+  // Check if already wrote today
+  const entries = getEntries();
+  const todayEntry = entries.find(e => e.date === getToday());
+  if (todayEntry) {
+    showSavedState(todayEntry);
+  }
+
+  updateStreak();
+  renderCalendar();
+  renderEntries();
+
+  // Char counter
+  document.getElementById('journalText').addEventListener('input', updateCharCounter);
+}
+
+function updateCharCounter() {
+  const text = document.getElementById('journalText');
+  const counter = document.getElementById('charCounter');
+  const len = text.value.length;
+  counter.textContent = `${len} / 280`;
+  counter.className = 'char-counter' + (len > 250 ? (len > 270 ? ' danger' : ' warning') : '');
+}
+
+// ==================== MOOD ====================
+document.querySelectorAll('.mood-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMood = btn.dataset.mood;
+  });
+});
+
+// ==================== GRATITUDE ====================
+document.getElementById('gratitudeBtn').addEventListener('click', () => {
+  const textarea = document.getElementById('journalText');
+  const g = gratitudes[Math.floor(Math.random() * gratitudes.length)];
+  const newVal = textarea.value ? textarea.value + ' ' + g : g;
+  if (newVal.length <= 280) {
+    textarea.value = newVal;
+    updateCharCounter();
+    showToast('\u00a1Gratitud a\u00f1adida!');
+  } else {
+    showToast('No hay espacio suficiente');
+  }
+});
+
+// ==================== SAVE ====================
+document.getElementById('saveEntryBtn').addEventListener('click', () => {
+  const text = document.getElementById('journalText').value.trim();
+  if (!text) {
+    showToast('Escribe algo antes de guardar');
+    return;
+  }
+  if (!selectedMood) {
+    showToast('Selecciona tu estado de \u00e1nimo');
+    return;
+  }
+
+  const entries = getEntries();
+  const today = getToday();
+
+  // Remove existing entry for today if any
+  const idx = entries.findIndex(e => e.date === today);
+  if (idx >= 0) entries.splice(idx, 1);
+
+  const entry = {
+    date: today,
+    text: text,
+    mood: selectedMood,
+    prompt: document.getElementById('dailyPrompt').textContent,
+    timestamp: new Date().toISOString()
+  };
+
+  entries.push(entry);
+  saveEntries(entries);
+
+  showSavedState(entry);
+  updateStreak();
+  renderCalendar();
+  renderEntries();
+  showToast('\u00a1Entrada guardada!');
+});
+
+function showSavedState(entry) {
+  const msg = document.getElementById('savedMsg');
+  msg.style.display = 'block';
+  msg.innerHTML = `${moodEmojis[entry.mood]} Entrada guardada &mdash; <em>"${entry.text.substring(0, 50)}${entry.text.length > 50 ? '...' : ''}"</em>`;
+
+  document.getElementById('journalText').value = entry.text;
+  selectedMood = entry.mood;
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.mood === entry.mood);
+  });
+  updateCharCounter();
+}
+
+// ==================== STREAK ====================
+function updateStreak() {
+  const entries = getEntries();
+  if (entries.length === 0) {
+    document.getElementById('journalStreak').textContent = '0';
+    return;
+  }
+
+  // Sort by date descending
+  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+  let streak = 0;
+  let checkDate = new Date();
+  checkDate.setHours(0, 0, 0, 0);
+
+  // If no entry today, start from yesterday
+  const todayStr = getToday();
+  if (!sorted.find(e => e.date === todayStr)) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  for (let i = 0; i < 365; i++) {
+    const dateStr = checkDate.toISOString().split('T')[0];
+    if (sorted.find(e => e.date === dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  document.getElementById('journalStreak').textContent = streak;
+}
+
+// ==================== CALENDAR ====================
+const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+document.getElementById('prevMonth').addEventListener('click', () => {
+  calendarMonth--;
+  if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+  renderCalendar();
+});
+
+document.getElementById('nextMonth').addEventListener('click', () => {
+  calendarMonth++;
+  if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+  renderCalendar();
+});
+
+function renderCalendar() {
+  document.getElementById('calendarTitle').textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  const entries = getEntries();
+  const today = getToday();
+
+  const firstDay = new Date(calendarYear, calendarMonth, 1);
+  let startDay = firstDay.getDay() - 1; // Monday = 0
+  if (startDay < 0) startDay = 6;
+
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+  // Empty cells before first day
+  for (let i = 0; i < startDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day empty';
+    grid.appendChild(cell);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const hasEntry = entries.find(e => e.date === dateStr);
+    const isToday = dateStr === today;
+
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day' + (hasEntry ? ' has-entry' : '') + (isToday ? ' today' : '');
+    cell.textContent = d;
+
+    if (hasEntry) {
+      cell.title = `${moodEmojis[hasEntry.mood]} ${hasEntry.text.substring(0, 30)}...`;
+      cell.addEventListener('click', () => showEntryDetail(hasEntry));
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+// ==================== ENTRIES LIST ====================
+function renderEntries() {
+  const entries = getEntries();
+  const list = document.getElementById('entriesList');
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="no-entries">A\u00fan no hay entradas. \u00a1Escribe tu primera reflexi\u00f3n!</div>';
+    return;
+  }
+
+  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+  list.innerHTML = '';
+
+  sorted.forEach(entry => {
+    const div = document.createElement('div');
+    div.className = 'journal-entry';
+    div.style.cursor = 'pointer';
+
+    const date = new Date(entry.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    div.innerHTML = `
+      <div class="date">${dateStr}</div>
+      <div class="mood">${moodEmojis[entry.mood] || ''}</div>
+      <div class="text">${entry.text}</div>
+    `;
+    div.addEventListener('click', () => showEntryDetail(entry));
+    list.appendChild(div);
+  });
+}
+
+// ==================== ENTRY DETAIL ====================
+function showEntryDetail(entry) {
+  const overlay = document.getElementById('entryOverlay');
+  const date = new Date(entry.date + 'T12:00:00');
+  const dateStr = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  overlay.innerHTML = `
+    <div class="entry-detail-overlay" id="detailOverlay">
+      <div class="entry-detail">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <h3>${dateStr}</h3>
+          <button id="closeDetail" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">${moodEmojis[entry.mood] || ''}</div>
+        ${entry.prompt ? `<div style="font-size:0.85rem;color:var(--text-muted);font-style:italic;margin-bottom:0.75rem;">"${entry.prompt}"</div>` : ''}
+        <div style="font-size:1.05rem;color:var(--text-primary);line-height:1.6;margin-bottom:1.5rem;">${entry.text}</div>
+        <button class="btn btn-outline btn-sm" id="deleteEntryBtn">Eliminar entrada</button>
+      </div>
+    </div>
+  `;
+  overlay.style.display = 'block';
+
+  document.getElementById('closeDetail').addEventListener('click', () => {
+    overlay.style.display = 'none';
+  });
+  document.getElementById('detailOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) overlay.style.display = 'none';
+  });
+  document.getElementById('deleteEntryBtn').addEventListener('click', () => {
+    if (confirm('\u00bfEliminar esta entrada?')) {
+      const entries = getEntries();
+      const idx = entries.findIndex(e => e.date === entry.date);
+      if (idx >= 0) {
+        entries.splice(idx, 1);
+        saveEntries(entries);
+        overlay.style.display = 'none';
+        renderCalendar();
+        renderEntries();
+        updateStreak();
+
+        // If deleted today's entry, reset form
+        if (entry.date === getToday()) {
+          document.getElementById('savedMsg').style.display = 'none';
+          document.getElementById('journalText').value = '';
+          selectedMood = null;
+          document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+          updateCharCounter();
+        }
+        showToast('Entrada eliminada');
+      }
+    }
+  });
+}
+
+// ==================== TABS ====================
+document.querySelectorAll('.journal-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.journal-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    if (tab.dataset.view === 'calendar') {
+      document.getElementById('calendarView').style.display = '';
+      document.getElementById('listView').style.display = 'none';
+    } else {
+      document.getElementById('calendarView').style.display = 'none';
+      document.getElementById('listView').style.display = '';
+    }
+  });
+});
+
+// ==================== EXPORT ====================
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const entries = getEntries();
+  if (entries.length === 0) {
+    showToast('No hay entradas para exportar');
+    return;
+  }
+
+  const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+  let text = 'Mi Diario - Relajate.com\n';
+  text += '='.repeat(40) + '\n\n';
+
+  sorted.forEach(entry => {
+    const date = new Date(entry.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    text += `${dateStr}\n`;
+    text += `Estado: ${moodEmojis[entry.mood] || ''}\n`;
+    if (entry.prompt) text += `Prompt: ${entry.prompt}\n`;
+    text += `${entry.text}\n`;
+    text += '-'.repeat(30) + '\n\n';
+  });
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mi-diario-relajate-${getToday()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('\u00a1Diario exportado!');
+});
+
+// Init
+init();
+</script>
+</body>
+</html>

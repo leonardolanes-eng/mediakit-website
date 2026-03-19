@@ -1,0 +1,20 @@
+{
+  "name": "Relajate.com - Tu Pausa Digital",
+  "short_name": "Relajate",
+  "description": "Juegos relajantes, ejercicios de respiración y micro diario para tu bienestar diario.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#6B9BD2",
+  "background_color": "#FFF8F0",
+  "lang": "es",
+  "categories": ["health", "lifestyle", "games"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%236B9BD2' width='100' height='100' rx='20'/><text x='50' y='65' text-anchor='middle' font-size='50' fill='white'>R</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
