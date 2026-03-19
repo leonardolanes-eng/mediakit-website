@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120">
+  <defs>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6B9BD2"/>
+      <stop offset="35%" style="stop-color:#8B8DC8"/>
+      <stop offset="65%" style="stop-color:#7BA89E"/>
+      <stop offset="100%" style="stop-color:#5BAB8A"/>
+    </linearGradient>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6B9BD2"/>
+      <stop offset="100%" style="stop-color:#5BAB8A"/>
+    </linearGradient>
+  </defs>
+  <!-- Relaxing figure -->
+  <g transform="translate(120, 8)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head -->
+    <circle cx="30" cy="14" r="11" stroke="#6B9BD2" stroke-width="2.5" fill="none"/>
+    <!-- Closed eyes (relaxed) -->
+    <path d="M25,13 Q27,15 29,13" stroke="#6B9BD2" stroke-width="1.8" fill="none"/>
+    <!-- Smile -->
+    <path d="M27,18 Q30,21 33,18" stroke="#6B9BD2" stroke-width="1.5" fill="none"/>
+    <!-- Body reclining -->
+    <path d="M22,25 Q10,35 5,50" stroke="#6B9BD2" stroke-width="2.5"/>
+    <!-- Left arm behind head -->
+    <path d="M22,25 Q25,18 35,10" stroke="#6B9BD2" stroke-width="2.5"/>
+    <!-- Right arm relaxed -->
+    <path d="M15,35 Q5,30 0,25" stroke="#6B9BD2" stroke-width="2.5"/>
+    <!-- Torso -->
+    <path d="M5,50 Q20,48 40,50" stroke="url(#bodyGrad)" stroke-width="2.5"/>
+    <!-- Left leg -->
+    <path d="M40,50 Q55,42 65,48" stroke="#5BAB8A" stroke-width="2.5"/>
+    <!-- Right leg bent up -->
+    <path d="M35,52 Q50,35 60,40" stroke="#5BAB8A" stroke-width="2.5"/>
+    <!-- Lower legs -->
+    <path d="M65,48 Q72,52 75,48" stroke="#5BAB8A" stroke-width="2.5"/>
+    <path d="M60,40 Q68,38 72,42" stroke="#5BAB8A" stroke-width="2.5"/>
+  </g>
+  <!-- Text -->
+  <text x="160" y="100" text-anchor="middle" font-family="'Nunito', 'Segoe UI', sans-serif" font-size="38" font-weight="700" fill="url(#textGrad)">relajate.com</text>
+</svg>
