@@ -1,40 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 130">
   <defs>
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#6B9BD2"/>
-      <stop offset="35%" style="stop-color:#8B8DC8"/>
-      <stop offset="65%" style="stop-color:#7BA89E"/>
-      <stop offset="100%" style="stop-color:#5BAB8A"/>
+      <stop offset="30%" style="stop-color:#8B8DC8"/>
+      <stop offset="60%" style="stop-color:#6BA89E"/>
+      <stop offset="100%" style="stop-color:#4DAA7A"/>
     </linearGradient>
-    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <linearGradient id="figureGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#6B9BD2"/>
-      <stop offset="100%" style="stop-color:#5BAB8A"/>
+      <stop offset="60%" style="stop-color:#6B9BD2"/>
+      <stop offset="100%" style="stop-color:#4DAA7A"/>
     </linearGradient>
   </defs>
-  <!-- Relaxing figure -->
-  <g transform="translate(120, 8)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Head -->
-    <circle cx="30" cy="14" r="11" stroke="#6B9BD2" stroke-width="2.5" fill="none"/>
-    <!-- Closed eyes (relaxed) -->
-    <path d="M25,13 Q27,15 29,13" stroke="#6B9BD2" stroke-width="1.8" fill="none"/>
-    <!-- Smile -->
-    <path d="M27,18 Q30,21 33,18" stroke="#6B9BD2" stroke-width="1.5" fill="none"/>
-    <!-- Body reclining -->
-    <path d="M22,25 Q10,35 5,50" stroke="#6B9BD2" stroke-width="2.5"/>
-    <!-- Left arm behind head -->
-    <path d="M22,25 Q25,18 35,10" stroke="#6B9BD2" stroke-width="2.5"/>
-    <!-- Right arm relaxed -->
-    <path d="M15,35 Q5,30 0,25" stroke="#6B9BD2" stroke-width="2.5"/>
-    <!-- Torso -->
-    <path d="M5,50 Q20,48 40,50" stroke="url(#bodyGrad)" stroke-width="2.5"/>
-    <!-- Left leg -->
-    <path d="M40,50 Q55,42 65,48" stroke="#5BAB8A" stroke-width="2.5"/>
-    <!-- Right leg bent up -->
-    <path d="M35,52 Q50,35 60,40" stroke="#5BAB8A" stroke-width="2.5"/>
-    <!-- Lower legs -->
-    <path d="M65,48 Q72,52 75,48" stroke="#5BAB8A" stroke-width="2.5"/>
-    <path d="M60,40 Q68,38 72,42" stroke="#5BAB8A" stroke-width="2.5"/>
+  <!-- Relaxing figure - centered, reclining person -->
+  <g transform="translate(130, 2) scale(1.1)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head circle -->
+    <circle cx="38" cy="12" r="12" stroke="#6B9BD2" stroke-width="2.8" fill="none"/>
+    <!-- Closed relaxed eye (arc) -->
+    <path d="M33,11 Q36,14 39,11" stroke="#6B9BD2" stroke-width="2" fill="none"/>
+    <!-- Gentle smile -->
+    <path d="M35,17 Q38,20 41,17" stroke="#6B9BD2" stroke-width="1.6" fill="none"/>
+    <!-- Arm behind head (left, going up-right) -->
+    <path d="M28,24 C32,16 40,8 48,5" stroke="#6B9BD2" stroke-width="2.8"/>
+    <!-- Upper body / torso going down-left -->
+    <path d="M28,24 C22,32 14,42 8,52" stroke="#6B9BD2" stroke-width="2.8"/>
+    <!-- Other arm (right, angled out) -->
+    <path d="M20,34 C14,28 6,24 0,22" stroke="#6B9BD2" stroke-width="2.8"/>
+    <!-- Hip / lower torso -->
+    <path d="M8,52 C16,50 28,48 38,50" stroke="url(#figureGrad)" stroke-width="2.8"/>
+    <!-- Upper leg (bent knee going up) -->
+    <path d="M38,50 C48,38 56,34 62,38" stroke="#4DAA7A" stroke-width="2.8"/>
+    <!-- Lower leg from knee -->
+    <path d="M62,38 C66,42 72,44 76,40" stroke="#4DAA7A" stroke-width="2.8"/>
+    <!-- Other leg (more extended) -->
+    <path d="M32,54 C44,52 56,50 66,54" stroke="#4DAA7A" stroke-width="2.8"/>
+    <!-- Foot -->
+    <path d="M66,54 C70,56 74,54 76,50" stroke="#4DAA7A" stroke-width="2.8"/>
   </g>
-  <!-- Text -->
-  <text x="160" y="100" text-anchor="middle" font-family="'Nunito', 'Segoe UI', sans-serif" font-size="38" font-weight="700" fill="url(#textGrad)">relajate.com</text>
+  <!-- Text "relajate.com" -->
+  <text x="180" y="112" text-anchor="middle" font-family="'Nunito', 'Segoe UI', 'Trebuchet MS', sans-serif" font-size="40" font-weight="700" fill="url(#textGrad)" letter-spacing="-0.5">relajate.com</text>
 </svg>
