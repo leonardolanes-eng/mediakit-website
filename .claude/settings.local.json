@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(where gh:*)",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__CreateWixBusinessGuide",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__ListWixSites",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(python -m http.server --help)",
+      "Read(//c/WINDOWS/system32/**)",
+      "Bash(powershell -Command \"Get-Command python*\")",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__CallWixSiteAPI",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__ReadFullDocsArticle",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__SearchWixCLIDocumentation",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__SearchWixRESTDocumentation",
+      "Bash(where npm:*)",
+      "Bash(where node:*)",
+      "Bash(where npx:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/Leonardo Lanes/OneDrive/Documents/CLAUDE/Relajate.com/mediakit-website/$APPDATA/**)",
+      "Bash(winget list:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -Command \"Start-Process powershell -ArgumentList ''-ExecutionPolicy Bypass -File server.ps1'' -WorkingDirectory ''.'' -PassThru | Select-Object Id\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8080)",
+      "Bash(tasklist /FI \"PID eq 4\")",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(findstr \":3457\")",
+      "Bash(findstr \"LISTEN\")",
+      "Bash(findstr -v \":8080\")",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__WixREADME",
+      "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__ManageWixSite",
+      "Bash(ls \"C:\\\\Users\\\\Leonardo Lanes\\\\OneDrive\\\\Documents\\\\CLAUDE\\\\Relajate.com\\\\mediakit-website\\\\images\"\" 2>/dev/null || echo \"no images dir \")",
+      "Bash(where py:*)"
+    ]
+  }
+}
