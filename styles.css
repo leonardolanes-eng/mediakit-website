@@ -179,9 +179,11 @@ input, textarea, select { font-family: var(--font-body); }
 }
 
 .navbar-logo-img {
-  height: 45px;
+  height: 50px;
   width: auto;
   transition: var(--transition-fast);
+  mix-blend-mode: multiply;
+  border-radius: 6px;
 }
 
 .navbar-logo-img:hover {
