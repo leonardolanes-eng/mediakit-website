@@ -1,35 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 130">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 140">
   <defs>
     <linearGradient id="textGradW" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#FFFFFF"/>
-      <stop offset="100%" style="stop-color:#E8F0FF"/>
+      <stop offset="0%" style="stop-color:rgba(255,255,255,1)"/>
+      <stop offset="100%" style="stop-color:rgba(232,240,255,1)"/>
     </linearGradient>
   </defs>
-  <!-- Relaxing figure - white version for dark/gradient backgrounds -->
-  <g transform="translate(130, 2) scale(1.1)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Head circle -->
-    <circle cx="38" cy="12" r="12" stroke="white" stroke-width="2.8" fill="none"/>
-    <!-- Closed relaxed eye -->
-    <path d="M33,11 Q36,14 39,11" stroke="white" stroke-width="2" fill="none"/>
-    <!-- Gentle smile -->
-    <path d="M35,17 Q38,20 41,17" stroke="white" stroke-width="1.6" fill="none"/>
+
+  <!-- Relaxing figure - white version for gradient backgrounds -->
+  <g transform="translate(130, 0)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Head -->
+    <circle cx="42" cy="16" r="13" stroke="white" stroke-width="3.2" fill="none"/>
+
+    <!-- Closed eye -->
+    <path d="M36,14 Q39,18 42,14" stroke="white" stroke-width="2.2" fill="none"/>
+
+    <!-- Smile -->
+    <path d="M38,21 Q41,24 44,21" stroke="white" stroke-width="1.8" fill="none"/>
+
     <!-- Arm behind head -->
-    <path d="M28,24 C32,16 40,8 48,5" stroke="white" stroke-width="2.8"/>
-    <!-- Upper body -->
-    <path d="M28,24 C22,32 14,42 8,52" stroke="white" stroke-width="2.8"/>
-    <!-- Other arm -->
-    <path d="M20,34 C14,28 6,24 0,22" stroke="white" stroke-width="2.8"/>
-    <!-- Hip -->
-    <path d="M8,52 C16,50 28,48 38,50" stroke="rgba(255,255,255,0.9)" stroke-width="2.8"/>
-    <!-- Upper leg -->
-    <path d="M38,50 C48,38 56,34 62,38" stroke="rgba(255,255,255,0.85)" stroke-width="2.8"/>
-    <!-- Lower leg -->
-    <path d="M62,38 C66,42 72,44 76,40" stroke="rgba(255,255,255,0.85)" stroke-width="2.8"/>
-    <!-- Other leg -->
-    <path d="M32,54 C44,52 56,50 66,54" stroke="rgba(255,255,255,0.85)" stroke-width="2.8"/>
-    <!-- Foot -->
-    <path d="M66,54 C70,56 74,54 76,50" stroke="rgba(255,255,255,0.85)" stroke-width="2.8"/>
+    <path d="M30,28 C36,20 44,12 52,6" stroke="white" stroke-width="3.2"/>
+    <path d="M52,6 C54,4 56,5 55,8" stroke="white" stroke-width="3.2"/>
+
+    <!-- Torso -->
+    <path d="M30,28 C24,34 16,42 8,50" stroke="white" stroke-width="3.2"/>
+
+    <!-- Support arm -->
+    <path d="M18,38 C12,34 4,28 -2,24" stroke="white" stroke-width="3.2"/>
+    <path d="M-2,24 C-5,22 -6,24 -4,26" stroke="white" stroke-width="3.2"/>
+
+    <!-- Hips -->
+    <path d="M8,50 C14,52 22,52 30,50" stroke="rgba(255,255,255,0.9)" stroke-width="3.2"/>
+
+    <!-- Bent leg -->
+    <path d="M30,50 C40,44 50,36 58,40" stroke="rgba(255,255,255,0.85)" stroke-width="3.2"/>
+    <path d="M58,40 C62,44 68,46 72,42" stroke="rgba(255,255,255,0.85)" stroke-width="3.2"/>
+
+    <!-- Extended leg -->
+    <path d="M26,54 C36,56 48,54 58,52" stroke="rgba(255,255,255,0.85)" stroke-width="3.2"/>
+    <path d="M58,52 C62,54 66,52 68,48" stroke="rgba(255,255,255,0.85)" stroke-width="3.2"/>
+
   </g>
+
   <!-- Text -->
-  <text x="180" y="112" text-anchor="middle" font-family="'Nunito', 'Segoe UI', 'Trebuchet MS', sans-serif" font-size="40" font-weight="700" fill="url(#textGradW)" letter-spacing="-0.5">relajate.com</text>
+  <text x="190" y="118" text-anchor="middle" font-family="'Nunito', 'Segoe UI', 'Trebuchet MS', sans-serif" font-size="42" font-weight="700" fill="url(#textGradW)" letter-spacing="-0.5">relajate.com</text>
 </svg>
