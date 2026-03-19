@@ -182,8 +182,6 @@ input, textarea, select { font-family: var(--font-body); }
   height: 110px;
   width: auto;
   transition: var(--transition-fast);
-  mix-blend-mode: multiply;
-  border-radius: 6px;
 }
 
 .navbar-logo-img:hover {

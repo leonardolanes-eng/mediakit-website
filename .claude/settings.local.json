@@ -32,7 +32,10 @@
       "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__WixREADME",
       "mcp__af6f37a1-bdfa-4737-8b6d-5420c835f596__ManageWixSite",
       "Bash(ls \"C:\\\\Users\\\\Leonardo Lanes\\\\OneDrive\\\\Documents\\\\CLAUDE\\\\Relajate.com\\\\mediakit-website\\\\images\"\" 2>/dev/null || echo \"no images dir \")",
-      "Bash(where py:*)"
+      "Bash(where py:*)",
+      "Bash(where magick:*)",
+      "Bash(where convert:*)",
+      "Bash(powershell -Command \":*)"
     ]
   }
 }
