@@ -179,7 +179,7 @@ input, textarea, select { font-family: var(--font-body); }
 }
 
 .navbar-logo-img {
-  height: 110px;
+  height: 140px;
   width: auto;
   transition: var(--transition-fast);
 }
