@@ -9,6 +9,56 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css?v=5">
   <style>
+    /* Music Player */
+    .music-player {
+      max-width: 600px; margin: 1.5rem auto; padding: 0 1rem;
+    }
+    .music-player-inner {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 0.75rem 1.25rem; border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    .music-toggle {
+      width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--lavender);
+      background: rgba(155,142,196,0.08); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; transition: all 0.3s ease; flex-shrink: 0;
+    }
+    .music-toggle.playing {
+      background: var(--lavender); border-color: var(--lavender-dark);
+      animation: musicPulse 2s ease infinite;
+    }
+    .music-toggle.playing .music-icon { filter: brightness(0) invert(1); }
+    @keyframes musicPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(155,142,196,0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(155,142,196,0); }
+    }
+    .music-info { flex: 1; min-width: 0; }
+    .music-label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 0.35rem; }
+    .music-tracks { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .track-btn {
+      padding: 0.25rem 0.6rem; border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-color); background: transparent;
+      font-size: 0.72rem; font-weight: 600; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.2s ease;
+    }
+    .track-btn:hover, .track-btn.active {
+      border-color: var(--lavender); color: var(--lavender-dark);
+      background: rgba(155,142,196,0.08);
+    }
+    .music-volume {
+      display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0;
+    }
+    .volume-slider {
+      width: 60px; height: 4px; -webkit-appearance: none; appearance: none;
+      background: var(--gray-200); border-radius: 2px; outline: none;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--lavender); cursor: pointer;
+    }
+
     .exercise-selector {
       display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;
       margin: 2rem auto; max-width: 700px; padding: 0 1rem;
@@ -161,6 +211,29 @@
   <div class="page-header" style="background:linear-gradient(135deg,#9B8EC4 0%,#6B9BD2 50%,#87AE73 100%);">
     <h1>Ejercicios de Respiraci&oacute;n</h1>
     <p>Reduce el estr&eacute;s y encuentra la calma con t&eacute;cnicas guiadas</p>
+  </div>
+
+  <!-- Ambient Music Player -->
+  <div class="music-player" id="musicPlayer">
+    <div class="music-player-inner">
+      <button class="music-toggle" id="musicToggle" title="M&uacute;sica ambiental">
+        <span class="music-icon" id="musicIcon">&#127925;</span>
+      </button>
+      <div class="music-info">
+        <span class="music-label" id="musicLabel">M&uacute;sica ambiental</span>
+        <div class="music-tracks">
+          <button class="track-btn active" data-track="ocean">&#127754; Oc&eacute;ano</button>
+          <button class="track-btn" data-track="rain">&#127783;&#65039; Lluvia</button>
+          <button class="track-btn" data-track="bowls">&#128276; Cuencos</button>
+          <button class="track-btn" data-track="nature">&#127795; Naturaleza</button>
+        </div>
+      </div>
+      <div class="music-volume">
+        <span style="font-size:0.75rem;">&#128264;</span>
+        <input type="range" id="musicVolume" min="0" max="100" value="40" class="volume-slider">
+        <span style="font-size:0.75rem;">&#128266;</span>
+      </div>
+    </div>
   </div>
 
   <div class="exercise-selector">
@@ -604,6 +677,218 @@ document.getElementById('stopMindfulBtn').addEventListener('click', () => {
   incrementBreathSessions();
   document.getElementById('completeMindful').style.display = '';
   document.getElementById('completeMindfulMsg').textContent = getEncouragement();
+});
+
+// ==================== AMBIENT MUSIC ENGINE ====================
+let audioCtx = null;
+let musicPlaying = false;
+let musicNodes = [];
+let currentTrack = 'ocean';
+let musicGain = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  musicGain = audioCtx.createGain();
+  musicGain.gain.value = 0.4;
+  musicGain.connect(audioCtx.destination);
+}
+
+function createNoise() {
+  const bufferSize = audioCtx.sampleRate * 4;
+  const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+  }
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  return source;
+}
+
+function playTrack(track) {
+  stopMusic(true);
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  if (track === 'ocean') {
+    // Ocean waves: filtered noise with LFO modulation
+    const noise = createNoise();
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 1;
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 0.08;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 350;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    const vol = audioCtx.createGain();
+    vol.gain.value = 0.6;
+    noise.connect(filter);
+    filter.connect(vol);
+    vol.connect(musicGain);
+    noise.start();
+    lfo.start();
+    // Second layer: deeper rumble
+    const noise2 = createNoise();
+    const filter2 = audioCtx.createBiquadFilter();
+    filter2.type = 'lowpass';
+    filter2.frequency.value = 120;
+    const vol2 = audioCtx.createGain();
+    vol2.gain.value = 0.3;
+    noise2.connect(filter2);
+    filter2.connect(vol2);
+    vol2.connect(musicGain);
+    noise2.start();
+    musicNodes = [noise, lfo, noise2, filter, filter2, lfoGain, vol, vol2];
+  } else if (track === 'rain') {
+    // Rain: high-pass filtered noise
+    const noise = createNoise();
+    const hp = audioCtx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 1000;
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 8000;
+    const vol = audioCtx.createGain();
+    vol.gain.value = 0.35;
+    noise.connect(hp);
+    hp.connect(lp);
+    lp.connect(vol);
+    vol.connect(musicGain);
+    noise.start();
+    // Drip layer
+    const noise2 = createNoise();
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3000;
+    bp.Q.value = 2;
+    const vol2 = audioCtx.createGain();
+    vol2.gain.value = 0.15;
+    noise2.connect(bp);
+    bp.connect(vol2);
+    vol2.connect(musicGain);
+    noise2.start();
+    musicNodes = [noise, noise2, hp, lp, bp, vol, vol2];
+  } else if (track === 'bowls') {
+    // Singing bowls: layered sine tones with slow vibrato
+    const freqs = [174, 261, 396, 528, 639];
+    freqs.forEach((f, i) => {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const vibrato = audioCtx.createOscillator();
+      vibrato.frequency.value = 0.3 + i * 0.1;
+      const vibGain = audioCtx.createGain();
+      vibGain.gain.value = 2;
+      vibrato.connect(vibGain);
+      vibGain.connect(osc.frequency);
+      const vol = audioCtx.createGain();
+      vol.gain.value = 0.08;
+      // Fade in/out
+      const lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.04 + i * 0.015;
+      const lfoG = audioCtx.createGain();
+      lfoG.gain.value = 0.06;
+      lfo.connect(lfoG);
+      lfoG.connect(vol.gain);
+      osc.connect(vol);
+      vol.connect(musicGain);
+      osc.start();
+      vibrato.start();
+      lfo.start();
+      musicNodes.push(osc, vibrato, lfo, vibGain, lfoG, vol);
+    });
+  } else if (track === 'nature') {
+    // Nature: wind + birds (filtered noise + chirp oscillators)
+    const wind = createNoise();
+    const wf = audioCtx.createBiquadFilter();
+    wf.type = 'lowpass';
+    wf.frequency.value = 600;
+    const wLfo = audioCtx.createOscillator();
+    wLfo.frequency.value = 0.15;
+    const wLfoG = audioCtx.createGain();
+    wLfoG.gain.value = 400;
+    wLfo.connect(wLfoG);
+    wLfoG.connect(wf.frequency);
+    const wVol = audioCtx.createGain();
+    wVol.gain.value = 0.25;
+    wind.connect(wf);
+    wf.connect(wVol);
+    wVol.connect(musicGain);
+    wind.start();
+    wLfo.start();
+    musicNodes = [wind, wLfo, wf, wLfoG, wVol];
+    // Bird chirps
+    function chirp() {
+      if (!musicPlaying) return;
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const baseFreq = 2000 + Math.random() * 2000;
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq, audioCtx.currentTime + 0.15);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.02);
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+      osc.connect(g);
+      g.connect(musicGain);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+      setTimeout(chirp, 1500 + Math.random() * 4000);
+    }
+    setTimeout(chirp, 500);
+  }
+
+  musicPlaying = true;
+  document.getElementById('musicToggle').classList.add('playing');
+  document.getElementById('musicLabel').textContent = 'Reproduciendo...';
+}
+
+function stopMusic(keepCtx) {
+  musicNodes.forEach(n => {
+    try { n.stop && n.stop(); } catch(e) {}
+    try { n.disconnect(); } catch(e) {}
+  });
+  musicNodes = [];
+  if (!keepCtx) {
+    musicPlaying = false;
+    document.getElementById('musicToggle').classList.remove('playing');
+    document.getElementById('musicLabel').textContent = 'M\u00fasica ambiental';
+  }
+}
+
+// Music toggle
+document.getElementById('musicToggle').addEventListener('click', () => {
+  if (musicPlaying) {
+    stopMusic();
+  } else {
+    playTrack(currentTrack);
+  }
+});
+
+// Track selection
+document.querySelectorAll('.track-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTrack = btn.dataset.track;
+    if (musicPlaying) {
+      playTrack(currentTrack);
+    }
+  });
+});
+
+// Volume control
+document.getElementById('musicVolume').addEventListener('input', (e) => {
+  const vol = e.target.value / 100;
+  if (musicGain) musicGain.gain.value = vol;
 });
 </script>
 </body>
