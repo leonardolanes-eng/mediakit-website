@@ -104,6 +104,58 @@
     .pattern-tile.success-lit { background: var(--sage); box-shadow: 0 0 20px rgba(135,174,115,0.5); }
     .pattern-tile:active { transform: scale(0.95); }
     .level-display { font-size: 1.2rem; font-weight: 700; color: var(--blue-dark); }
+
+    /* Suma Zen (Number Sum Game) */
+    .sum-grid { display: grid; gap: 4px; margin: 1rem auto; max-width: 380px; }
+    .sum-cell {
+      aspect-ratio: 1; border-radius: var(--radius-sm); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.3rem; color: white;
+      transition: all 0.2s ease; border: 3px solid transparent;
+      user-select: none;
+    }
+    .sum-cell:hover { transform: scale(1.08); }
+    .sum-cell.selected { border-color: #FFD700; transform: scale(1.12); box-shadow: 0 0 12px rgba(255,215,0,0.5); }
+    .sum-cell.cleared { animation: popOut 0.35s ease forwards; }
+    .sum-cell.hint { border-color: rgba(255,255,255,0.6); }
+    .sum-running-total {
+      text-align: center; font-size: 1.4rem; font-weight: 800; margin: 0.5rem 0;
+      min-height: 2rem; color: var(--blue-dark);
+    }
+    .sum-running-total.over { color: #e74c3c; }
+    .sum-running-total.exact { color: var(--sage-dark); }
+    .sum-target {
+      text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    .sum-target span { font-size: 1.8rem; color: var(--lavender-dark); }
+
+    /* Word Search */
+    .ws-grid { display: grid; gap: 2px; margin: 1rem auto; max-width: 400px; }
+    .ws-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem; cursor: pointer; border-radius: 4px;
+      background: var(--bg-card); border: 2px solid var(--border-color);
+      transition: all 0.2s ease; user-select: none; text-transform: uppercase;
+    }
+    .ws-cell:hover { background: rgba(107,155,210,0.1); }
+    .ws-cell.selecting { background: rgba(107,155,210,0.25); border-color: var(--blue); }
+    .ws-cell.found { background: var(--blue); color: white; border-color: var(--blue-dark); pointer-events: none; }
+    .ws-cell.found-1 { background: var(--lavender); border-color: var(--lavender-dark); }
+    .ws-cell.found-2 { background: var(--sage); border-color: var(--sage-dark); }
+    .ws-cell.found-3 { background: #e67e22; border-color: #d35400; }
+    .ws-cell.found-4 { background: #e74c3c; border-color: #c0392b; }
+    .ws-cell.found-5 { background: #f1c40f; border-color: #d4ac0d; color: #333; }
+    .ws-word-list {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
+      margin: 1rem 0; max-width: 400px; margin-left: auto; margin-right: auto;
+    }
+    .ws-word-tag {
+      padding: 0.35rem 0.8rem; border-radius: var(--radius-full);
+      background: var(--gray-100); font-weight: 600; font-size: 0.85rem;
+      color: var(--text-secondary); border: 1.5px solid var(--border-color);
+    }
+    .ws-word-tag.found { text-decoration: line-through; opacity: 0.5; background: var(--sage-light); border-color: var(--sage); }
   </style>
 </head>
 <body>
@@ -130,6 +182,8 @@
     <button class="game-tab active" data-game="words">&#128172; Conecta Palabras</button>
     <button class="game-tab" data-game="colors">&#127912; Flujo de Colores</button>
     <button class="game-tab" data-game="pattern">&#129504; Patr&oacute;n Zen</button>
+    <button class="game-tab" data-game="sumzen">&#128290; Suma Zen</button>
+    <button class="game-tab" data-game="wordsearch">&#128270; Sopa de Letras</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -195,6 +249,47 @@
         <button class="btn btn-outline btn-sm" id="sharePatternBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="patternShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 4: Suma Zen -->
+  <div class="game-container" id="game-sumzen" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Suma Zen</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="sumTimer">0:00</span></div>
+        <span class="game-score">Puntos: <span id="sumScore">0</span></span>
+        <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="sumBest">0</span></span>
+      </div>
+      <div class="sum-target">Objetivo: <span id="sumTarget">10</span></div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca n&uacute;meros adyacentes que sumen el objetivo</p>
+      <div class="sum-running-total" id="sumRunning">&nbsp;</div>
+      <div class="sum-grid" id="sumGrid" style="grid-template-columns:repeat(7,1fr);"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="resetSumBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-outline btn-sm" id="deselectSumBtn">&#10060; Deseleccionar</button>
+        <button class="btn btn-solid btn-sm" id="shareSumBtn">&#128228; Compartir</button>
+      </div>
+      <div id="sumShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 5: Sopa de Letras -->
+  <div class="game-container" id="game-wordsearch" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Sopa de Letras</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="wsTimer">0:00</span></div>
+        <span class="game-score"><span id="wsFound">0</span>/<span id="wsTotal">0</span> palabras</span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Encuentra las palabras ocultas: horizontal, vertical y diagonal</p>
+      <div class="ws-word-list" id="wsWordList"></div>
+      <div class="ws-grid" id="wsGrid" style="grid-template-columns:repeat(10,1fr);"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="resetWsBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-solid btn-sm" id="shareWsBtn">&#128228; Compartir</button>
+      </div>
+      <div id="wsShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -1202,10 +1297,509 @@ document.getElementById('sharePatternBtn').addEventListener('click', () => {
   incrementGamesCompleted();
 });
 
+// ==================== GAME 4: SUMA ZEN ====================
+const SUM_ROWS = 7, SUM_COLS = 7;
+let sumGrid = [], sumScore = 0, sumSelected = [];
+let sumTimerInterval = null, sumSeconds = 0, sumTimerStarted = false, sumGameDone = false;
+const NUM_COLORS = ['#6B9BD2','#9B8EC4','#87AE73','#e67e22','#e74c3c','#f1c40f','#1abc9c','#8e44ad','#2c3e50'];
+let sumTarget = 10;
+
+function formatSumTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function startSumTimer() {
+  if (sumTimerStarted || sumGameDone) return;
+  sumTimerStarted = true;
+  sumTimerInterval = setInterval(() => {
+    sumSeconds++;
+    document.getElementById('sumTimer').textContent = formatSumTime(sumSeconds);
+  }, 1000);
+}
+
+function stopSumTimer() {
+  clearInterval(sumTimerInterval);
+  sumTimerInterval = null;
+}
+
+function initSumGame() {
+  stopSumTimer();
+  sumSeconds = 0;
+  sumTimerStarted = false;
+  sumGameDone = false;
+  sumSelected = [];
+  sumScore = 0;
+  sumTarget = 10;
+  document.getElementById('sumTimer').textContent = '0:00';
+  document.getElementById('sumTarget').textContent = sumTarget;
+  document.getElementById('sumRunning').innerHTML = '&nbsp;';
+  document.getElementById('sumRunning').className = 'sum-running-total';
+
+  const rng = seededRandom(getDayIndex() + 500);
+  sumGrid = [];
+  for (let r = 0; r < SUM_ROWS; r++) {
+    sumGrid[r] = [];
+    for (let c = 0; c < SUM_COLS; c++) {
+      sumGrid[r][c] = Math.floor(rng() * 9) + 1;
+    }
+  }
+  renderSumGame();
+}
+
+function renderSumGame() {
+  const grid = document.getElementById('sumGrid');
+  grid.innerHTML = '';
+  document.getElementById('sumScore').textContent = sumScore;
+  document.getElementById('sumBest').textContent = localStorage.getItem('relajate_sum_best') || '0';
+
+  for (let r = 0; r < SUM_ROWS; r++) {
+    for (let c = 0; c < SUM_COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'sum-cell';
+      if (sumGrid[r][c]) {
+        const num = sumGrid[r][c];
+        cell.textContent = num;
+        cell.style.background = NUM_COLORS[num - 1];
+        if (sumSelected.some(s => s.r === r && s.c === c)) {
+          cell.classList.add('selected');
+        }
+      } else {
+        cell.style.background = 'transparent';
+        cell.style.cursor = 'default';
+        cell.textContent = '';
+      }
+      cell.addEventListener('click', () => handleSumClick(r, c));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function isSumAdjacent(r1, c1, r2, c2) {
+  return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+}
+
+function handleSumClick(row, col) {
+  if (!sumGrid[row][col] || sumGameDone) return;
+  startSumTimer();
+
+  // Check if already selected - deselect it
+  const idx = sumSelected.findIndex(s => s.r === row && s.c === col);
+  if (idx !== -1) {
+    // Can only deselect the last one
+    if (idx === sumSelected.length - 1) {
+      sumSelected.pop();
+      updateSumRunning();
+      renderSumGame();
+    }
+    return;
+  }
+
+  // Must be adjacent to last selected (or first selection)
+  if (sumSelected.length > 0) {
+    const last = sumSelected[sumSelected.length - 1];
+    if (!isSumAdjacent(last.r, last.c, row, col)) {
+      showToast('Selecciona un n\u00famero adyacente');
+      return;
+    }
+  }
+
+  sumSelected.push({ r: row, c: col });
+  const total = sumSelected.reduce((s, p) => s + sumGrid[p.r][p.c], 0);
+
+  if (total === sumTarget) {
+    // Correct sum!
+    const n = sumSelected.length;
+    let points = 0;
+    if (n === 2) points = 20;
+    else if (n === 3) points = 40;
+    else if (n === 4) points = 80;
+    else if (n === 5) points = 150;
+    else points = 150 + (n - 5) * 60;
+    sumScore += points;
+
+    const sizeLabel = n >= 5 ? ' \ud83c\udf1f x' + n + '!' : n >= 4 ? ' \ud83d\udca5 x4!' : n >= 3 ? ' \ud83d\udd25 x3!' : '';
+    showToast('+' + points + ' puntos!' + sizeLabel);
+
+    // Clear selected cells
+    sumSelected.forEach(({r, c}) => { sumGrid[r][c] = null; });
+    sumSelected = [];
+
+    // Gravity
+    for (let c = 0; c < SUM_COLS; c++) {
+      let emptyRow = SUM_ROWS - 1;
+      for (let r = SUM_ROWS - 1; r >= 0; r--) {
+        if (sumGrid[r][c]) {
+          if (r !== emptyRow) {
+            sumGrid[emptyRow][c] = sumGrid[r][c];
+            sumGrid[r][c] = null;
+          }
+          emptyRow--;
+        }
+      }
+    }
+
+    // Refill
+    const rng = seededRandom(getDayIndex() * 1000 + sumScore + sumSeconds + Math.floor(Math.random() * 10000));
+    for (let r = 0; r < SUM_ROWS; r++) {
+      for (let c = 0; c < SUM_COLS; c++) {
+        if (!sumGrid[r][c]) {
+          sumGrid[r][c] = Math.floor(rng() * 9) + 1;
+        }
+      }
+    }
+
+    // Check for game over (no possible sums)
+    if (!hasSumMoves()) {
+      stopSumTimer();
+      sumGameDone = true;
+      const timeBonus = sumSeconds <= 60 ? 300 : sumSeconds <= 120 ? 150 : sumSeconds <= 180 ? 50 : 0;
+      sumScore += timeBonus;
+      showToast('\ud83c\udfc1 \u00a1Sin movimientos! Puntos: ' + sumScore + (timeBonus ? ' \u23f1 +' + timeBonus : ''));
+      launchConfetti();
+      incrementGamesCompleted();
+    }
+
+    saveSumGame();
+  } else if (total > sumTarget) {
+    showToast('\u00a1Demasiado! La suma supera ' + sumTarget);
+    sumSelected = [];
+  }
+
+  updateSumRunning();
+  renderSumGame();
+}
+
+function updateSumRunning() {
+  const el = document.getElementById('sumRunning');
+  if (sumSelected.length === 0) {
+    el.innerHTML = '&nbsp;';
+    el.className = 'sum-running-total';
+    return;
+  }
+  const nums = sumSelected.map(p => sumGrid[p.r][p.c]);
+  const total = nums.reduce((a, b) => a + b, 0);
+  el.textContent = nums.join(' + ') + ' = ' + total;
+  el.className = 'sum-running-total';
+  if (total === sumTarget) el.classList.add('exact');
+  else if (total > sumTarget) el.classList.add('over');
+}
+
+function hasSumMoves() {
+  // Check if any path of adjacent cells sums to target
+  for (let r = 0; r < SUM_ROWS; r++) {
+    for (let c = 0; c < SUM_COLS; c++) {
+      if (sumGrid[r][c] && findSumPath(r, c, sumTarget, new Set())) return true;
+    }
+  }
+  return false;
+}
+
+function findSumPath(r, c, remaining, visited) {
+  if (!sumGrid[r][c] || visited.has(r + ',' + c)) return false;
+  const val = sumGrid[r][c];
+  if (val === remaining) return true;
+  if (val > remaining) return false;
+  visited.add(r + ',' + c);
+  const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  for (const [dr, dc] of dirs) {
+    const nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < SUM_ROWS && nc >= 0 && nc < SUM_COLS) {
+      if (findSumPath(nr, nc, remaining - val, visited)) {
+        visited.delete(r + ',' + c);
+        return true;
+      }
+    }
+  }
+  visited.delete(r + ',' + c);
+  return false;
+}
+
+function saveSumGame() {
+  localStorage.setItem('relajate_sum_' + getDayIndex(), JSON.stringify({
+    grid: sumGrid, score: sumScore, seconds: sumSeconds
+  }));
+  const best = parseInt(localStorage.getItem('relajate_sum_best') || '0');
+  if (sumScore > best) localStorage.setItem('relajate_sum_best', sumScore);
+}
+
+document.getElementById('resetSumBtn').addEventListener('click', () => {
+  localStorage.removeItem('relajate_sum_' + getDayIndex());
+  initSumGame();
+});
+
+document.getElementById('deselectSumBtn').addEventListener('click', () => {
+  sumSelected = [];
+  updateSumRunning();
+  renderSumGame();
+});
+
+document.getElementById('shareSumBtn').addEventListener('click', () => {
+  const best = localStorage.getItem('relajate_sum_best') || sumScore;
+  const text = 'Relajate.com - Suma Zen\nPuntuaci\u00f3n: ' + sumScore + '\n\u23f1 Tiempo: ' + formatSumTime(sumSeconds) + '\nMejor: ' + best + '\n\n\ud83d\udd22 relajate.com';
+  document.getElementById('sumShareText').style.display = 'block';
+  document.getElementById('sumShareText').textContent = text;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
+});
+
+// ==================== GAME 5: SOPA DE LETRAS ====================
+const WS_SIZE = 10;
+const WS_WORD_SETS = [
+  ['CALMA','PAZ','YOGA','ZEN','RESPIRA','MENTE','ALMA','LIBRE'],
+  ['SERENO','AMOR','LUZ','VIDA','SANA','RELAX','SOL','MAR'],
+  ['FLUIR','SONAR','RISA','JUGAR','CREAR','VIVIR','SENTIR','GOZAR'],
+  ['BRISA','CIELO','VERDE','FLOR','CAMPO','LAGO','NUBE','LUNA'],
+  ['FUERZA','VALOR','SALUD','DICHA','GOZO','RITMO','LOGRO','META'],
+  ['PLAYA','ARENA','CORAL','OLAS','VIENTO','PALMA','ISLA','COSTA'],
+  ['SUAVE','DULCE','TIERNO','BELLO','FRESCO','CLARO','PURO','LINDO']
+];
+let wsGrid = [], wsWords = [], wsFoundWords = [], wsSelecting = false, wsStart = null, wsCurrent = null;
+let wsTimerInterval = null, wsSeconds = 0, wsTimerStarted = false;
+
+function formatWsTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function startWsTimer() {
+  if (wsTimerStarted) return;
+  wsTimerStarted = true;
+  wsTimerInterval = setInterval(() => {
+    wsSeconds++;
+    document.getElementById('wsTimer').textContent = formatWsTime(wsSeconds);
+  }, 1000);
+}
+
+function stopWsTimer() {
+  clearInterval(wsTimerInterval);
+  wsTimerInterval = null;
+}
+
+function initWordSearch() {
+  stopWsTimer();
+  wsSeconds = 0;
+  wsTimerStarted = false;
+  wsFoundWords = [];
+  document.getElementById('wsTimer').textContent = '0:00';
+
+  const rng = seededRandom(getDayIndex() + 700);
+  const setIdx = getDayIndex() % WS_WORD_SETS.length;
+  // Pick 6 words from the set
+  const allWords = WS_WORD_SETS[setIdx].slice();
+  wsWords = [];
+  while (wsWords.length < 6 && allWords.length > 0) {
+    const i = Math.floor(rng() * allWords.length);
+    const w = allWords.splice(i, 1)[0];
+    if (w.length <= WS_SIZE) wsWords.push(w);
+  }
+
+  // Initialize empty grid
+  wsGrid = [];
+  for (let r = 0; r < WS_SIZE; r++) {
+    wsGrid[r] = [];
+    for (let c = 0; c < WS_SIZE; c++) {
+      wsGrid[r][c] = '';
+    }
+  }
+
+  // Place words
+  const directions = [[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
+  const placedWords = [];
+  wsWords.forEach(word => {
+    let placed = false;
+    for (let attempt = 0; attempt < 200 && !placed; attempt++) {
+      const dir = directions[Math.floor(rng() * directions.length)];
+      const maxR = WS_SIZE - (dir[0] > 0 ? word.length : (dir[0] < 0 ? 0 : 0));
+      const minR = dir[0] < 0 ? word.length - 1 : 0;
+      const maxC = WS_SIZE - (dir[1] > 0 ? word.length : (dir[1] < 0 ? 0 : 0));
+      const minC = dir[1] < 0 ? word.length - 1 : 0;
+      if (maxR <= minR || maxC <= minC) continue;
+      const startR = minR + Math.floor(rng() * (maxR - minR));
+      const startC = minC + Math.floor(rng() * (maxC - minC));
+
+      // Check if word fits
+      let fits = true;
+      for (let i = 0; i < word.length; i++) {
+        const nr = startR + dir[0] * i;
+        const nc = startC + dir[1] * i;
+        if (nr < 0 || nr >= WS_SIZE || nc < 0 || nc >= WS_SIZE) { fits = false; break; }
+        if (wsGrid[nr][nc] !== '' && wsGrid[nr][nc] !== word[i]) { fits = false; break; }
+      }
+
+      if (fits) {
+        for (let i = 0; i < word.length; i++) {
+          wsGrid[startR + dir[0] * i][startC + dir[1] * i] = word[i];
+        }
+        placedWords.push({ word, startR, startC, dir });
+        placed = true;
+      }
+    }
+  });
+
+  // Update wsWords to only include placed words
+  wsWords = placedWords.map(p => p.word);
+
+  // Fill remaining cells
+  const letters = 'ABCDEFGHIJLMNOPRSTUVXYZ';
+  for (let r = 0; r < WS_SIZE; r++) {
+    for (let c = 0; c < WS_SIZE; c++) {
+      if (wsGrid[r][c] === '') {
+        wsGrid[r][c] = letters[Math.floor(rng() * letters.length)];
+      }
+    }
+  }
+
+  document.getElementById('wsTotal').textContent = wsWords.length;
+  document.getElementById('wsFound').textContent = '0';
+  renderWordSearch();
+}
+
+function renderWordSearch() {
+  const grid = document.getElementById('wsGrid');
+  grid.innerHTML = '';
+  for (let r = 0; r < WS_SIZE; r++) {
+    for (let c = 0; c < WS_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'ws-cell';
+      cell.textContent = wsGrid[r][c];
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+
+      // Check if this cell is part of a found word
+      wsFoundWords.forEach((fw, idx) => {
+        for (let i = 0; i < fw.word.length; i++) {
+          if (fw.startR + fw.dir[0] * i === r && fw.startC + fw.dir[1] * i === c) {
+            cell.classList.add('found', 'found-' + (idx % 6));
+          }
+        }
+      });
+
+      cell.addEventListener('mousedown', (e) => { e.preventDefault(); wsStartSelect(r, c); });
+      cell.addEventListener('touchstart', (e) => { e.preventDefault(); wsStartSelect(r, c); });
+      cell.addEventListener('mouseover', () => { if (wsSelecting) wsExtendSelect(r, c); });
+      cell.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el && el.dataset.row !== undefined) wsExtendSelect(+el.dataset.row, +el.dataset.col);
+      });
+      grid.appendChild(cell);
+    }
+  }
+
+  // Word list
+  const wordList = document.getElementById('wsWordList');
+  wordList.innerHTML = '';
+  wsWords.forEach(w => {
+    const tag = document.createElement('span');
+    tag.className = 'ws-word-tag' + (wsFoundWords.some(f => f.word === w) ? ' found' : '');
+    tag.textContent = w;
+    wordList.appendChild(tag);
+  });
+
+  document.getElementById('wsFound').textContent = wsFoundWords.length;
+}
+
+function wsStartSelect(r, c) {
+  startWsTimer();
+  wsSelecting = true;
+  wsStart = { r, c };
+  wsCurrent = { r, c };
+  highlightWsSelection();
+}
+
+function wsExtendSelect(r, c) {
+  if (!wsSelecting) return;
+  wsCurrent = { r, c };
+  highlightWsSelection();
+}
+
+function highlightWsSelection() {
+  const cells = document.querySelectorAll('.ws-cell');
+  cells.forEach(c => c.classList.remove('selecting'));
+  const line = getWsLine(wsStart.r, wsStart.c, wsCurrent.r, wsCurrent.c);
+  line.forEach(({r, c}) => {
+    const idx = r * WS_SIZE + c;
+    if (cells[idx]) cells[idx].classList.add('selecting');
+  });
+}
+
+function getWsLine(r1, c1, r2, c2) {
+  const dr = r2 - r1, dc = c2 - c1;
+  const sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
+  const sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
+  if (sr === 0 && sc === 0) return [{ r: r1, c: c1 }];
+  // Must be straight line (horizontal, vertical, or 45-degree diagonal)
+  if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return [{ r: r1, c: c1 }];
+  const steps = Math.max(Math.abs(dr), Math.abs(dc));
+  const result = [];
+  for (let i = 0; i <= steps; i++) {
+    result.push({ r: r1 + sr * i, c: c1 + sc * i });
+  }
+  return result;
+}
+
+document.addEventListener('mouseup', wsEndSelect);
+document.addEventListener('touchend', wsEndSelect);
+
+function wsEndSelect() {
+  if (!wsSelecting) return;
+  wsSelecting = false;
+  const line = getWsLine(wsStart.r, wsStart.c, wsCurrent.r, wsCurrent.c);
+  const selectedWord = line.map(({r, c}) => wsGrid[r][c]).join('');
+  const reversedWord = selectedWord.split('').reverse().join('');
+
+  // Check if word matches
+  let matchedWord = null;
+  if (wsWords.includes(selectedWord) && !wsFoundWords.some(f => f.word === selectedWord)) {
+    matchedWord = selectedWord;
+  } else if (wsWords.includes(reversedWord) && !wsFoundWords.some(f => f.word === reversedWord)) {
+    matchedWord = reversedWord;
+  }
+
+  if (matchedWord) {
+    const dr = wsCurrent.r - wsStart.r, dc = wsCurrent.c - wsStart.c;
+    const sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
+    const sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
+    wsFoundWords.push({
+      word: matchedWord,
+      startR: wsStart.r,
+      startC: wsStart.c,
+      dir: [sr, sc]
+    });
+    showToast('\u00a1Encontraste "' + matchedWord + '"! \ud83c\udf1f');
+
+    if (wsFoundWords.length === wsWords.length) {
+      stopWsTimer();
+      const timeBonus = wsSeconds <= 60 ? 'R\u00e1pido \u26a1' : wsSeconds <= 120 ? 'Bien \ud83d\udc4d' : '';
+      showToast('\u00a1Todas las palabras encontradas! ' + timeBonus);
+      launchConfetti();
+      incrementGamesCompleted();
+    }
+  }
+
+  renderWordSearch();
+}
+
+document.getElementById('resetWsBtn').addEventListener('click', () => {
+  initWordSearch();
+});
+
+document.getElementById('shareWsBtn').addEventListener('click', () => {
+  const text = 'Relajate.com - Sopa de Letras\nPalabras: ' + wsFoundWords.length + '/' + wsWords.length + '\n\u23f1 Tiempo: ' + formatWsTime(wsSeconds) + '\n\n\ud83d\udd0d relajate.com';
+  document.getElementById('wsShareText').style.display = 'block';
+  document.getElementById('wsShareText').textContent = text;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
+});
+
 // Init all games
 initWordGame();
 initColorGame();
 initPatternGame();
+initSumGame();
+initWordSearch();
 </script>
 </body>
 </html>
