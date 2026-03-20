@@ -51,6 +51,15 @@
       0%,100% { transform: scale(1); }
       50% { transform: scale(1.15); }
     }
+    @keyframes dropIn {
+      0% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+      60% { transform: translateY(8px) scale(1.05); opacity: 1; }
+      80% { transform: translateY(-3px) scale(0.98); }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .color-cell.dropping {
+      animation: dropIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
 
     /* Swap controls */
     .swap-controls {
@@ -667,6 +676,7 @@ const FLOW_ROWS = 8, FLOW_COLS = 7;
 let colorGrid = [], colorScore = 0;
 let colorSwapMode = false, colorSwapFirst = null, colorSwapsLeft = 3;
 let colorTimerInterval = null, colorSeconds = 0, colorTimerStarted = false, colorGameDone = false;
+let droppingCells = new Set(); // tracks cells that need drop animation
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -790,6 +800,13 @@ function renderColorGame() {
       cell.className = 'color-cell';
       if (colorGrid[r][c]) {
         cell.style.background = colorGrid[r][c];
+        // Drop-in animation for newly refilled cells
+        const cellKey = r + ',' + c;
+        if (droppingCells.has(cellKey)) {
+          cell.classList.add('dropping');
+          // Stagger: top rows drop first, delay increases per row
+          cell.style.animationDelay = (r * 0.06) + 's';
+        }
         // Show swap selection
         if (colorSwapMode && colorSwapFirst && colorSwapFirst.r === r && colorSwapFirst.c === c) {
           cell.classList.add('swap-selected');
@@ -808,6 +825,8 @@ function renderColorGame() {
       grid.appendChild(cell);
     }
   }
+  // Clear dropping state after animation starts
+  setTimeout(() => { droppingCells = new Set(); }, 500);
 }
 
 function findConnected(row, col, color, visited = new Set()) {
@@ -825,6 +844,7 @@ function findConnected(row, col, color, visited = new Set()) {
 }
 
 function applyGravity() {
+  droppingCells = new Set();
   for (let c = 0; c < FLOW_COLS; c++) {
     let emptyRow = FLOW_ROWS - 1;
     for (let r = FLOW_ROWS - 1; r >= 0; r--) {
@@ -832,6 +852,7 @@ function applyGravity() {
         if (r !== emptyRow) {
           colorGrid[emptyRow][c] = colorGrid[r][c];
           colorGrid[r][c] = null;
+          droppingCells.add(emptyRow + ',' + c); // mark as dropping
         }
         emptyRow--;
       }
@@ -843,6 +864,7 @@ function refillBoard() {
   // Use a combination of score + seconds + random for varied refills
   const seed = getDayIndex() * 1000 + colorScore + colorSeconds + Math.floor(Math.random() * 10000);
   const rng = seededRandom(seed);
+  droppingCells = new Set();
   for (let c = 0; c < FLOW_COLS; c++) {
     for (let r = 0; r < FLOW_ROWS; r++) {
       if (!colorGrid[r][c]) {
@@ -854,6 +876,7 @@ function refillBoard() {
           attempts++;
         } while (attempts < 5 && wouldFormGroup(r, c, chosenColor));
         colorGrid[r][c] = chosenColor;
+        droppingCells.add(r + ',' + c);
       }
     }
   }
