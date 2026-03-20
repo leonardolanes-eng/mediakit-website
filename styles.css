@@ -297,14 +297,16 @@ input, textarea, select { font-family: var(--font-body); }
   position: absolute;
   display: block;
   border-radius: 50%;
-  opacity: 0.15;
+  background: rgba(255,255,255,0.3) !important;
+  border: 1px solid rgba(255,255,255,0.15);
+  opacity: 0.3;
   animation: floatUp linear infinite;
 }
 
 @keyframes floatUp {
   0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.15; }
-  90% { opacity: 0.15; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
   100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
 }
 
