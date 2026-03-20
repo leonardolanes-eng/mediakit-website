@@ -824,6 +824,50 @@ function findConnected(row, col, color, visited = new Set()) {
   return cells;
 }
 
+function applyGravity() {
+  for (let c = 0; c < FLOW_COLS; c++) {
+    let emptyRow = FLOW_ROWS - 1;
+    for (let r = FLOW_ROWS - 1; r >= 0; r--) {
+      if (colorGrid[r][c]) {
+        if (r !== emptyRow) {
+          colorGrid[emptyRow][c] = colorGrid[r][c];
+          colorGrid[r][c] = null;
+        }
+        emptyRow--;
+      }
+    }
+  }
+}
+
+function refillBoard() {
+  const rng = seededRandom(getDayIndex() + 100 + colorScore + colorSeconds);
+  for (let r = 0; r < FLOW_ROWS; r++) {
+    for (let c = 0; c < FLOW_COLS; c++) {
+      if (!colorGrid[r][c]) {
+        colorGrid[r][c] = FLOW_COLORS[Math.floor(rng() * FLOW_COLORS.length)];
+      }
+    }
+  }
+}
+
+function findAllMatches() {
+  const matched = new Set();
+  for (let r = 0; r < FLOW_ROWS; r++) {
+    for (let c = 0; c < FLOW_COLS; c++) {
+      if (colorGrid[r][c]) {
+        const connected = findConnected(r, c, colorGrid[r][c]);
+        if (connected.length >= 3) {
+          connected.forEach(({r, c}) => matched.add(r + ',' + c));
+        }
+      }
+    }
+  }
+  return Array.from(matched).map(key => {
+    const [r, c] = key.split(',').map(Number);
+    return {r, c};
+  });
+}
+
 function handleColorClick(row, col) {
   if (!colorGrid[row][col] || colorGameDone) return;
   startColorTimer();
@@ -883,38 +927,39 @@ function handleColorClick(row, col) {
   colorScore += basePoints + comboBonus;
 
   // Gravity: drop cells down
-  for (let c = 0; c < FLOW_COLS; c++) {
-    let emptyRow = FLOW_ROWS - 1;
-    for (let r = FLOW_ROWS - 1; r >= 0; r--) {
-      if (colorGrid[r][c]) {
-        if (r !== emptyRow) {
-          colorGrid[emptyRow][c] = colorGrid[r][c];
-          colorGrid[r][c] = null;
-        }
-        emptyRow--;
-      }
-    }
+  applyGravity();
+
+  // Refill empty cells from top with new random colors
+  refillBoard();
+
+  // Chain reaction: keep clearing groups of 3+ that form after refill
+  let chainCount = 0;
+  while (true) {
+    const chainCells = findAllMatches();
+    if (chainCells.length === 0) break;
+    chainCount++;
+    const chainBonus = chainCells.length * 10 * (chainCount + 1);
+    colorScore += chainBonus;
+    chainCells.forEach(({r, c}) => { colorGrid[r][c] = null; });
+    applyGravity();
+    refillBoard();
+  }
+  if (chainCount > 0) {
+    showToast('¡Combo x' + (chainCount + 1) + '! 🔥 +' + (chainCount * 50) + ' bonus');
+    colorScore += chainCount * 50;
   }
 
-  // Check if game is complete (no more moves)
+  // Check if game is over (no more moves available)
   if (checkColorGameComplete()) {
-    let cellsLeft = 0;
-    for (let r = 0; r < FLOW_ROWS; r++) {
-      for (let c = 0; c < FLOW_COLS; c++) {
-        if (colorGrid[r][c]) cellsLeft++;
-      }
-    }
     stopColorTimer();
     colorGameDone = true;
     const timeBonus = getColorTimeBonus();
-    const clearBonus = cellsLeft === 0 ? 1000 : 0;
-    colorScore += timeBonus + clearBonus;
+    colorScore += timeBonus;
 
-    let msg = '¡Juego terminado!';
-    if (clearBonus > 0) msg = '¡PERFECTO! Tablero limpio 🌟 +' + clearBonus;
+    let msg = '¡Sin movimientos! Juego terminado 🏁 Puntos: ' + colorScore;
     if (timeBonus > 0) msg += ' ⏱ Bonus tiempo: +' + timeBonus;
     showToast(msg);
-    if (clearBonus > 0) launchConfetti();
+    launchConfetti();
     incrementGamesCompleted();
   }
 
