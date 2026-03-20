@@ -159,16 +159,14 @@
     // --- Floating shapes ---
     (function createShapes() {
       const container = document.getElementById('floatingShapes');
-      const colors = ['#6B9BD2','#9B8EC4','#87AE73','#A3C4E8','#C4B8E0'];
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 30; i++) {
         const span = document.createElement('span');
-        const size = Math.random() * 60 + 20;
+        const size = Math.random() * 80 + 15;
         span.style.width = size + 'px';
         span.style.height = size + 'px';
         span.style.left = Math.random() * 100 + '%';
-        span.style.background = colors[Math.floor(Math.random() * colors.length)];
-        span.style.animationDuration = (Math.random() * 15 + 10) + 's';
-        span.style.animationDelay = (Math.random() * 10) + 's';
+        span.style.animationDuration = (Math.random() * 18 + 8) + 's';
+        span.style.animationDelay = (Math.random() * 12) + 's';
         container.appendChild(span);
       }
     })();
