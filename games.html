@@ -840,14 +840,36 @@ function applyGravity() {
 }
 
 function refillBoard() {
-  const rng = seededRandom(getDayIndex() + 100 + colorScore + colorSeconds);
-  for (let r = 0; r < FLOW_ROWS; r++) {
-    for (let c = 0; c < FLOW_COLS; c++) {
+  // Use a combination of score + seconds + random for varied refills
+  const seed = getDayIndex() * 1000 + colorScore + colorSeconds + Math.floor(Math.random() * 10000);
+  const rng = seededRandom(seed);
+  for (let c = 0; c < FLOW_COLS; c++) {
+    for (let r = 0; r < FLOW_ROWS; r++) {
       if (!colorGrid[r][c]) {
-        colorGrid[r][c] = FLOW_COLORS[Math.floor(rng() * FLOW_COLORS.length)];
+        // Pick a random color, but try to avoid immediately forming a group of 3
+        let attempts = 0;
+        let chosenColor;
+        do {
+          chosenColor = FLOW_COLORS[Math.floor(rng() * FLOW_COLORS.length)];
+          attempts++;
+        } while (attempts < 5 && wouldFormGroup(r, c, chosenColor));
+        colorGrid[r][c] = chosenColor;
       }
     }
   }
+}
+
+function wouldFormGroup(row, col, color) {
+  // Check if placing this color would form 3 in a row horizontally
+  let hCount = 1;
+  if (col >= 1 && colorGrid[row][col-1] === color) { hCount++; if (col >= 2 && colorGrid[row][col-2] === color) hCount++; }
+  if (col < FLOW_COLS-1 && colorGrid[row][col+1] === color) { hCount++; if (col < FLOW_COLS-2 && colorGrid[row][col+2] === color) hCount++; }
+  if (hCount >= 3) return true;
+  // Check vertically
+  let vCount = 1;
+  if (row >= 1 && colorGrid[row-1][col] === color) { vCount++; if (row >= 2 && colorGrid[row-2][col] === color) vCount++; }
+  if (row < FLOW_ROWS-1 && colorGrid[row+1][col] === color) { vCount++; if (row < FLOW_ROWS-2 && colorGrid[row+2][col] === color) vCount++; }
+  return vCount >= 3;
 }
 
 function findAllMatches() {
@@ -920,47 +942,36 @@ function handleColorClick(row, col) {
     return;
   }
 
-  // Clear cells with animation
+  // Clear matched cells
   connected.forEach(({r, c}) => { colorGrid[r][c] = null; });
   const basePoints = connected.length * 10;
   const comboBonus = connected.length > 5 ? 50 : (connected.length > 4 ? 25 : 0);
   colorScore += basePoints + comboBonus;
+  showToast('+' + (basePoints + comboBonus) + ' puntos! (' + connected.length + ' círculos)');
 
-  // Gravity: drop cells down
+  // Gravity: drop cells down to fill gaps
   applyGravity();
 
-  // Refill empty cells from top with new random colors
+  // Refill empty cells at the top with new random colors
   refillBoard();
 
-  // Chain reaction: keep clearing groups of 3+ that form after refill
-  let chainCount = 0;
-  while (true) {
-    const chainCells = findAllMatches();
-    if (chainCells.length === 0) break;
-    chainCount++;
-    const chainBonus = chainCells.length * 10 * (chainCount + 1);
-    colorScore += chainBonus;
-    chainCells.forEach(({r, c}) => { colorGrid[r][c] = null; });
-    applyGravity();
-    refillBoard();
-  }
-  if (chainCount > 0) {
-    showToast('¡Combo x' + (chainCount + 1) + '! 🔥 +' + (chainCount * 50) + ' bonus');
-    colorScore += chainCount * 50;
-  }
-
-  // Check if game is over (no more moves available)
-  if (checkColorGameComplete()) {
+  // Check if game is over: no groups of 3+ AND no swaps left
+  const hasGroups = !checkColorGameComplete();
+  if (!hasGroups && colorSwapsLeft <= 0) {
+    // No moves and no swaps — game over
     stopColorTimer();
     colorGameDone = true;
     const timeBonus = getColorTimeBonus();
     colorScore += timeBonus;
 
-    let msg = '¡Sin movimientos! Juego terminado 🏁 Puntos: ' + colorScore;
-    if (timeBonus > 0) msg += ' ⏱ Bonus tiempo: +' + timeBonus;
+    let msg = '🏁 ¡Juego terminado! Puntos: ' + colorScore;
+    if (timeBonus > 0) msg += ' ⏱ Bonus: +' + timeBonus;
     showToast(msg);
     launchConfetti();
     incrementGamesCompleted();
+  } else if (!hasGroups && colorSwapsLeft > 0) {
+    // No groups but swaps available — hint the player
+    showToast('💡 No hay grupos. ¡Usa tus ' + colorSwapsLeft + ' intercambios para crear combinaciones!');
   }
 
   saveColorGame();
