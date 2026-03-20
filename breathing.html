@@ -412,6 +412,7 @@ document.getElementById('start478Btn').addEventListener('click', () => {
   document.getElementById('complete478').style.display = 'none';
   reps478 = 0;
   document.getElementById('repCounter478').textContent = 'Repeticiones: 0';
+  if (!musicPlaying) playTrack(currentTrack);
   run478Cycle();
 });
 
@@ -488,6 +489,7 @@ document.getElementById('startBoxBtn').addEventListener('click', () => {
   document.getElementById('completeBox').style.display = 'none';
   repsBox = 0;
   document.getElementById('repCounterBox').textContent = 'Repeticiones: 0';
+  if (!musicPlaying) playTrack(currentTrack);
   runBoxCycle(0);
 });
 
@@ -622,6 +624,7 @@ document.getElementById('startMindfulBtn').addEventListener('click', () => {
   document.getElementById('stopMindfulBtn').style.display = '';
   document.getElementById('completeMindful').style.display = 'none';
   mindfulRunning = true;
+  if (!musicPlaying) playTrack(currentTrack);
 
   let remaining = mindfulDuration;
   const total = mindfulDuration;
