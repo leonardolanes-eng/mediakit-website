@@ -163,6 +163,7 @@
         <h3>Flujo de Colores</h3>
         <div class="game-timer"><span class="timer-icon">⏱</span><span id="colorTimer">0:00</span></div>
         <span class="game-score">Puntos: <span id="colorScore">0</span></span>
+        <span class="game-score" style="font-size:0.75rem;opacity:0.7;">🏆 Mejor: <span id="colorBest">0</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;">Toca grupos de 3+ colores iguales adyacentes para eliminarlos</p>
       <div class="swap-controls">
@@ -794,6 +795,7 @@ function renderColorGame() {
   const grid = document.getElementById('colorGrid');
   grid.innerHTML = '';
   document.getElementById('colorScore').textContent = colorScore;
+  document.getElementById('colorBest').textContent = localStorage.getItem('relajate_colors_best') || '0';
   for (let r = 0; r < FLOW_ROWS; r++) {
     for (let c = 0; c < FLOW_COLS; c++) {
       const cell = document.createElement('div');
@@ -967,10 +969,18 @@ function handleColorClick(row, col) {
 
   // Clear matched cells
   connected.forEach(({r, c}) => { colorGrid[r][c] = null; });
-  const basePoints = connected.length * 10;
-  const comboBonus = connected.length > 5 ? 50 : (connected.length > 4 ? 25 : 0);
-  colorScore += basePoints + comboBonus;
-  showToast('+' + (basePoints + comboBonus) + ' puntos! (' + connected.length + ' círculos)');
+  // Scoring: bigger groups = exponentially more points
+  const n = connected.length;
+  let points = 0;
+  let sizeLabel = '';
+  if (n === 3) { points = 30; sizeLabel = ''; }
+  else if (n === 4) { points = 60; sizeLabel = ' 🔥 x4!'; }
+  else if (n === 5) { points = 100; sizeLabel = ' 💥 x5!'; }
+  else if (n === 6) { points = 160; sizeLabel = ' ⚡ x6!'; }
+  else if (n === 7) { points = 250; sizeLabel = ' 🌟 x7!'; }
+  else { points = 250 + (n - 7) * 50; sizeLabel = ' 🏆 x' + n + '!'; }
+  colorScore += points;
+  showToast('+' + points + ' puntos!' + sizeLabel);
 
   // Gravity: drop cells down to fill gaps
   applyGravity();
