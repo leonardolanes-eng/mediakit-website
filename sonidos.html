@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sonidos Ambientales - Relajate.com</title>
+  <meta name="description" content="Mezcla sonidos ambientales personalizados: lluvia, caf&eacute;, piano, oc&eacute;ano, fuego y m&aacute;s. Crea tu ambiente perfecto de relajaci&oacute;n.">
+  <meta name="theme-color" content="#9B8EC4">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css?v=5">
+  <style>
+    .mixer-container {
+      max-width: 800px; margin: 2rem auto; padding: 0 1rem;
+    }
+    .mixer-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .sound-card {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      padding: 1.25rem; border: 2px solid var(--border-color);
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .sound-card.active {
+      border-color: var(--lavender);
+      box-shadow: 0 4px 20px rgba(155,142,196,0.2);
+    }
+    .sound-card-header {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
+    }
+    .sound-icon {
+      width: 48px; height: 48px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 1.5rem;
+      flex-shrink: 0; transition: all 0.3s ease;
+    }
+    .sound-icon.rain { background: rgba(107,155,210,0.15); }
+    .sound-icon.cafe { background: rgba(139,90,43,0.15); }
+    .sound-icon.piano { background: rgba(155,142,196,0.15); }
+    .sound-icon.ocean { background: rgba(107,155,210,0.15); }
+    .sound-icon.fire { background: rgba(231,76,60,0.12); }
+    .sound-icon.wind { background: rgba(135,174,115,0.15); }
+    .sound-icon.birds { background: rgba(241,196,15,0.15); }
+    .sound-icon.thunder { background: rgba(52,73,94,0.15); }
+    .sound-icon.night { background: rgba(44,62,80,0.15); }
+    .sound-icon.river { background: rgba(26,188,156,0.15); }
+
+    .sound-card.active .sound-icon {
+      transform: scale(1.1);
+    }
+    .sound-name {
+      font-weight: 700; font-size: 1rem; color: var(--text-primary);
+    }
+    .sound-desc {
+      font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;
+    }
+    .sound-toggle {
+      width: 44px; height: 24px; border-radius: 12px; border: none;
+      background: var(--gray-300); cursor: pointer; position: relative;
+      transition: all 0.3s ease; margin-left: auto; flex-shrink: 0;
+    }
+    .sound-toggle::after {
+      content: ''; position: absolute; width: 20px; height: 20px;
+      border-radius: 50%; background: white; top: 2px; left: 2px;
+      transition: all 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .sound-toggle.on { background: var(--lavender); }
+    .sound-toggle.on::after { left: 22px; }
+
+    .sound-slider-row {
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;
+    }
+    .sound-slider {
+      flex: 1; height: 6px; -webkit-appearance: none; appearance: none;
+      background: var(--gray-200); border-radius: 3px; outline: none;
+      transition: opacity 0.3s;
+    }
+    .sound-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      cursor: pointer; transition: all 0.2s; border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .sound-card.rain .sound-slider::-webkit-slider-thumb { background: #6B9BD2; }
+    .sound-card.cafe .sound-slider::-webkit-slider-thumb { background: #8B5A2B; }
+    .sound-card.piano .sound-slider::-webkit-slider-thumb { background: #9B8EC4; }
+    .sound-card.ocean .sound-slider::-webkit-slider-thumb { background: #3498db; }
+    .sound-card.fire .sound-slider::-webkit-slider-thumb { background: #e74c3c; }
+    .sound-card.wind .sound-slider::-webkit-slider-thumb { background: #87AE73; }
+    .sound-card.birds .sound-slider::-webkit-slider-thumb { background: #f1c40f; }
+    .sound-card.thunder .sound-slider::-webkit-slider-thumb { background: #34495e; }
+    .sound-card.night .sound-slider::-webkit-slider-thumb { background: #2c3e50; }
+    .sound-card.river .sound-slider::-webkit-slider-thumb { background: #1abc9c; }
+
+    .vol-label {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-secondary);
+      min-width: 28px; text-align: right; font-variant-numeric: tabular-nums;
+    }
+
+    /* Presets */
+    .presets-section {
+      max-width: 800px; margin: 2rem auto; padding: 0 1rem;
+    }
+    .presets-grid {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
+    }
+    .preset-btn {
+      padding: 0.5rem 1.2rem; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.2s ease;
+    }
+    .preset-btn:hover, .preset-btn.active {
+      border-color: var(--lavender); color: var(--lavender-dark);
+      background: rgba(155,142,196,0.08);
+    }
+
+    /* Master controls */
+    .master-controls {
+      max-width: 800px; margin: 1.5rem auto; padding: 0 1rem;
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .master-play {
+      width: 56px; height: 56px; border-radius: 50%; border: none;
+      background: linear-gradient(135deg, var(--lavender), var(--blue));
+      color: white; font-size: 1.5rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(155,142,196,0.3);
+    }
+    .master-play:hover { transform: scale(1.08); }
+    .master-play.playing {
+      animation: masterPulse 2s ease infinite;
+    }
+    @keyframes masterPulse {
+      0%, 100% { box-shadow: 0 4px 15px rgba(155,142,196,0.3); }
+      50% { box-shadow: 0 4px 25px rgba(155,142,196,0.6); }
+    }
+    .master-vol {
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .master-slider {
+      width: 100px; height: 5px; -webkit-appearance: none; appearance: none;
+      background: var(--gray-200); border-radius: 3px; outline: none;
+    }
+    .master-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--lavender); cursor: pointer;
+    }
+
+    /* Timer */
+    .sleep-timer {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .timer-select {
+      padding: 0.4rem 0.8rem; border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-color); background: var(--bg-card);
+      font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .timer-display {
+      font-size: 0.8rem; font-weight: 700; color: var(--lavender-dark);
+      min-width: 50px;
+    }
+
+    /* Visualizer */
+    .visualizer {
+      max-width: 800px; margin: 0 auto; height: 60px; display: flex;
+      align-items: flex-end; justify-content: center; gap: 3px;
+      padding: 0 1rem; opacity: 0; transition: opacity 0.5s;
+    }
+    .visualizer.active { opacity: 1; }
+    .viz-bar {
+      width: 4px; border-radius: 2px;
+      background: linear-gradient(to top, var(--lavender), var(--blue));
+      transition: height 0.15s ease;
+    }
+
+    /* Active count */
+    .active-count {
+      text-align: center; font-size: 0.85rem; color: var(--text-secondary);
+      font-weight: 600; margin: 0.5rem 0;
+    }
+    .active-count span { color: var(--lavender-dark); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo"><img src="images/logo.png" alt="Relajate.com" class="navbar-logo-img"></a>
+      <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
+      <div class="navbar-links" id="navLinks">
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="sonidos.html" class="active">Sonidos</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header" style="background:linear-gradient(135deg,#2c3e50 0%,#9B8EC4 40%,#6B9BD2 70%,#87AE73 100%);">
+    <h1>Sonidos Ambientales</h1>
+    <p>Mezcla tus sonidos favoritos y crea tu ambiente perfecto de relajaci&oacute;n</p>
+  </div>
+
+  <!-- Presets -->
+  <div class="presets-section">
+    <div class="presets-grid">
+      <button class="preset-btn" data-preset="focus">&#127891; Enfoque</button>
+      <button class="preset-btn" data-preset="relax">&#128524; Relax</button>
+      <button class="preset-btn" data-preset="sleep">&#127769; Dormir</button>
+      <button class="preset-btn" data-preset="cafe">&#9749; Caf&eacute;</button>
+      <button class="preset-btn" data-preset="nature">&#127795; Naturaleza</button>
+      <button class="preset-btn" data-preset="storm">&#9889; Tormenta</button>
+    </div>
+  </div>
+
+  <!-- Master Controls -->
+  <div class="master-controls">
+    <button class="master-play" id="masterPlay" title="Reproducir / Pausar">&#9654;</button>
+    <div class="master-vol">
+      <span style="font-size:0.8rem;">&#128264;</span>
+      <input type="range" class="master-slider" id="masterVolume" min="0" max="100" value="70">
+      <span style="font-size:0.8rem;">&#128266;</span>
+    </div>
+    <div class="sleep-timer">
+      <span style="font-size:0.8rem;">&#9200;</span>
+      <select class="timer-select" id="sleepTimer">
+        <option value="0">Sin temporizador</option>
+        <option value="15">15 min</option>
+        <option value="30">30 min</option>
+        <option value="60">1 hora</option>
+        <option value="90">1.5 horas</option>
+        <option value="120">2 horas</option>
+      </select>
+      <span class="timer-display" id="timerDisplay"></span>
+    </div>
+  </div>
+
+  <div class="active-count" id="activeCount">Selecciona sonidos para comenzar</div>
+
+  <!-- Visualizer -->
+  <div class="visualizer" id="visualizer"></div>
+
+  <!-- Sound Mixer -->
+  <div class="mixer-container">
+    <div class="mixer-grid">
+
+      <div class="sound-card rain" data-sound="rain">
+        <div class="sound-card-header">
+          <div class="sound-icon rain">&#127783;&#65039;</div>
+          <div>
+            <div class="sound-name">Lluvia</div>
+            <div class="sound-desc">Lluvia suave y constante</div>
+          </div>
+          <button class="sound-toggle" data-sound="rain"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="rain" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card cafe" data-sound="cafe">
+        <div class="sound-card-header">
+          <div class="sound-icon cafe">&#9749;</div>
+          <div>
+            <div class="sound-name">Cafeter&iacute;a</div>
+            <div class="sound-desc">Murmullo de personas y tazas</div>
+          </div>
+          <button class="sound-toggle" data-sound="cafe"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="cafe" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card piano" data-sound="piano">
+        <div class="sound-card-header">
+          <div class="sound-icon piano">&#127929;</div>
+          <div>
+            <div class="sound-name">Piano Suave</div>
+            <div class="sound-desc">Notas lentas y relajantes</div>
+          </div>
+          <button class="sound-toggle" data-sound="piano"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="piano" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card ocean" data-sound="ocean">
+        <div class="sound-card-header">
+          <div class="sound-icon ocean">&#127754;</div>
+          <div>
+            <div class="sound-name">Oc&eacute;ano</div>
+            <div class="sound-desc">Olas rompiendo suavemente</div>
+          </div>
+          <button class="sound-toggle" data-sound="ocean"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="ocean" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card fire" data-sound="fire">
+        <div class="sound-card-header">
+          <div class="sound-icon fire">&#128293;</div>
+          <div>
+            <div class="sound-name">Chimenea</div>
+            <div class="sound-desc">Le&ntilde;a crepitando al fuego</div>
+          </div>
+          <button class="sound-toggle" data-sound="fire"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="fire" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card wind" data-sound="wind">
+        <div class="sound-card-header">
+          <div class="sound-icon wind">&#127811;</div>
+          <div>
+            <div class="sound-name">Viento</div>
+            <div class="sound-desc">Brisa entre los &aacute;rboles</div>
+          </div>
+          <button class="sound-toggle" data-sound="wind"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="wind" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card birds" data-sound="birds">
+        <div class="sound-card-header">
+          <div class="sound-icon birds">&#128038;</div>
+          <div>
+            <div class="sound-name">P&aacute;jaros</div>
+            <div class="sound-desc">Canto de aves al amanecer</div>
+          </div>
+          <button class="sound-toggle" data-sound="birds"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="birds" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card thunder" data-sound="thunder">
+        <div class="sound-card-header">
+          <div class="sound-icon thunder">&#9889;</div>
+          <div>
+            <div class="sound-name">Truenos</div>
+            <div class="sound-desc">Tormenta lejana y profunda</div>
+          </div>
+          <button class="sound-toggle" data-sound="thunder"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="thunder" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card night" data-sound="night">
+        <div class="sound-card-header">
+          <div class="sound-icon night">&#127769;</div>
+          <div>
+            <div class="sound-name">Noche</div>
+            <div class="sound-desc">Grillos y sonidos nocturnos</div>
+          </div>
+          <button class="sound-toggle" data-sound="night"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="night" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card river" data-sound="river">
+        <div class="sound-card-header">
+          <div class="sound-icon river">&#127754;</div>
+          <div>
+            <div class="sound-name">R&iacute;o</div>
+            <div class="sound-desc">Agua fluyendo sobre piedras</div>
+          </div>
+          <button class="sound-toggle" data-sound="river"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="river" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Relajate.com</h4>
+        <p style="font-size:0.9rem;color:var(--gray-400);">Tu pausa digital diaria.</p>
+      </div>
+      <div>
+        <h4>Navegar</h4>
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="sonidos.html">Sonidos</a>
+        <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Relajate.com</div>
+  </footer>
+
+<script>
+// Nav toggle
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== WEB AUDIO ENGINE ====================
+let audioCtx = null;
+let masterGain = null;
+let isPlaying = false;
+const sounds = {};
+const soundConfigs = {
+  rain: { active: false, volume: 0.5, nodes: [] },
+  cafe: { active: false, volume: 0.5, nodes: [] },
+  piano: { active: false, volume: 0.5, nodes: [] },
+  ocean: { active: false, volume: 0.5, nodes: [] },
+  fire: { active: false, volume: 0.5, nodes: [] },
+  wind: { active: false, volume: 0.5, nodes: [] },
+  birds: { active: false, volume: 0.5, nodes: [] },
+  thunder: { active: false, volume: 0.5, nodes: [] },
+  night: { active: false, volume: 0.5, nodes: [] },
+  river: { active: false, volume: 0.5, nodes: [] }
+};
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.7;
+  masterGain.connect(audioCtx.destination);
+}
+
+function createNoise(type) {
+  const bufferSize = audioCtx.sampleRate * 4;
+  const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    if (type === 'white') {
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    } else if (type === 'brown') {
+      let last = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        last = (last + (Math.random() * 2 - 1) * 0.02) * 0.998;
+        data[i] = last * 20;
+      }
+    } else if (type === 'pink') {
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for (let i = 0; i < bufferSize; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = 0.99886*b0 + w*0.0555179;
+        b1 = 0.99332*b1 + w*0.0750759;
+        b2 = 0.96900*b2 + w*0.1538520;
+        b3 = 0.86650*b3 + w*0.3104856;
+        b4 = 0.55000*b4 + w*0.5329522;
+        b5 = -0.7616*b5 - w*0.0168980;
+        data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+        b6 = w * 0.115926;
+      }
+    }
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  src.loop = true;
+  return src;
+}
+
+function createSoundChain(name) {
+  const cfg = soundConfigs[name];
+  const gain = audioCtx.createGain();
+  gain.gain.value = cfg.volume;
+  gain.connect(masterGain);
+  cfg.gainNode = gain;
+
+  if (name === 'rain') {
+    const noise = createNoise('white');
+    const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 800;
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+    const vol = audioCtx.createGain(); vol.gain.value = 0.4;
+    noise.connect(hp); hp.connect(lp); lp.connect(vol); vol.connect(gain);
+    noise.start();
+    // Drip layer
+    const drip = createNoise('white');
+    const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3500; bp.Q.value = 3;
+    const dv = audioCtx.createGain(); dv.gain.value = 0.15;
+    drip.connect(bp); bp.connect(dv); dv.connect(gain);
+    drip.start();
+    cfg.nodes = [noise, drip, hp, lp, bp, vol, dv];
+  }
+  else if (name === 'cafe') {
+    // Murmur: filtered pink noise
+    const noise = createNoise('pink');
+    const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 600; bp.Q.value = 0.5;
+    const vol = audioCtx.createGain(); vol.gain.value = 0.35;
+    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.2;
+    const lfoG = audioCtx.createGain(); lfoG.gain.value = 0.1;
+    lfo.connect(lfoG); lfoG.connect(vol.gain);
+    noise.connect(bp); bp.connect(vol); vol.connect(gain);
+    noise.start(); lfo.start();
+    // Clinks layer
+    const clink = createNoise('white');
+    const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3000;
+    const cv = audioCtx.createGain(); cv.gain.value = 0.04;
+    clink.connect(hp); hp.connect(cv); cv.connect(gain);
+    clink.start();
+    cfg.nodes = [noise, clink, bp, hp, vol, cv, lfo, lfoG];
+  }
+  else if (name === 'piano') {
+    // Gentle piano: layered sine harmonics with slow random melody
+    const notes = [261.63, 293.66, 329.63, 349.23, 392, 440, 493.88, 523.25];
+    let pianoActive = true;
+    cfg._pianoActive = true;
+    function playNote() {
+      if (!cfg._pianoActive || !audioCtx) return;
+      const freq = notes[Math.floor(Math.random() * notes.length)] * (Math.random() > 0.5 ? 0.5 : 1);
+      const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+      const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = freq * 2.01;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.02;
+      osc.connect(g); osc2.connect(g2); g2.connect(g); g.connect(gain);
+      osc.start(); osc2.start();
+      osc.stop(audioCtx.currentTime + 3.5);
+      osc2.stop(audioCtx.currentTime + 3.5);
+      setTimeout(playNote, 2000 + Math.random() * 4000);
+    }
+    playNote();
+    cfg.nodes = [];
+  }
+  else if (name === 'ocean') {
+    const noise = createNoise('brown');
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.07;
+    const lfoG = audioCtx.createGain(); lfoG.gain.value = 400;
+    lfo.connect(lfoG); lfoG.connect(lp.frequency);
+    const vol = audioCtx.createGain(); vol.gain.value = 0.5;
+    noise.connect(lp); lp.connect(vol); vol.connect(gain);
+    noise.start(); lfo.start();
+    cfg.nodes = [noise, lfo, lp, lfoG, vol];
+  }
+  else if (name === 'fire') {
+    // Crackling: filtered noise bursts
+    const noise = createNoise('white');
+    const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 2;
+    const vol = audioCtx.createGain(); vol.gain.value = 0.15;
+    noise.connect(bp); bp.connect(vol); vol.connect(gain);
+    noise.start();
+    // Low rumble
+    const brown = createNoise('brown');
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 200;
+    const rv = audioCtx.createGain(); rv.gain.value = 0.25;
+    brown.connect(lp); lp.connect(rv); rv.connect(gain);
+    brown.start();
+    cfg.nodes = [noise, brown, bp, lp, vol, rv];
+  }
+  else if (name === 'wind') {
+    const noise = createNoise('pink');
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
+    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.12;
+    const lfoG = audioCtx.createGain(); lfoG.gain.value = 500;
+    lfo.connect(lfoG); lfoG.connect(lp.frequency);
+    const vol = audioCtx.createGain(); vol.gain.value = 0.3;
+    noise.connect(lp); lp.connect(vol); vol.connect(gain);
+    noise.start(); lfo.start();
+    cfg.nodes = [noise, lfo, lp, lfoG, vol];
+  }
+  else if (name === 'birds') {
+    cfg._birdsActive = true;
+    function chirp() {
+      if (!cfg._birdsActive || !audioCtx) return;
+      const baseFreq = 2000 + Math.random() * 2500;
+      const osc = audioCtx.createOscillator(); osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * (1 + Math.random() * 0.5), audioCtx.currentTime + 0.06);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.9, audioCtx.currentTime + 0.12);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.02);
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+      osc.connect(g); g.connect(gain);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      // Sometimes double chirp
+      if (Math.random() > 0.5) {
+        setTimeout(() => {
+          if (!cfg._birdsActive) return;
+          const o2 = audioCtx.createOscillator(); o2.type = 'sine';
+          o2.frequency.value = baseFreq * 1.2;
+          const g2 = audioCtx.createGain();
+          g2.gain.setValueAtTime(0, audioCtx.currentTime);
+          g2.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.02);
+          g2.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+          o2.connect(g2); g2.connect(gain);
+          o2.start(); o2.stop(audioCtx.currentTime + 0.15);
+        }, 120);
+      }
+      setTimeout(chirp, 800 + Math.random() * 3000);
+    }
+    chirp();
+    cfg.nodes = [];
+  }
+  else if (name === 'thunder') {
+    const noise = createNoise('brown');
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 100;
+    const vol = audioCtx.createGain(); vol.gain.value = 0.4;
+    noise.connect(lp); lp.connect(vol); vol.connect(gain);
+    noise.start();
+    cfg._thunderActive = true;
+    function rumble() {
+      if (!cfg._thunderActive || !audioCtx) return;
+      const burst = createNoise('brown');
+      const blp = audioCtx.createBiquadFilter(); blp.type = 'lowpass'; blp.frequency.value = 60;
+      const bg = audioCtx.createGain();
+      bg.gain.setValueAtTime(0, audioCtx.currentTime);
+      bg.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.1);
+      bg.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
+      burst.connect(blp); blp.connect(bg); bg.connect(gain);
+      burst.start(); burst.stop(audioCtx.currentTime + 5);
+      setTimeout(rumble, 8000 + Math.random() * 15000);
+    }
+    setTimeout(rumble, 3000);
+    cfg.nodes = [noise, lp, vol];
+  }
+  else if (name === 'night') {
+    // Crickets: high-pitched oscillating tone
+    const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = 4200;
+    const tremolo = audioCtx.createOscillator(); tremolo.frequency.value = 35;
+    const tg = audioCtx.createGain(); tg.gain.value = 0.03;
+    const vol = audioCtx.createGain(); vol.gain.value = 0;
+    tremolo.connect(tg); tg.connect(vol.gain);
+    vol.gain.setValueAtTime(0.03, audioCtx.currentTime);
+    osc.connect(vol); vol.connect(gain);
+    osc.start(); tremolo.start();
+    // Second cricket
+    const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 3800;
+    const v2 = audioCtx.createGain(); v2.gain.value = 0.02;
+    osc2.connect(v2); v2.connect(gain);
+    osc2.start();
+    // Subtle wind
+    const wind = createNoise('pink');
+    const wlp = audioCtx.createBiquadFilter(); wlp.type = 'lowpass'; wlp.frequency.value = 300;
+    const wv = audioCtx.createGain(); wv.gain.value = 0.08;
+    wind.connect(wlp); wlp.connect(wv); wv.connect(gain);
+    wind.start();
+    cfg.nodes = [osc, osc2, tremolo, wind, tg, vol, v2, wlp, wv];
+  }
+  else if (name === 'river') {
+    const noise = createNoise('white');
+    const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1200; bp.Q.value = 0.5;
+    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.3;
+    const lfoG = audioCtx.createGain(); lfoG.gain.value = 300;
+    lfo.connect(lfoG); lfoG.connect(bp.frequency);
+    const vol = audioCtx.createGain(); vol.gain.value = 0.2;
+    noise.connect(bp); bp.connect(vol); vol.connect(gain);
+    noise.start(); lfo.start();
+    // Low water flow
+    const brown = createNoise('brown');
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 400;
+    const rv = audioCtx.createGain(); rv.gain.value = 0.15;
+    brown.connect(lp); lp.connect(rv); rv.connect(gain);
+    brown.start();
+    cfg.nodes = [noise, brown, lfo, bp, lp, lfoG, vol, rv];
+  }
+}
+
+function stopSound(name) {
+  const cfg = soundConfigs[name];
+  cfg._pianoActive = false;
+  cfg._birdsActive = false;
+  cfg._thunderActive = false;
+  cfg.nodes.forEach(n => {
+    try { n.stop && n.stop(); } catch(e) {}
+    try { n.disconnect(); } catch(e) {}
+  });
+  cfg.nodes = [];
+  if (cfg.gainNode) {
+    try { cfg.gainNode.disconnect(); } catch(e) {}
+    cfg.gainNode = null;
+  }
+}
+
+function toggleSound(name) {
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const cfg = soundConfigs[name];
+  cfg.active = !cfg.active;
+
+  if (cfg.active) {
+    createSoundChain(name);
+    if (!isPlaying) {
+      isPlaying = true;
+      document.getElementById('masterPlay').classList.add('playing');
+      document.getElementById('masterPlay').innerHTML = '&#10074;&#10074;';
+      startVisualizer();
+    }
+  } else {
+    stopSound(name);
+    // Check if any still active
+    const anyActive = Object.values(soundConfigs).some(s => s.active);
+    if (!anyActive) {
+      isPlaying = false;
+      document.getElementById('masterPlay').classList.remove('playing');
+      document.getElementById('masterPlay').innerHTML = '&#9654;';
+      stopVisualizer();
+    }
+  }
+
+  updateUI();
+  saveState();
+}
+
+function updateUI() {
+  const activeNames = [];
+  Object.keys(soundConfigs).forEach(name => {
+    const cfg = soundConfigs[name];
+    const card = document.querySelector('.sound-card.' + name);
+    const toggle = card.querySelector('.sound-toggle');
+    card.classList.toggle('active', cfg.active);
+    toggle.classList.toggle('on', cfg.active);
+  });
+
+  const count = Object.values(soundConfigs).filter(s => s.active).length;
+  const el = document.getElementById('activeCount');
+  if (count === 0) {
+    el.textContent = 'Selecciona sonidos para comenzar';
+  } else {
+    el.innerHTML = '<span>' + count + '</span> sonido' + (count > 1 ? 's' : '') + ' activo' + (count > 1 ? 's' : '');
+  }
+}
+
+// Toggle buttons
+document.querySelectorAll('.sound-toggle').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSound(btn.dataset.sound);
+  });
+});
+
+// Card click also toggles
+document.querySelectorAll('.sound-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.sound-slider-row') || e.target.closest('.sound-toggle')) return;
+    toggleSound(card.dataset.sound);
+  });
+});
+
+// Volume sliders
+document.querySelectorAll('.sound-slider').forEach(slider => {
+  slider.addEventListener('input', () => {
+    const name = slider.dataset.sound;
+    const val = slider.value / 100;
+    soundConfigs[name].volume = val;
+    slider.nextElementSibling.textContent = slider.value + '%';
+    if (soundConfigs[name].gainNode) {
+      soundConfigs[name].gainNode.gain.value = val;
+    }
+    saveState();
+  });
+});
+
+// Master volume
+document.getElementById('masterVolume').addEventListener('input', (e) => {
+  if (masterGain) masterGain.gain.value = e.target.value / 100;
+  saveState();
+});
+
+// Master play/pause
+document.getElementById('masterPlay').addEventListener('click', () => {
+  if (isPlaying) {
+    // Pause all
+    Object.keys(soundConfigs).forEach(name => {
+      if (soundConfigs[name].active) stopSound(name);
+    });
+    isPlaying = false;
+    document.getElementById('masterPlay').classList.remove('playing');
+    document.getElementById('masterPlay').innerHTML = '&#9654;';
+    stopVisualizer();
+  } else {
+    initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const anyActive = Object.values(soundConfigs).some(s => s.active);
+    if (!anyActive) {
+      // Default: turn on rain
+      soundConfigs.rain.active = true;
+      createSoundChain('rain');
+    } else {
+      Object.keys(soundConfigs).forEach(name => {
+        if (soundConfigs[name].active) createSoundChain(name);
+      });
+    }
+    isPlaying = true;
+    document.getElementById('masterPlay').classList.add('playing');
+    document.getElementById('masterPlay').innerHTML = '&#10074;&#10074;';
+    startVisualizer();
+    updateUI();
+  }
+});
+
+// Presets
+const presets = {
+  focus: { rain: 30, cafe: 50, piano: 40 },
+  relax: { ocean: 60, birds: 30, wind: 20 },
+  sleep: { rain: 40, night: 50, wind: 20 },
+  cafe: { cafe: 60, piano: 30 },
+  nature: { birds: 50, river: 40, wind: 30 },
+  storm: { rain: 70, thunder: 50, wind: 40 }
+};
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = presets[btn.dataset.preset];
+    if (!preset) return;
+
+    // Stop all current
+    Object.keys(soundConfigs).forEach(name => {
+      if (soundConfigs[name].active) {
+        stopSound(name);
+        soundConfigs[name].active = false;
+      }
+    });
+
+    initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Activate preset sounds
+    Object.keys(preset).forEach(name => {
+      const vol = preset[name] / 100;
+      soundConfigs[name].active = true;
+      soundConfigs[name].volume = vol;
+      createSoundChain(name);
+      // Update slider
+      const slider = document.querySelector('.sound-slider[data-sound="' + name + '"]');
+      if (slider) {
+        slider.value = preset[name];
+        slider.nextElementSibling.textContent = preset[name] + '%';
+      }
+    });
+
+    isPlaying = true;
+    document.getElementById('masterPlay').classList.add('playing');
+    document.getElementById('masterPlay').innerHTML = '&#10074;&#10074;';
+    startVisualizer();
+    updateUI();
+    saveState();
+
+    // Highlight preset
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showToast('Preset: ' + btn.textContent.trim());
+  });
+});
+
+// Sleep timer
+let sleepInterval = null;
+let sleepRemaining = 0;
+
+document.getElementById('sleepTimer').addEventListener('change', (e) => {
+  clearInterval(sleepInterval);
+  const mins = parseInt(e.target.value);
+  if (mins === 0) {
+    document.getElementById('timerDisplay').textContent = '';
+    return;
+  }
+  sleepRemaining = mins * 60;
+  document.getElementById('timerDisplay').textContent = formatTimer(sleepRemaining);
+  sleepInterval = setInterval(() => {
+    sleepRemaining--;
+    if (sleepRemaining <= 0) {
+      clearInterval(sleepInterval);
+      // Fade out and stop
+      if (masterGain) {
+        masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 5);
+        setTimeout(() => {
+          Object.keys(soundConfigs).forEach(name => {
+            if (soundConfigs[name].active) stopSound(name);
+          });
+          isPlaying = false;
+          document.getElementById('masterPlay').classList.remove('playing');
+          document.getElementById('masterPlay').innerHTML = '&#9654;';
+          stopVisualizer();
+          masterGain.gain.value = document.getElementById('masterVolume').value / 100;
+          showToast('Temporizador finalizado. Dulces sue\u00f1os \ud83c\udf19');
+        }, 5500);
+      }
+      document.getElementById('timerDisplay').textContent = '';
+      document.getElementById('sleepTimer').value = '0';
+    } else {
+      document.getElementById('timerDisplay').textContent = formatTimer(sleepRemaining);
+    }
+  }, 1000);
+  showToast('Temporizador: ' + mins + ' minutos');
+});
+
+function formatTimer(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// Visualizer
+let vizInterval = null;
+function startVisualizer() {
+  const viz = document.getElementById('visualizer');
+  viz.classList.add('active');
+  if (viz.children.length === 0) {
+    for (let i = 0; i < 40; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'viz-bar';
+      bar.style.height = '4px';
+      viz.appendChild(bar);
+    }
+  }
+  if (vizInterval) return;
+  vizInterval = setInterval(() => {
+    const bars = viz.children;
+    for (let i = 0; i < bars.length; i++) {
+      const h = 4 + Math.random() * 50;
+      bars[i].style.height = h + 'px';
+    }
+  }, 150);
+}
+
+function stopVisualizer() {
+  const viz = document.getElementById('visualizer');
+  viz.classList.remove('active');
+  clearInterval(vizInterval);
+  vizInterval = null;
+}
+
+// Save/restore state
+function saveState() {
+  const state = {};
+  Object.keys(soundConfigs).forEach(name => {
+    state[name] = { active: soundConfigs[name].active, volume: soundConfigs[name].volume };
+  });
+  state.masterVol = document.getElementById('masterVolume').value;
+  localStorage.setItem('relajate_sounds', JSON.stringify(state));
+}
+
+function restoreState() {
+  const saved = localStorage.getItem('relajate_sounds');
+  if (!saved) return;
+  try {
+    const state = JSON.parse(saved);
+    Object.keys(state).forEach(name => {
+      if (name === 'masterVol') {
+        document.getElementById('masterVolume').value = state[name];
+        return;
+      }
+      if (soundConfigs[name]) {
+        soundConfigs[name].volume = state[name].volume;
+        soundConfigs[name].active = state[name].active;
+        const slider = document.querySelector('.sound-slider[data-sound="' + name + '"]');
+        if (slider) {
+          slider.value = Math.round(state[name].volume * 100);
+          slider.nextElementSibling.textContent = Math.round(state[name].volume * 100) + '%';
+        }
+      }
+    });
+    updateUI();
+  } catch(e) {}
+}
+
+restoreState();
+</script>
+</body>
+</html>
