@@ -189,103 +189,6 @@
     .sound-card.flute .sound-slider::-webkit-slider-thumb { background: #8e44ad; }
     .sound-card.harp .sound-slider::-webkit-slider-thumb { background: #d4ac0d; }
 
-    /* DJ Crossfader Section */
-    .dj-section {
-      max-width: 800px; margin: 2rem auto; padding: 0 1rem;
-    }
-    .dj-panel {
-      background: var(--bg-card); border-radius: var(--radius-lg);
-      padding: 1.5rem; border: 2px solid var(--border-color);
-      box-shadow: var(--shadow-sm);
-    }
-    .dj-title {
-      text-align: center; font-weight: 800; font-size: 1.1rem;
-      color: var(--text-primary); margin-bottom: 1rem;
-    }
-    .dj-channels {
-      display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem;
-      align-items: start;
-    }
-    .dj-channel {
-      background: rgba(0,0,0,0.03); border-radius: var(--radius-md);
-      padding: 1rem; text-align: center;
-    }
-    .dj-channel-label {
-      font-weight: 800; font-size: 1.2rem; margin-bottom: 0.5rem;
-      display: inline-block; padding: 0.15rem 0.8rem; border-radius: var(--radius-full);
-    }
-    .dj-channel-label.a { background: rgba(107,155,210,0.2); color: var(--blue-dark); }
-    .dj-channel-label.b { background: rgba(155,142,196,0.2); color: var(--lavender-dark); }
-    .dj-assign-list {
-      display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center;
-      margin-top: 0.5rem;
-    }
-    .dj-assign-btn {
-      padding: 0.2rem 0.55rem; border-radius: var(--radius-full);
-      border: 1.5px solid var(--border-color); background: transparent;
-      font-size: 0.7rem; font-weight: 600; cursor: pointer;
-      color: var(--text-secondary); transition: all 0.2s ease;
-    }
-    .dj-assign-btn:hover { border-color: var(--lavender); }
-    .dj-assign-btn.assigned-a { border-color: var(--blue); background: rgba(107,155,210,0.15); color: var(--blue-dark); }
-    .dj-assign-btn.assigned-b { border-color: var(--lavender); background: rgba(155,142,196,0.15); color: var(--lavender-dark); }
-
-    .dj-crossfader-section {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 0.5rem; padding: 0.5rem;
-    }
-    .dj-crossfader-label {
-      font-size: 0.7rem; font-weight: 700; color: var(--text-secondary);
-      text-transform: uppercase; letter-spacing: 1px;
-    }
-    .dj-crossfader-wrap {
-      width: 40px; height: 200px; position: relative;
-      background: var(--gray-200); border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .dj-crossfader {
-      -webkit-appearance: none; appearance: none;
-      width: 180px; height: 8px; background: linear-gradient(to right, var(--blue), var(--gray-300), var(--lavender));
-      border-radius: 4px; outline: none;
-      transform: rotate(-90deg);
-    }
-    .dj-crossfader::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
-      background: white; cursor: pointer;
-      border: 3px solid var(--lavender); box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .dj-value {
-      font-size: 0.85rem; font-weight: 800; color: var(--lavender-dark);
-      text-align: center;
-    }
-
-    /* EQ knobs */
-    .dj-eq {
-      display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.75rem;
-    }
-    .dj-eq-knob {
-      display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
-    }
-    .dj-eq-knob label {
-      font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);
-      text-transform: uppercase;
-    }
-    .dj-eq-slider {
-      -webkit-appearance: none; appearance: none;
-      width: 60px; height: 5px; background: var(--gray-200);
-      border-radius: 3px; outline: none;
-    }
-    .dj-eq-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-      background: var(--lavender); cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      .dj-channels { grid-template-columns: 1fr; }
-      .dj-crossfader-section { flex-direction: row; }
-      .dj-crossfader-wrap { width: 200px; height: 40px; }
-      .dj-crossfader { transform: none; width: 180px; }
-    }
   </style>
 </head>
 <body>
@@ -550,62 +453,6 @@
     </div>
   </div>
 
-  <!-- DJ Crossfader Section -->
-  <div class="dj-section">
-    <div class="dj-panel">
-      <div class="dj-title">&#127911; Mesa de Mezclas</div>
-      <div class="dj-channels">
-        <!-- Channel A -->
-        <div class="dj-channel">
-          <span class="dj-channel-label a">A</span>
-          <div class="dj-assign-list" id="djAssignA"></div>
-          <div class="dj-eq">
-            <div class="dj-eq-knob">
-              <label>Graves</label>
-              <input type="range" class="dj-eq-slider" id="eqBassA" min="0" max="100" value="50">
-            </div>
-            <div class="dj-eq-knob">
-              <label>Medios</label>
-              <input type="range" class="dj-eq-slider" id="eqMidA" min="0" max="100" value="50">
-            </div>
-            <div class="dj-eq-knob">
-              <label>Agudos</label>
-              <input type="range" class="dj-eq-slider" id="eqHighA" min="0" max="100" value="50">
-            </div>
-          </div>
-        </div>
-
-        <!-- Crossfader -->
-        <div class="dj-crossfader-section">
-          <div class="dj-crossfader-label">Cross</div>
-          <div class="dj-crossfader-wrap">
-            <input type="range" class="dj-crossfader" id="djCrossfader" min="0" max="100" value="50">
-          </div>
-          <div class="dj-value" id="djCrossValue">50/50</div>
-        </div>
-
-        <!-- Channel B -->
-        <div class="dj-channel">
-          <span class="dj-channel-label b">B</span>
-          <div class="dj-assign-list" id="djAssignB"></div>
-          <div class="dj-eq">
-            <div class="dj-eq-knob">
-              <label>Graves</label>
-              <input type="range" class="dj-eq-slider" id="eqBassB" min="0" max="100" value="50">
-            </div>
-            <div class="dj-eq-knob">
-              <label>Medios</label>
-              <input type="range" class="dj-eq-slider" id="eqMidB" min="0" max="100" value="50">
-            </div>
-            <div class="dj-eq-knob">
-              <label>Agudos</label>
-              <input type="range" class="dj-eq-slider" id="eqHighB" min="0" max="100" value="50">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="toast" id="toast"></div>
 
@@ -662,11 +509,6 @@ const soundConfigs = {
   flute: { active: false, volume: 0.5, nodes: [] },
   harp: { active: false, volume: 0.5, nodes: [] }
 };
-
-// DJ Mixer state
-const djAssign = {}; // soundName -> 'a' | 'b' | null
-let djCrossfaderValue = 50;
-let djEqFilters = { a: {}, b: {} };
 
 function initAudio() {
   if (audioCtx) return;
@@ -1319,88 +1161,6 @@ function restoreState() {
 }
 
 restoreState();
-
-// ==================== DJ MIXER ====================
-const allSoundNames = Object.keys(soundConfigs);
-const soundLabels = {
-  rain:'Lluvia', cafe:'Caf\u00e9', piano:'Piano', ocean:'Oc\u00e9ano',
-  fire:'Fuego', wind:'Viento', birds:'P\u00e1jaros', thunder:'Truenos',
-  night:'Noche', river:'R\u00edo', guitar:'Guitarra', flute:'Flauta', harp:'Arpa'
-};
-
-function initDJAssignButtons() {
-  const listA = document.getElementById('djAssignA');
-  const listB = document.getElementById('djAssignB');
-  listA.innerHTML = '';
-  listB.innerHTML = '';
-
-  allSoundNames.forEach(name => {
-    // Button for channel A
-    const btnA = document.createElement('button');
-    btnA.className = 'dj-assign-btn' + (djAssign[name] === 'a' ? ' assigned-a' : '');
-    btnA.textContent = soundLabels[name] || name;
-    btnA.addEventListener('click', () => {
-      if (djAssign[name] === 'a') { delete djAssign[name]; }
-      else { djAssign[name] = 'a'; }
-      initDJAssignButtons();
-      applyDJCrossfader();
-    });
-    listA.appendChild(btnA);
-
-    // Button for channel B
-    const btnB = document.createElement('button');
-    btnB.className = 'dj-assign-btn' + (djAssign[name] === 'b' ? ' assigned-b' : '');
-    btnB.textContent = soundLabels[name] || name;
-    btnB.addEventListener('click', () => {
-      if (djAssign[name] === 'b') { delete djAssign[name]; }
-      else { djAssign[name] = 'b'; }
-      initDJAssignButtons();
-      applyDJCrossfader();
-    });
-    listB.appendChild(btnB);
-  });
-}
-
-function applyDJCrossfader() {
-  const val = djCrossfaderValue;
-  const aVol = (100 - val) / 100; // 0-1, full at left
-  const bVol = val / 100; // 0-1, full at right
-  document.getElementById('djCrossValue').textContent =
-    Math.round(aVol * 100) + '/' + Math.round(bVol * 100);
-
-  allSoundNames.forEach(name => {
-    const cfg = soundConfigs[name];
-    if (!cfg.active || !cfg.gainNode) return;
-    const channel = djAssign[name];
-    if (!channel) {
-      // Not assigned to either channel - use normal volume
-      cfg.gainNode.gain.value = cfg.volume;
-    } else if (channel === 'a') {
-      cfg.gainNode.gain.value = cfg.volume * aVol;
-    } else {
-      cfg.gainNode.gain.value = cfg.volume * bVol;
-    }
-  });
-}
-
-// Crossfader input
-document.getElementById('djCrossfader').addEventListener('input', (e) => {
-  djCrossfaderValue = parseInt(e.target.value);
-  applyDJCrossfader();
-});
-
-// EQ controls
-['eqBassA','eqMidA','eqHighA','eqBassB','eqMidB','eqHighB'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => applyDJEQ());
-});
-
-function applyDJEQ() {
-  // EQ affects master output - simplified approach using biquad filters
-  // For now, show visual feedback; full EQ requires per-channel filter chains
-  // This is a visual/UX feature
-}
-
-initDJAssignButtons();
 </script>
 </body>
 </html>
