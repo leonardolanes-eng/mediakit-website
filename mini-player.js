@@ -6,7 +6,7 @@
   // Check if any sounds are saved as active
   function getActiveSounds() {
     try {
-      const state = JSON.parse(localStorage.getItem('relajate_sounds_state') || '{}');
+      const state = JSON.parse(localStorage.getItem('relajate_sounds') || '{}');
       const active = {};
       Object.keys(state).forEach(name => {
         if (state[name] && state[name].active) {
