@@ -95,13 +95,13 @@
     /* Zen Pattern */
     .pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 300px; margin: 1.5rem auto; }
     .pattern-tile {
-      aspect-ratio: 1; border-radius: var(--radius-md); background: var(--gray-200);
+      aspect-ratio: 1; border-radius: var(--radius-md);
       cursor: pointer; transition: all var(--transition-fast);
       display: flex; align-items: center; justify-content: center;
     }
-    .pattern-tile.lit { background: var(--blue); box-shadow: 0 0 20px rgba(107,155,210,0.5); }
-    .pattern-tile.wrong-lit { background: #e74c3c; box-shadow: 0 0 20px rgba(231,76,60,0.5); }
-    .pattern-tile.success-lit { background: var(--sage); box-shadow: 0 0 20px rgba(135,174,115,0.5); }
+    .pattern-tile.lit { background: #4A90D9 !important; box-shadow: 0 0 20px rgba(74,144,217,0.6); }
+    .pattern-tile.wrong-lit { background: #e74c3c !important; box-shadow: 0 0 20px rgba(231,76,60,0.5); }
+    .pattern-tile.success-lit { background: var(--sage) !important; box-shadow: 0 0 20px rgba(135,174,115,0.5); }
     .pattern-tile:active { transform: scale(0.95); }
     .level-display { font-size: 1.2rem; font-weight: 700; color: var(--blue-dark); }
 
@@ -265,7 +265,7 @@
       <div class="sum-target">Objetivo: <span id="sumTarget">10</span></div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca n&uacute;meros adyacentes que sumen el objetivo</p>
       <div class="sum-running-total" id="sumRunning">&nbsp;</div>
-      <div class="sum-grid" id="sumGrid" style="grid-template-columns:repeat(7,1fr);"></div>
+      <div class="sum-grid" id="sumGrid" style="grid-template-columns:repeat(5,1fr);"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="resetSumBtn">&#128260; Nuevo juego</button>
         <button class="btn btn-outline btn-sm" id="deselectSumBtn">&#10060; Deseleccionar</button>
@@ -1177,6 +1177,8 @@ function getPatternTimeBonus(level) {
   return 0;
 }
 
+const PATTERN_TILE_COLORS = ['#E74C3C', '#F39C12', '#2ECC71', '#9B59B6', '#3498DB', '#E67E22'];
+
 function initPatternGame() {
   const best = parseInt(localStorage.getItem('relajate_pattern_best') || '1');
   stopPatternTimer();
@@ -1187,9 +1189,10 @@ function initPatternGame() {
 
   const grid = document.getElementById('patternGrid');
   grid.innerHTML = '';
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 6; i++) {
     const tile = document.createElement('div');
     tile.className = 'pattern-tile';
+    tile.style.background = PATTERN_TILE_COLORS[i];
     tile.dataset.idx = i;
     tile.addEventListener('click', () => handlePatternClick(i));
     grid.appendChild(tile);
@@ -1204,7 +1207,7 @@ function startPatternRound() {
   startPatternTimer();
   patternState.showing = true;
   patternState.playerSeq = [];
-  patternState.sequence.push(Math.floor(Math.random() * 9));
+  patternState.sequence.push(Math.floor(Math.random() * 6));
   document.getElementById('patternLevel').textContent = patternState.level;
   document.getElementById('patternInstruction').textContent = 'Observa el patr\u00f3n...';
   document.getElementById('startPatternBtn').style.display = 'none';
@@ -1219,8 +1222,12 @@ function startPatternRound() {
       return;
     }
     const tiles = document.querySelectorAll('.pattern-tile');
-    tiles[patternState.sequence[i]].classList.add('lit');
-    setTimeout(() => tiles[patternState.sequence[i]].classList.remove('lit'), 500);
+    const tileIdx = patternState.sequence[i];
+    tiles[tileIdx].classList.add('lit');
+    setTimeout(() => {
+      tiles[tileIdx].classList.remove('lit');
+      tiles[tileIdx].style.background = PATTERN_TILE_COLORS[tileIdx];
+    }, 500);
     i++;
   }, 700);
 }
@@ -1235,7 +1242,10 @@ function handlePatternClick(idx) {
   if (patternState.sequence[seqIdx] !== idx) {
     // Wrong
     tiles[idx].classList.add('wrong-lit');
-    setTimeout(() => tiles[idx].classList.remove('wrong-lit'), 500);
+    setTimeout(() => {
+      tiles[idx].classList.remove('wrong-lit');
+      tiles[idx].style.background = PATTERN_TILE_COLORS[idx];
+    }, 500);
     patternState.gameOver = true;
     patternState.playing = false;
     stopPatternTimer();
@@ -1256,7 +1266,10 @@ function handlePatternClick(idx) {
   }
 
   tiles[idx].classList.add('success-lit');
-  setTimeout(() => tiles[idx].classList.remove('success-lit'), 300);
+  setTimeout(() => {
+    tiles[idx].classList.remove('success-lit');
+    tiles[idx].style.background = PATTERN_TILE_COLORS[idx];
+  }, 300);
 
   if (patternState.playerSeq.length === patternState.sequence.length) {
     // Round complete
@@ -1299,7 +1312,7 @@ document.getElementById('sharePatternBtn').addEventListener('click', () => {
 });
 
 // ==================== GAME 4: SUMA ZEN ====================
-const SUM_ROWS = 7, SUM_COLS = 7;
+const SUM_ROWS = 5, SUM_COLS = 5;
 let sumGrid = [], sumScore = 0, sumSelected = [];
 let sumTimerInterval = null, sumSeconds = 0, sumTimerStarted = false, sumGameDone = false;
 const NUM_COLORS = ['#6B9BD2','#9B8EC4','#87AE73','#e67e22','#e74c3c','#f1c40f','#1abc9c','#8e44ad','#2c3e50'];
@@ -1332,7 +1345,8 @@ function initSumGame() {
   sumGameDone = false;
   sumSelected = [];
   sumScore = 0;
-  sumTarget = 10;
+  const dailyTargets = [8, 9, 10, 11, 12, 13, 14];
+  sumTarget = dailyTargets[getDayIndex() % dailyTargets.length];
   document.getElementById('sumTimer').textContent = '0:00';
   document.getElementById('sumTarget').textContent = sumTarget;
   document.getElementById('sumRunning').innerHTML = '&nbsp;';
@@ -1378,7 +1392,7 @@ function renderSumGame() {
 }
 
 function isSumAdjacent(r1, c1, r2, c2) {
-  return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+  return (Math.abs(r1 - r2) + Math.abs(c1 - c2)) === 1;
 }
 
 function handleSumClick(row, col) {
@@ -1503,7 +1517,7 @@ function findSumPath(r, c, remaining, visited) {
   if (val === remaining) return true;
   if (val > remaining) return false;
   visited.add(r + ',' + c);
-  const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  const dirs = [[-1,0],[0,-1],[0,1],[1,0]];
   for (const [dr, dc] of dirs) {
     const nr = r + dr, nc = c + dc;
     if (nr >= 0 && nr < SUM_ROWS && nc >= 0 && nc < SUM_COLS) {
