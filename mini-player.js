@@ -1,7 +1,6 @@
-// ==================== MINI PLAYER - Persistent across all pages ====================
+// ==================== MINI PLAYER - Persistent music player across ALL pages ====================
 (function() {
-  // Don't show on sonidos.html (it has its own full player)
-  if (window.location.pathname.includes('sonidos.html')) return;
+  const isOnSonidos = window.location.pathname.includes('sonidos.html');
 
   // Check if any sounds are saved as active
   function getActiveSounds() {
@@ -18,15 +17,18 @@
   }
 
   const SOUND_LABELS = {
-    rain:'Lluvia', cafe:'Café', piano:'Piano', ocean:'Océano',
-    fire:'Fuego', wind:'Viento', birds:'Pájaros', thunder:'Truenos',
-    night:'Noche', river:'Río', guitar:'Guitarra', flute:'Flauta', harp:'Arpa'
+    rain:'Lluvia', cafe:'Cafe', piano:'Piano', ocean:'Oceano',
+    fire:'Fuego', wind:'Viento', birds:'Pajaros', thunder:'Truenos',
+    night:'Noche', river:'Rio', guitar:'Guitarra', flute:'Flauta', harp:'Arpa'
   };
   const SOUND_ICONS = {
-    rain:'🌧', cafe:'☕', piano:'🎹', ocean:'🌊',
-    fire:'🔥', wind:'🍃', birds:'🐦', thunder:'⚡',
-    night:'🌙', river:'💧', guitar:'🎸', flute:'🎶', harp:'🎵'
+    rain:'\u{1F327}', cafe:'\u2615', piano:'\u{1F3B9}', ocean:'\u{1F30A}',
+    fire:'\u{1F525}', wind:'\u{1F343}', birds:'\u{1F426}', thunder:'\u26A1',
+    night:'\u{1F319}', river:'\u{1F4A7}', guitar:'\u{1F3B8}', flute:'\u{1F3B6}', harp:'\u{1F3B5}'
   };
+
+  // Default preset for quick start
+  const DEFAULT_PRESET = { rain: 0.4, piano: 0.3 };
 
   let audioCtx = null;
   let masterGain = null;
@@ -262,7 +264,23 @@
   function startAllFromState() {
     const active = getActiveSounds();
     const names = Object.keys(active);
-    if (names.length === 0) return;
+    if (names.length === 0) {
+      // No sounds active - start default preset (rain + piano)
+      const state = {};
+      Object.keys(DEFAULT_PRESET).forEach(name => {
+        startMiniSound(name, DEFAULT_PRESET[name]);
+        state[name] = { active: true, volume: DEFAULT_PRESET[name] };
+      });
+      // Save to localStorage so sonidos page picks it up
+      const existing = JSON.parse(localStorage.getItem('relajate_sounds') || '{}');
+      Object.keys(DEFAULT_PRESET).forEach(name => {
+        existing[name] = { active: true, volume: DEFAULT_PRESET[name] };
+      });
+      localStorage.setItem('relajate_sounds', JSON.stringify(existing));
+      miniPlaying = true;
+      updateMiniUI();
+      return;
+    }
     names.forEach(name => {
       if (!miniSounds[name]) {
         startMiniSound(name, active[name].volume);
@@ -274,26 +292,31 @@
 
   function updateMiniUI() {
     const bar = document.getElementById('miniPlayerBar');
+    if (!bar) return;
     const active = getActiveSounds();
     const names = Object.keys(active);
 
-    if (names.length === 0) {
-      bar.style.transform = 'translateY(100%)';
-      return;
-    }
-
+    // Always show the bar
     bar.style.transform = 'translateY(0)';
     const btn = document.getElementById('miniPlayBtn');
-    btn.textContent = miniPlaying ? '⏸' : '▶';
+    btn.textContent = miniPlaying ? '\u23F8' : '\u25B6';
 
     const tags = document.getElementById('miniSoundTags');
     tags.innerHTML = '';
-    names.forEach(name => {
+    if (names.length > 0) {
+      names.forEach(name => {
+        const tag = document.createElement('span');
+        tag.className = 'mini-tag';
+        tag.textContent = (SOUND_ICONS[name]||'') + ' ' + (SOUND_LABELS[name]||name);
+        tags.appendChild(tag);
+      });
+    } else {
       const tag = document.createElement('span');
       tag.className = 'mini-tag';
-      tag.textContent = (SOUND_ICONS[name]||'') + ' ' + (SOUND_LABELS[name]||name);
+      tag.textContent = '\u25B6 Pulsa play para escuchar';
+      tag.style.opacity = '0.6';
       tags.appendChild(tag);
-    });
+    }
   }
 
   // Create mini player DOM
@@ -307,7 +330,7 @@
         box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
         padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.75rem;
         transition: transform 0.3s ease;
-        transform: translateY(100%);
+        transform: translateY(0);
         font-family: inherit;
       }
       #miniPlayBtn {
@@ -347,13 +370,13 @@
     const bar = document.createElement('div');
     bar.id = 'miniPlayerBar';
     bar.innerHTML = `
-      <button id="miniPlayBtn">▶</button>
+      <button id="miniPlayBtn">\u25B6</button>
       <div class="mini-info">
-        <span class="mini-label">🎵 Sonidos</span>
+        <span class="mini-label">\u{1F3B5} Musica</span>
         <div id="miniSoundTags"></div>
       </div>
       <input type="range" class="mini-vol" id="miniVol" min="0" max="100" value="60">
-      <a href="sonidos.html" class="mini-link">Abrir mixer →</a>
+      <a href="sonidos.html" class="mini-link">Abrir mixer \u2192</a>
     `;
     document.body.appendChild(bar);
 
@@ -378,12 +401,11 @@
 
   // Initialize
   createMiniPlayer();
+  updateMiniUI();
 
-  // Check if sounds should auto-play
+  // If sounds are active, auto-start on first user interaction (browser requires gesture)
   const active = getActiveSounds();
-  if (Object.keys(active).length > 0) {
-    updateMiniUI();
-    // Auto-start on first user interaction (browser policy requires user gesture)
+  if (Object.keys(active).length > 0 && !isOnSonidos) {
     function autoStart() {
       if (!miniPlaying) {
         startAllFromState();
@@ -393,5 +415,12 @@
     }
     document.addEventListener('click', autoStart);
     document.addEventListener('touchstart', autoStart);
+  }
+
+  // On sonidos.html, listen for localStorage changes to stay in sync
+  if (isOnSonidos) {
+    // Don't auto-play on sonidos - the page has its own audio engine
+    // Just keep the UI in sync
+    setInterval(() => { updateMiniUI(); }, 2000);
   }
 })();

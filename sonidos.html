@@ -253,6 +253,8 @@
 
   <!-- Sound Mixer -->
   <div class="mixer-container">
+    <h2 style="text-align:center;color:var(--text-primary);margin-bottom:0.5rem;font-size:1.3rem;">&#127795; Naturaleza</h2>
+    <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;font-size:0.85rem;">Sonidos de la naturaleza para relajarte</p>
     <div class="mixer-grid">
 
       <div class="sound-card rain" data-sound="rain">
@@ -281,21 +283,6 @@
         </div>
         <div class="sound-slider-row">
           <input type="range" class="sound-slider" data-sound="cafe" min="0" max="100" value="50">
-          <span class="vol-label">50%</span>
-        </div>
-      </div>
-
-      <div class="sound-card piano" data-sound="piano">
-        <div class="sound-card-header">
-          <div class="sound-icon piano">&#127929;</div>
-          <div>
-            <div class="sound-name">Piano Suave</div>
-            <div class="sound-desc">Notas lentas y relajantes</div>
-          </div>
-          <button class="sound-toggle" data-sound="piano"></button>
-        </div>
-        <div class="sound-slider-row">
-          <input type="range" class="sound-slider" data-sound="piano" min="0" max="100" value="50">
           <span class="vol-label">50%</span>
         </div>
       </div>
@@ -401,6 +388,27 @@
         </div>
         <div class="sound-slider-row">
           <input type="range" class="sound-slider" data-sound="river" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <h2 style="text-align:center;color:var(--text-primary);margin:2rem 0 0.5rem;font-size:1.3rem;">&#127928; Instrumentos Musicales</h2>
+    <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;font-size:0.85rem;">Melodías suaves con instrumentos acústicos</p>
+    <div class="mixer-grid">
+
+      <div class="sound-card piano" data-sound="piano">
+        <div class="sound-card-header">
+          <div class="sound-icon piano">&#127929;</div>
+          <div>
+            <div class="sound-name">Piano Suave</div>
+            <div class="sound-desc">Notas lentas y relajantes</div>
+          </div>
+          <button class="sound-toggle" data-sound="piano"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="piano" min="0" max="100" value="50">
           <span class="vol-label">50%</span>
         </div>
       </div>
@@ -1162,5 +1170,6 @@ function restoreState() {
 
 restoreState();
 </script>
+<script src="mini-player.js"></script>
 </body>
 </html>

@@ -202,6 +202,7 @@
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="deselectBtn">Deseleccionar</button>
         <button class="btn btn-solid btn-sm" id="submitWordsBtn">Comprobar</button>
+        <button class="btn btn-outline btn-sm" id="giveUpWordsBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
       </div>
       <div id="wordResult" style="text-align:center;margin-top:1rem;font-weight:600;"></div>
       <div id="wordShareSection" style="display:none;margin-top:1rem;">
@@ -229,6 +230,7 @@
       <div class="color-grid" id="colorGrid" style="grid-template-columns:repeat(7,1fr);"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="resetColorsBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-outline btn-sm" id="giveUpColorsBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
         <button class="btn btn-solid btn-sm" id="shareColorsBtn">&#128228; Compartir</button>
       </div>
       <div id="colorShareText" class="share-result" style="display:none;"></div>
@@ -247,6 +249,7 @@
       <div class="pattern-grid" id="patternGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-solid btn-sm" id="startPatternBtn">&#9654; Comenzar</button>
+        <button class="btn btn-outline btn-sm" id="giveUpPatternBtn" style="display:none;background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
         <button class="btn btn-outline btn-sm" id="sharePatternBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="patternShareText" class="share-result" style="display:none;"></div>
@@ -269,6 +272,7 @@
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="resetSumBtn">&#128260; Nuevo juego</button>
         <button class="btn btn-outline btn-sm" id="deselectSumBtn">&#10060; Deseleccionar</button>
+        <button class="btn btn-outline btn-sm" id="giveUpSumBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
         <button class="btn btn-solid btn-sm" id="shareSumBtn">&#128228; Compartir</button>
       </div>
       <div id="sumShareText" class="share-result" style="display:none;"></div>
@@ -288,6 +292,7 @@
       <div class="ws-grid" id="wsGrid" style="grid-template-columns:repeat(10,1fr);"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="resetWsBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-outline btn-sm" id="giveUpWsBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
         <button class="btn btn-solid btn-sm" id="shareWsBtn">&#128228; Compartir</button>
       </div>
       <div id="wsShareText" class="share-result" style="display:none;"></div>
@@ -1211,6 +1216,7 @@ function startPatternRound() {
   document.getElementById('patternLevel').textContent = patternState.level;
   document.getElementById('patternInstruction').textContent = 'Observa el patr\u00f3n...';
   document.getElementById('startPatternBtn').style.display = 'none';
+  document.getElementById('giveUpPatternBtn').style.display = '';
 
   let i = 0;
   const interval = setInterval(() => {
@@ -1256,6 +1262,7 @@ function handlePatternClick(idx) {
     document.getElementById('patternInstruction').textContent = finMsg;
     document.getElementById('startPatternBtn').textContent = '↻ Reiniciar';
     document.getElementById('startPatternBtn').style.display = '';
+    document.getElementById('giveUpPatternBtn').style.display = 'none';
     document.getElementById('sharePatternBtn').style.display = '';
 
     if (patternState.level > patternState.bestLevel) {
@@ -1807,6 +1814,104 @@ document.getElementById('shareWsBtn').addEventListener('click', () => {
   document.getElementById('wsShareText').style.display = 'block';
   document.getElementById('wsShareText').textContent = text;
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
+});
+
+// ==================== GIVE UP BUTTONS ====================
+
+// Conecta Palabras - Give Up
+document.getElementById('giveUpWordsBtn').addEventListener('click', () => {
+  if (wordState.gameOver) return;
+  wordState.gameOver = true;
+  stopWordTimer();
+  wordState.puzzle.groups.forEach(g => {
+    if (!wordState.solved.includes(g.name)) wordState.solved.push(g.name);
+  });
+  document.getElementById('wordResult').innerHTML = 'Te rendiste. ¡Mañana hay un nuevo puzzle!';
+  document.getElementById('wordShareSection').style.display = 'block';
+  renderWordGame();
+  localStorage.setItem('relajate_words_' + getDayIndex(), JSON.stringify({
+    solved: wordState.solved, attempts: wordState.attempts, gameOver: true, seconds: wordSeconds
+  }));
+});
+
+// Flujo de Colores - Give Up
+document.getElementById('giveUpColorsBtn').addEventListener('click', () => {
+  if (colorGameDone) return;
+  colorGameDone = true;
+  stopColorTimer();
+  showToast('Juego terminado. Puntos: ' + colorScore);
+  const best = parseInt(localStorage.getItem('relajate_color_best') || '0');
+  if (colorScore > best) localStorage.setItem('relajate_color_best', colorScore);
+  document.getElementById('colorShareText').style.display = 'block';
+});
+
+// Patrón Zen - Give Up
+document.getElementById('giveUpPatternBtn').addEventListener('click', () => {
+  if (patternState.gameOver || (!patternState.playing && !patternState.showing)) return;
+  patternState.gameOver = true;
+  patternState.playing = false;
+  patternState.showing = false;
+  stopPatternTimer();
+  const timeStr = formatTimePattern(patternSeconds);
+  document.getElementById('patternInstruction').textContent = 'Te rendiste en nivel ' + patternState.level + ' (' + timeStr + ')';
+  document.getElementById('startPatternBtn').textContent = '↻ Reiniciar';
+  document.getElementById('startPatternBtn').style.display = '';
+  document.getElementById('giveUpPatternBtn').style.display = 'none';
+  document.getElementById('sharePatternBtn').style.display = '';
+  if (patternState.level > patternState.bestLevel) {
+    localStorage.setItem('relajate_pattern_best', patternState.level);
+    patternState.bestLevel = patternState.level;
+  }
+});
+
+// Suma Zen - Give Up
+document.getElementById('giveUpSumBtn').addEventListener('click', () => {
+  if (sumGameDone) return;
+  sumGameDone = true;
+  stopSumTimer();
+  sumSelected = [];
+  updateSumRunning();
+  renderSumGame();
+  const best = parseInt(localStorage.getItem('relajate_sum_best') || '0');
+  if (sumScore > best) localStorage.setItem('relajate_sum_best', sumScore);
+  showToast('Te rendiste. Puntos: ' + sumScore);
+  saveSumGame();
+});
+
+// Sopa de Letras - Give Up
+document.getElementById('giveUpWsBtn').addEventListener('click', () => {
+  if (wsFoundWords.length === wsWords.length) return;
+  stopWsTimer();
+  // Reveal all unfound words by finding their positions in the grid
+  const rng = seededRandom(getDayIndex() + 700);
+  const setIdx = getDayIndex() % WS_WORD_SETS.length;
+  // Re-place words to find positions (use the placed data)
+  // Simply mark all words as found
+  wsWords.forEach(word => {
+    if (!wsFoundWords.some(f => f.word === word)) {
+      // Find the word in the grid
+      const directions = [[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
+      for (const dir of directions) {
+        for (let r = 0; r < WS_SIZE; r++) {
+          for (let c = 0; c < WS_SIZE; c++) {
+            let match = true;
+            for (let i = 0; i < word.length; i++) {
+              const nr = r + dir[0] * i, nc = c + dir[1] * i;
+              if (nr < 0 || nr >= WS_SIZE || nc < 0 || nc >= WS_SIZE || wsGrid[nr][nc] !== word[i]) {
+                match = false; break;
+              }
+            }
+            if (match) {
+              wsFoundWords.push({ word, startR: r, startC: c, dir });
+              r = WS_SIZE; c = WS_SIZE; break; // break all loops for this word
+            }
+          }
+        }
+      }
+    }
+  });
+  renderWordSearch();
+  showToast('Te rendiste. Palabras reveladas.');
 });
 
 // Init all games
