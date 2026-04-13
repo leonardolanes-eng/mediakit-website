@@ -101,6 +101,10 @@
     --gray-50: #1e2a4a;
     --gray-100: #243355;
   }
+
+  body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
 }
 
 /* ---- Reset & Base ---- */
@@ -117,12 +121,14 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, #6B9BD2 0%, #9B8EC4 50%, #87AE73 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {

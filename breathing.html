@@ -249,6 +249,14 @@
       <h3 style="text-align:center;">Respiraci&oacute;n 4-7-8</h3>
       <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">Inhala 4s, mant&eacute;n 7s, exhala 8s. Ideal para reducir la ansiedad.</p>
 
+      <div class="duration-selector" style="justify-content:center;">
+        <button class="rep478-btn duration-btn active" data-reps="0">&#8734; Libre</button>
+        <button class="rep478-btn duration-btn" data-reps="1">1 rep</button>
+        <button class="rep478-btn duration-btn" data-reps="2">2 reps</button>
+        <button class="rep478-btn duration-btn" data-reps="3">3 reps</button>
+        <button class="rep478-btn duration-btn" data-reps="5">5 reps</button>
+      </div>
+
       <div class="breath-478-circle" id="circle478">
         <span class="phase-text" id="phase478Text">Listo</span>
         <span class="timer-text" id="timer478Text">--</span>
@@ -273,6 +281,14 @@
     <div class="game-board">
       <h3 style="text-align:center;">Respiraci&oacute;n Cuadrada</h3>
       <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">4 fases iguales de 4 segundos. Usada por fuerzas especiales para mantener la calma.</p>
+
+      <div class="duration-selector" style="justify-content:center;">
+        <button class="repBox-btn duration-btn active" data-reps="0">&#8734; Libre</button>
+        <button class="repBox-btn duration-btn" data-reps="1">1 rep</button>
+        <button class="repBox-btn duration-btn" data-reps="2">2 reps</button>
+        <button class="repBox-btn duration-btn" data-reps="3">3 reps</button>
+        <button class="repBox-btn duration-btn" data-reps="5">5 reps</button>
+      </div>
 
       <div class="box-container" id="boxContainer">
         <div class="box-square">
@@ -309,7 +325,9 @@
       <p style="text-align:center;color:var(--text-secondary);margin:0.5rem 0 1rem;">Respira a tu propio ritmo con gu&iacute;a suave y visual relajante.</p>
 
       <div class="duration-selector" style="justify-content:center;">
+        <button class="duration-btn" data-mins="0.5">30 seg</button>
         <button class="duration-btn active" data-mins="1">1 min</button>
+        <button class="duration-btn" data-mins="2">2 min</button>
         <button class="duration-btn" data-mins="3">3 min</button>
         <button class="duration-btn" data-mins="5">5 min</button>
       </div>
@@ -406,6 +424,16 @@ function getEncouragement() {
 
 // ==================== EXERCISE 1: 4-7-8 ====================
 let timer478 = null, reps478 = 0;
+let maxReps478 = 0;
+
+// 4-7-8 rep selector
+document.querySelectorAll('.rep478-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rep478-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    maxReps478 = parseInt(btn.dataset.reps);
+  });
+});
 
 document.getElementById('start478Btn').addEventListener('click', () => {
   document.getElementById('start478Btn').style.display = 'none';
@@ -445,6 +473,15 @@ function run478Cycle() {
       runPhase478('Exhala', 8, 'exhale', () => {
         reps478++;
         document.getElementById('repCounter478').textContent = 'Repeticiones: ' + reps478;
+        if (maxReps478 > 0 && reps478 >= maxReps478) {
+          stop478();
+          if (musicPlaying) stopMusic();
+          incrementBreathSessions();
+          document.getElementById('complete478').style.display = '';
+          document.getElementById('complete478Msg').textContent =
+            reps478 + ' repeticiones completadas. ' + getEncouragement();
+          return;
+        }
         if (timer478 !== null || document.getElementById('stop478Btn').style.display !== 'none') {
           run478Cycle();
         }
@@ -478,6 +515,17 @@ function runPhase478(label, duration, className, callback) {
 
 // ==================== EXERCISE 2: BOX BREATHING ====================
 let timerBox = null, repsBox = 0;
+let maxRepsBox = 0;
+
+// Box rep selector
+document.querySelectorAll('.repBox-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.repBox-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    maxRepsBox = parseInt(btn.dataset.reps);
+  });
+});
+
 const boxPhases = [
   { label: 'Inhalar', labelId: 'boxLabelTop', top: -10, left: 'calc(100% - 10px)' },
   { label: 'Mantener', labelId: 'boxLabelRight', top: 'calc(100% - 10px)', left: 'calc(100% - 10px)' },
@@ -524,6 +572,15 @@ function runBoxCycle(phaseIdx) {
   if (phaseIdx >= 4) {
     repsBox++;
     document.getElementById('repCounterBox').textContent = 'Repeticiones: ' + repsBox;
+    if (maxRepsBox > 0 && repsBox >= maxRepsBox) {
+      stopBox();
+      if (musicPlaying) stopMusic();
+      incrementBreathSessions();
+      document.getElementById('completeBox').style.display = '';
+      document.getElementById('completeBoxMsg').textContent =
+        repsBox + ' repeticiones completadas. ' + getEncouragement();
+      return;
+    }
     runBoxCycle(0);
     return;
   }
@@ -570,7 +627,7 @@ document.querySelectorAll('.duration-btn').forEach(btn => {
     if (mindfulRunning) return;
     document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    mindfulDuration = parseInt(btn.dataset.mins) * 60;
+    mindfulDuration = Math.round(parseFloat(btn.dataset.mins) * 60);
     updateMindfulDisplay(mindfulDuration);
   });
 });

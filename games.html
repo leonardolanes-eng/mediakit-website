@@ -130,32 +130,51 @@
     }
     .sum-target span { font-size: 1.8rem; color: var(--lavender-dark); }
 
-    /* Word Search */
-    .ws-grid { display: grid; gap: 2px; margin: 1rem auto; max-width: 400px; }
-    .ws-cell {
-      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 1rem; cursor: pointer; border-radius: 4px;
-      background: var(--bg-card); border: 2px solid var(--border-color);
-      transition: all 0.2s ease; user-select: none; text-transform: uppercase;
+    /* Memory Game */
+    .mem-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+      max-width: 380px; margin: 1rem auto;
     }
-    .ws-cell:hover { background: rgba(107,155,210,0.1); }
-    .ws-cell.selecting { background: rgba(107,155,210,0.25); border-color: var(--blue); }
-    .ws-cell.found { background: var(--blue); color: white; border-color: var(--blue-dark); pointer-events: none; }
-    .ws-cell.found-1 { background: var(--lavender); border-color: var(--lavender-dark); }
-    .ws-cell.found-2 { background: var(--sage); border-color: var(--sage-dark); }
-    .ws-cell.found-3 { background: #e67e22; border-color: #d35400; }
-    .ws-cell.found-4 { background: #e74c3c; border-color: #c0392b; }
-    .ws-cell.found-5 { background: #f1c40f; border-color: #d4ac0d; color: #333; }
-    .ws-word-list {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
-      margin: 1rem 0; max-width: 400px; margin-left: auto; margin-right: auto;
+    .mem-card {
+      aspect-ratio: 1; border-radius: var(--radius-md); cursor: pointer;
+      position: relative; perspective: 600px;
     }
-    .ws-word-tag {
-      padding: 0.35rem 0.8rem; border-radius: var(--radius-full);
-      background: var(--gray-100); font-weight: 600; font-size: 0.85rem;
-      color: var(--text-secondary); border: 1.5px solid var(--border-color);
+    .mem-card-inner {
+      width: 100%; height: 100%; position: relative;
+      transform-style: preserve-3d; transition: transform 0.5s ease;
+      border-radius: var(--radius-md);
     }
-    .ws-word-tag.found { text-decoration: line-through; opacity: 0.5; background: var(--sage-light); border-color: var(--sage); }
+    .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.matched { pointer-events: none; }
+    .mem-card.matched .mem-card-front { opacity: 0.3; }
+    .mem-card.matched .mem-card-back {
+      box-shadow: 0 0 15px rgba(135,174,115,0.5);
+      border-color: var(--sage);
+    }
+    .mem-card-front, .mem-card-back {
+      position: absolute; inset: 0; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      backface-visibility: hidden; border: 2px solid var(--border-color);
+    }
+    .mem-card-front {
+      background: linear-gradient(135deg, var(--sage-light), var(--blue-light));
+      font-size: 1.5rem; color: white;
+    }
+    .mem-card-back {
+      background: var(--bg-card); transform: rotateY(180deg);
+      font-size: 2.2rem;
+    }
+    .mem-card:hover .mem-card-inner { transform: rotateY(10deg); }
+    .mem-card.flipped:hover .mem-card-inner, .mem-card.matched:hover .mem-card-inner { transform: rotateY(180deg); }
+    @keyframes memMatch {
+      0% { transform: rotateY(180deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.15); }
+      100% { transform: rotateY(180deg) scale(1); }
+    }
+    .mem-card.just-matched .mem-card-inner {
+      animation: memMatch 0.5s ease;
+    }
   </style>
 </head>
 <body>
@@ -184,7 +203,7 @@
     <button class="game-tab" data-game="colors">&#127912; Flujo de Colores</button>
     <button class="game-tab" data-game="pattern">&#129504; Patr&oacute;n Zen</button>
     <button class="game-tab" data-game="sumzen">&#128290; Suma Zen</button>
-    <button class="game-tab" data-game="wordsearch">&#128270; Sopa de Letras</button>
+    <button class="game-tab" data-game="memory">&#127795; Memoria Natural</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -279,23 +298,23 @@
     </div>
   </div>
 
-  <!-- Game 5: Sopa de Letras -->
-  <div class="game-container" id="game-wordsearch" style="display:none;">
+  <!-- Game 5: Memoria Natural -->
+  <div class="game-container" id="game-memory" style="display:none;">
     <div class="game-board">
       <div class="game-header">
-        <h3>Sopa de Letras</h3>
-        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="wsTimer">0:00</span></div>
-        <span class="game-score"><span id="wsFound">0</span>/<span id="wsTotal">0</span> palabras</span>
+        <h3>Memoria Natural</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="memTimer">0:00</span></div>
+        <span class="game-score">Movimientos: <span id="memMoves">0</span></span>
+        <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="memBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Encuentra las palabras ocultas: horizontal, vertical y diagonal</p>
-      <div class="ws-word-list" id="wsWordList"></div>
-      <div class="ws-grid" id="wsGrid" style="grid-template-columns:repeat(10,1fr);"></div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Encuentra los pares de elementos de la naturaleza</p>
+      <div class="mem-grid" id="memGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
-        <button class="btn btn-outline btn-sm" id="resetWsBtn">&#128260; Nuevo juego</button>
-        <button class="btn btn-outline btn-sm" id="giveUpWsBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
-        <button class="btn btn-solid btn-sm" id="shareWsBtn">&#128228; Compartir</button>
+        <button class="btn btn-outline btn-sm" id="resetMemBtn">&#128260; Nuevo juego</button>
+        <button class="btn btn-outline btn-sm" id="giveUpMemBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareMemBtn">&#128228; Compartir</button>
       </div>
-      <div id="wsShareText" class="share-result" style="display:none;"></div>
+      <div id="memShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -1565,254 +1584,158 @@ document.getElementById('shareSumBtn').addEventListener('click', () => {
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
 });
 
-// ==================== GAME 5: SOPA DE LETRAS ====================
-const WS_SIZE = 10;
-const WS_WORD_SETS = [
-  ['CALMA','PAZ','YOGA','ZEN','RESPIRA','MENTE','ALMA','LIBRE'],
-  ['SERENO','AMOR','LUZ','VIDA','SANA','RELAX','SOL','MAR'],
-  ['FLUIR','SONAR','RISA','JUGAR','CREAR','VIVIR','SENTIR','GOZAR'],
-  ['BRISA','CIELO','VERDE','FLOR','CAMPO','LAGO','NUBE','LUNA'],
-  ['FUERZA','VALOR','SALUD','DICHA','GOZO','RITMO','LOGRO','META'],
-  ['PLAYA','ARENA','CORAL','OLAS','VIENTO','PALMA','ISLA','COSTA'],
-  ['SUAVE','DULCE','TIERNO','BELLO','FRESCO','CLARO','PURO','LINDO']
+// ==================== GAME 5: MEMORIA NATURAL ====================
+const MEM_NATURE_ICONS = [
+  ['🌺','🌸','🌻','🌷','🌹','🌼','💐','🌿'],
+  ['🌲','🌳','🌴','🍀','🍁','🍂','🍃','🌱'],
+  ['🦋','🐝','🐞','🐢','🦎','🐸','🐌','🦜'],
+  ['🌊','🏔️','🌅','🌈','⭐','🌙','☀️','🍄'],
+  ['🐬','🐠','🦈','🐙','🦀','🐚','🐋','🦑'],
+  ['🦅','🦉','🐦','🦢','🦚','🦩','🕊️','🦆']
 ];
-let wsGrid = [], wsWords = [], wsFoundWords = [], wsSelecting = false, wsStart = null, wsCurrent = null;
-let wsTimerInterval = null, wsSeconds = 0, wsTimerStarted = false;
 
-function formatWsTime(sec) {
+let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memLocked = false;
+let memTimerInterval = null, memSeconds = 0, memTimerStarted = false, memGameDone = false;
+
+function formatMemTime(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
-function startWsTimer() {
-  if (wsTimerStarted) return;
-  wsTimerStarted = true;
-  wsTimerInterval = setInterval(() => {
-    wsSeconds++;
-    document.getElementById('wsTimer').textContent = formatWsTime(wsSeconds);
+function startMemTimer() {
+  if (memTimerStarted || memGameDone) return;
+  memTimerStarted = true;
+  memTimerInterval = setInterval(() => {
+    memSeconds++;
+    document.getElementById('memTimer').textContent = formatMemTime(memSeconds);
   }, 1000);
 }
 
-function stopWsTimer() {
-  clearInterval(wsTimerInterval);
-  wsTimerInterval = null;
+function stopMemTimer() {
+  clearInterval(memTimerInterval);
+  memTimerInterval = null;
 }
 
-function initWordSearch() {
-  stopWsTimer();
-  wsSeconds = 0;
-  wsTimerStarted = false;
-  wsFoundWords = [];
-  document.getElementById('wsTimer').textContent = '0:00';
+function initMemoryGame() {
+  stopMemTimer();
+  memSeconds = 0;
+  memTimerStarted = false;
+  memGameDone = false;
+  memMoves = 0;
+  memMatched = 0;
+  memFlipped = [];
+  memLocked = false;
+  document.getElementById('memTimer').textContent = '0:00';
+  document.getElementById('memMoves').textContent = '0';
 
-  const rng = seededRandom(getDayIndex() + 700);
-  const setIdx = getDayIndex() % WS_WORD_SETS.length;
-  // Pick 6 words from the set
-  const allWords = WS_WORD_SETS[setIdx].slice();
-  wsWords = [];
-  while (wsWords.length < 6 && allWords.length > 0) {
-    const i = Math.floor(rng() * allWords.length);
-    const w = allWords.splice(i, 1)[0];
-    if (w.length <= WS_SIZE) wsWords.push(w);
-  }
+  const best = localStorage.getItem('relajate_mem_best');
+  document.getElementById('memBest').textContent = best || '--';
 
-  // Initialize empty grid
-  wsGrid = [];
-  for (let r = 0; r < WS_SIZE; r++) {
-    wsGrid[r] = [];
-    for (let c = 0; c < WS_SIZE; c++) {
-      wsGrid[r][c] = '';
-    }
-  }
+  // Pick 8 random icons from a daily set
+  const rng = seededRandom(getDayIndex() + 900);
+  const setIdx = getDayIndex() % MEM_NATURE_ICONS.length;
+  const icons = [...MEM_NATURE_ICONS[setIdx]];
+  // Shuffle and take 8
+  const picked = shuffle(icons, rng).slice(0, 8);
+  // Create pairs and shuffle
+  memCards = shuffle([...picked, ...picked], rng);
 
-  // Place words
-  const directions = [[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
-  const placedWords = [];
-  wsWords.forEach(word => {
-    let placed = false;
-    for (let attempt = 0; attempt < 200 && !placed; attempt++) {
-      const dir = directions[Math.floor(rng() * directions.length)];
-      const maxR = WS_SIZE - (dir[0] > 0 ? word.length : (dir[0] < 0 ? 0 : 0));
-      const minR = dir[0] < 0 ? word.length - 1 : 0;
-      const maxC = WS_SIZE - (dir[1] > 0 ? word.length : (dir[1] < 0 ? 0 : 0));
-      const minC = dir[1] < 0 ? word.length - 1 : 0;
-      if (maxR <= minR || maxC <= minC) continue;
-      const startR = minR + Math.floor(rng() * (maxR - minR));
-      const startC = minC + Math.floor(rng() * (maxC - minC));
+  renderMemoryGame();
+}
 
-      // Check if word fits
-      let fits = true;
-      for (let i = 0; i < word.length; i++) {
-        const nr = startR + dir[0] * i;
-        const nc = startC + dir[1] * i;
-        if (nr < 0 || nr >= WS_SIZE || nc < 0 || nc >= WS_SIZE) { fits = false; break; }
-        if (wsGrid[nr][nc] !== '' && wsGrid[nr][nc] !== word[i]) { fits = false; break; }
-      }
-
-      if (fits) {
-        for (let i = 0; i < word.length; i++) {
-          wsGrid[startR + dir[0] * i][startC + dir[1] * i] = word[i];
-        }
-        placedWords.push({ word, startR, startC, dir });
-        placed = true;
-      }
+function renderMemoryGame() {
+  const grid = document.getElementById('memGrid');
+  grid.innerHTML = '';
+  memCards.forEach((icon, i) => {
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    if (memFlipped.includes(i)) card.classList.add('flipped');
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <div class="mem-card-inner">
+        <div class="mem-card-front">🍃</div>
+        <div class="mem-card-back">${icon}</div>
+      </div>
+    `;
+    card.addEventListener('click', () => handleMemClick(i));
+    grid.appendChild(card);
+  });
+  // Re-apply matched state
+  document.querySelectorAll('.mem-card').forEach((card, i) => {
+    if (card.dataset.matched === 'true' || memCards[i] === null) {
+      // Already handled below
     }
   });
-
-  // Update wsWords to only include placed words
-  wsWords = placedWords.map(p => p.word);
-
-  // Fill remaining cells
-  const letters = 'ABCDEFGHIJLMNOPRSTUVXYZ';
-  for (let r = 0; r < WS_SIZE; r++) {
-    for (let c = 0; c < WS_SIZE; c++) {
-      if (wsGrid[r][c] === '') {
-        wsGrid[r][c] = letters[Math.floor(rng() * letters.length)];
-      }
-    }
-  }
-
-  document.getElementById('wsTotal').textContent = wsWords.length;
-  document.getElementById('wsFound').textContent = '0';
-  renderWordSearch();
 }
 
-function renderWordSearch() {
-  const grid = document.getElementById('wsGrid');
-  grid.innerHTML = '';
-  for (let r = 0; r < WS_SIZE; r++) {
-    for (let c = 0; c < WS_SIZE; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'ws-cell';
-      cell.textContent = wsGrid[r][c];
-      cell.dataset.row = r;
-      cell.dataset.col = c;
+function handleMemClick(idx) {
+  if (memLocked || memGameDone) return;
+  if (memFlipped.includes(idx)) return;
+  if (memCards[idx] === null) return; // already matched
 
-      // Check if this cell is part of a found word
-      wsFoundWords.forEach((fw, idx) => {
-        for (let i = 0; i < fw.word.length; i++) {
-          if (fw.startR + fw.dir[0] * i === r && fw.startC + fw.dir[1] * i === c) {
-            cell.classList.add('found', 'found-' + (idx % 6));
+  startMemTimer();
+
+  const cards = document.querySelectorAll('.mem-card');
+  cards[idx].classList.add('flipped');
+  memFlipped.push(idx);
+
+  if (memFlipped.length === 2) {
+    memMoves++;
+    document.getElementById('memMoves').textContent = memMoves;
+    memLocked = true;
+
+    const [a, b] = memFlipped;
+    if (memCards[a] === memCards[b]) {
+      // Match!
+      setTimeout(() => {
+        cards[a].classList.add('matched', 'just-matched');
+        cards[b].classList.add('matched', 'just-matched');
+        setTimeout(() => {
+          cards[a].classList.remove('just-matched');
+          cards[b].classList.remove('just-matched');
+        }, 600);
+        memMatched += 2;
+        memFlipped = [];
+        memLocked = false;
+
+        if (memMatched === memCards.length) {
+          // Game won!
+          stopMemTimer();
+          memGameDone = true;
+          launchConfetti();
+          incrementGamesCompleted();
+          const best = localStorage.getItem('relajate_mem_best');
+          if (!best || memMoves < parseInt(best)) {
+            localStorage.setItem('relajate_mem_best', memMoves);
+            document.getElementById('memBest').textContent = memMoves;
+            showToast('\u00a1Nuevo r\u00e9cord! ' + memMoves + ' movimientos');
+          } else {
+            showToast('\u00a1Completado en ' + memMoves + ' movimientos!');
           }
         }
-      });
-
-      cell.addEventListener('mousedown', (e) => { e.preventDefault(); wsStartSelect(r, c); });
-      cell.addEventListener('touchstart', (e) => { e.preventDefault(); wsStartSelect(r, c); });
-      cell.addEventListener('mouseover', () => { if (wsSelecting) wsExtendSelect(r, c); });
-      cell.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (el && el.dataset.row !== undefined) wsExtendSelect(+el.dataset.row, +el.dataset.col);
-      });
-      grid.appendChild(cell);
+      }, 400);
+    } else {
+      // No match - flip back
+      setTimeout(() => {
+        cards[a].classList.remove('flipped');
+        cards[b].classList.remove('flipped');
+        memFlipped = [];
+        memLocked = false;
+      }, 900);
     }
   }
-
-  // Word list
-  const wordList = document.getElementById('wsWordList');
-  wordList.innerHTML = '';
-  wsWords.forEach(w => {
-    const tag = document.createElement('span');
-    tag.className = 'ws-word-tag' + (wsFoundWords.some(f => f.word === w) ? ' found' : '');
-    tag.textContent = w;
-    wordList.appendChild(tag);
-  });
-
-  document.getElementById('wsFound').textContent = wsFoundWords.length;
 }
 
-function wsStartSelect(r, c) {
-  startWsTimer();
-  wsSelecting = true;
-  wsStart = { r, c };
-  wsCurrent = { r, c };
-  highlightWsSelection();
-}
-
-function wsExtendSelect(r, c) {
-  if (!wsSelecting) return;
-  wsCurrent = { r, c };
-  highlightWsSelection();
-}
-
-function highlightWsSelection() {
-  const cells = document.querySelectorAll('.ws-cell');
-  cells.forEach(c => c.classList.remove('selecting'));
-  const line = getWsLine(wsStart.r, wsStart.c, wsCurrent.r, wsCurrent.c);
-  line.forEach(({r, c}) => {
-    const idx = r * WS_SIZE + c;
-    if (cells[idx]) cells[idx].classList.add('selecting');
-  });
-}
-
-function getWsLine(r1, c1, r2, c2) {
-  const dr = r2 - r1, dc = c2 - c1;
-  const sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
-  const sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
-  if (sr === 0 && sc === 0) return [{ r: r1, c: c1 }];
-  // Must be straight line (horizontal, vertical, or 45-degree diagonal)
-  if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return [{ r: r1, c: c1 }];
-  const steps = Math.max(Math.abs(dr), Math.abs(dc));
-  const result = [];
-  for (let i = 0; i <= steps; i++) {
-    result.push({ r: r1 + sr * i, c: c1 + sc * i });
-  }
-  return result;
-}
-
-document.addEventListener('mouseup', wsEndSelect);
-document.addEventListener('touchend', wsEndSelect);
-
-function wsEndSelect() {
-  if (!wsSelecting) return;
-  wsSelecting = false;
-  const line = getWsLine(wsStart.r, wsStart.c, wsCurrent.r, wsCurrent.c);
-  const selectedWord = line.map(({r, c}) => wsGrid[r][c]).join('');
-  const reversedWord = selectedWord.split('').reverse().join('');
-
-  // Check if word matches
-  let matchedWord = null;
-  if (wsWords.includes(selectedWord) && !wsFoundWords.some(f => f.word === selectedWord)) {
-    matchedWord = selectedWord;
-  } else if (wsWords.includes(reversedWord) && !wsFoundWords.some(f => f.word === reversedWord)) {
-    matchedWord = reversedWord;
-  }
-
-  if (matchedWord) {
-    const dr = wsCurrent.r - wsStart.r, dc = wsCurrent.c - wsStart.c;
-    const sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
-    const sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
-    wsFoundWords.push({
-      word: matchedWord,
-      startR: wsStart.r,
-      startC: wsStart.c,
-      dir: [sr, sc]
-    });
-    showToast('\u00a1Encontraste "' + matchedWord + '"! \ud83c\udf1f');
-
-    if (wsFoundWords.length === wsWords.length) {
-      stopWsTimer();
-      const timeBonus = wsSeconds <= 60 ? 'R\u00e1pido \u26a1' : wsSeconds <= 120 ? 'Bien \ud83d\udc4d' : '';
-      showToast('\u00a1Todas las palabras encontradas! ' + timeBonus);
-      launchConfetti();
-      incrementGamesCompleted();
-    }
-  }
-
-  renderWordSearch();
-}
-
-document.getElementById('resetWsBtn').addEventListener('click', () => {
-  initWordSearch();
+document.getElementById('resetMemBtn').addEventListener('click', () => {
+  initMemoryGame();
 });
 
-document.getElementById('shareWsBtn').addEventListener('click', () => {
-  const text = 'Relajate.com - Sopa de Letras\nPalabras: ' + wsFoundWords.length + '/' + wsWords.length + '\n\u23f1 Tiempo: ' + formatWsTime(wsSeconds) + '\n\n\ud83d\udd0d relajate.com';
-  document.getElementById('wsShareText').style.display = 'block';
-  document.getElementById('wsShareText').textContent = text;
+document.getElementById('shareMemBtn').addEventListener('click', () => {
+  const best = localStorage.getItem('relajate_mem_best') || memMoves;
+  const text = 'Relajate.com - Memoria Natural\nMovimientos: ' + memMoves + '\n⏱ Tiempo: ' + formatMemTime(memSeconds) + '\nMejor: ' + best + '\n\n🌿 relajate.com';
+  document.getElementById('memShareText').style.display = 'block';
+  document.getElementById('memShareText').textContent = text;
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
 });
 
@@ -1878,40 +1801,17 @@ document.getElementById('giveUpSumBtn').addEventListener('click', () => {
   saveSumGame();
 });
 
-// Sopa de Letras - Give Up
-document.getElementById('giveUpWsBtn').addEventListener('click', () => {
-  if (wsFoundWords.length === wsWords.length) return;
-  stopWsTimer();
-  // Reveal all unfound words by finding their positions in the grid
-  const rng = seededRandom(getDayIndex() + 700);
-  const setIdx = getDayIndex() % WS_WORD_SETS.length;
-  // Re-place words to find positions (use the placed data)
-  // Simply mark all words as found
-  wsWords.forEach(word => {
-    if (!wsFoundWords.some(f => f.word === word)) {
-      // Find the word in the grid
-      const directions = [[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
-      for (const dir of directions) {
-        for (let r = 0; r < WS_SIZE; r++) {
-          for (let c = 0; c < WS_SIZE; c++) {
-            let match = true;
-            for (let i = 0; i < word.length; i++) {
-              const nr = r + dir[0] * i, nc = c + dir[1] * i;
-              if (nr < 0 || nr >= WS_SIZE || nc < 0 || nc >= WS_SIZE || wsGrid[nr][nc] !== word[i]) {
-                match = false; break;
-              }
-            }
-            if (match) {
-              wsFoundWords.push({ word, startR: r, startC: c, dir });
-              r = WS_SIZE; c = WS_SIZE; break; // break all loops for this word
-            }
-          }
-        }
-      }
-    }
+// Memoria Natural - Give Up
+document.getElementById('giveUpMemBtn').addEventListener('click', () => {
+  if (memGameDone) return;
+  memGameDone = true;
+  stopMemTimer();
+  memLocked = true;
+  // Reveal all cards
+  document.querySelectorAll('.mem-card').forEach(card => {
+    card.classList.add('flipped', 'matched');
   });
-  renderWordSearch();
-  showToast('Te rendiste. Palabras reveladas.');
+  showToast('Te rendiste. \u00a1Int\u00e9ntalo de nuevo!');
 });
 
 // Init all games
@@ -1919,7 +1819,7 @@ initWordGame();
 initColorGame();
 initPatternGame();
 initSumGame();
-initWordSearch();
+initMemoryGame();
 </script>
 <script src="mini-player.js"></script>
 </body>

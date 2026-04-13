@@ -188,6 +188,12 @@
     .sound-card.guitar .sound-slider::-webkit-slider-thumb { background: #d35400; }
     .sound-card.flute .sound-slider::-webkit-slider-thumb { background: #8e44ad; }
     .sound-card.harp .sound-slider::-webkit-slider-thumb { background: #d4ac0d; }
+    .sound-icon.cello { background: rgba(139,69,19,0.15); }
+    .sound-icon.xylophone { background: rgba(46,204,113,0.15); }
+    .sound-icon.synth { background: rgba(52,152,219,0.15); }
+    .sound-card.cello .sound-slider::-webkit-slider-thumb { background: #8B4513; }
+    .sound-card.xylophone .sound-slider::-webkit-slider-thumb { background: #2ecc71; }
+    .sound-card.synth .sound-slider::-webkit-slider-thumb { background: #3498db; }
 
   </style>
 </head>
@@ -458,6 +464,51 @@
         </div>
       </div>
 
+      <div class="sound-card cello" data-sound="cello">
+        <div class="sound-card-header">
+          <div class="sound-icon cello">&#127931;</div>
+          <div>
+            <div class="sound-name">Violonchelo</div>
+            <div class="sound-desc">Notas profundas y c&aacute;lidas</div>
+          </div>
+          <button class="sound-toggle" data-sound="cello"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="cello" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card xylophone" data-sound="xylophone">
+        <div class="sound-card-header">
+          <div class="sound-icon xylophone">&#127926;</div>
+          <div>
+            <div class="sound-name">Xil&oacute;fono</div>
+            <div class="sound-desc">Tonos cristalinos y juguetones</div>
+          </div>
+          <button class="sound-toggle" data-sound="xylophone"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="xylophone" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
+      <div class="sound-card synth" data-sound="synth">
+        <div class="sound-card-header">
+          <div class="sound-icon synth">&#127932;</div>
+          <div>
+            <div class="sound-name">Sintetizador Pad</div>
+            <div class="sound-desc">Texturas ambientales envolventes</div>
+          </div>
+          <button class="sound-toggle" data-sound="synth"></button>
+        </div>
+        <div class="sound-slider-row">
+          <input type="range" class="sound-slider" data-sound="synth" min="0" max="100" value="50">
+          <span class="vol-label">50%</span>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -515,7 +566,10 @@ const soundConfigs = {
   river: { active: false, volume: 0.5, nodes: [] },
   guitar: { active: false, volume: 0.5, nodes: [] },
   flute: { active: false, volume: 0.5, nodes: [] },
-  harp: { active: false, volume: 0.5, nodes: [] }
+  harp: { active: false, volume: 0.5, nodes: [] },
+  cello: { active: false, volume: 0.5, nodes: [] },
+  xylophone: { active: false, volume: 0.5, nodes: [] },
+  synth: { active: false, volume: 0.5, nodes: [] }
 };
 
 function initAudio() {
@@ -612,9 +666,9 @@ function createSoundChain(name) {
       const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = freq * 2.01;
       const g = audioCtx.createGain();
       g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.05);
+      g.gain.linearRampToValueAtTime(0.16, audioCtx.currentTime + 0.05);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
-      const g2 = audioCtx.createGain(); g2.gain.value = 0.02;
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.04;
       osc.connect(g); osc2.connect(g2); g2.connect(g); g.connect(gain);
       osc.start(); osc2.start();
       osc.stop(audioCtx.currentTime + 3.5);
@@ -781,9 +835,9 @@ function createSoundChain(name) {
           osc2.frequency.value = freq * 2;
           const g = audioCtx.createGain();
           g.gain.setValueAtTime(0, audioCtx.currentTime);
-          g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.01);
+          g.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime + 0.01);
           g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
-          const g2 = audioCtx.createGain(); g2.gain.value = 0.015;
+          const g2 = audioCtx.createGain(); g2.gain.value = 0.035;
           osc.connect(g); osc2.connect(g2); g2.connect(g); g.connect(gain);
           osc.start(); osc2.start();
           osc.stop(audioCtx.currentTime + 3);
@@ -815,8 +869,8 @@ function createSoundChain(name) {
       const g = audioCtx.createGain();
       const dur = 1.5 + Math.random() * 2;
       g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.3);
-      g.gain.setValueAtTime(0.05, audioCtx.currentTime + dur - 0.5);
+      g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.3);
+      g.gain.setValueAtTime(0.12, audioCtx.currentTime + dur - 0.5);
       g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
       osc.connect(g); g.connect(gain);
       osc.start(); vib.start();
@@ -849,9 +903,9 @@ function createSoundChain(name) {
           osc2.frequency.value = freq * 3;
           const g = audioCtx.createGain();
           g.gain.setValueAtTime(0, audioCtx.currentTime);
-          g.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.005);
+          g.gain.linearRampToValueAtTime(0.10, audioCtx.currentTime + 0.005);
           g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
-          const g2 = audioCtx.createGain(); g2.gain.value = 0.008;
+          const g2 = audioCtx.createGain(); g2.gain.value = 0.02;
           osc.connect(g); osc2.connect(g2); g2.connect(g); g.connect(gain);
           osc.start(); osc2.start();
           osc.stop(audioCtx.currentTime + 2.5);
@@ -861,6 +915,84 @@ function createSoundChain(name) {
       setTimeout(harpArpeggio, 3500 + Math.random() * 5000);
     }
     harpArpeggio();
+    cfg.nodes = [];
+  }
+  else if (name === 'cello') {
+    const notes = [130.81, 146.83, 164.81, 174.61, 196, 220];
+    cfg._celloActive = true;
+    function celloNote() {
+      if (!cfg._celloActive || !audioCtx) return;
+      const freq = notes[Math.floor(Math.random() * notes.length)];
+      const osc = audioCtx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq;
+      const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = freq * 3;
+      const vib = audioCtx.createOscillator(); vib.frequency.value = 5;
+      const vibG = audioCtx.createGain(); vibG.gain.value = 2;
+      vib.connect(vibG); vibG.connect(osc.frequency);
+      const g = audioCtx.createGain();
+      const dur = 3 + Math.random() * 3;
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.5);
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime + dur - 1);
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+      osc.connect(lp); lp.connect(g); g.connect(gain);
+      osc.start(); vib.start();
+      osc.stop(audioCtx.currentTime + dur + 0.1);
+      vib.stop(audioCtx.currentTime + dur + 0.1);
+      setTimeout(celloNote, (dur + 0.5 + Math.random() * 2) * 1000);
+    }
+    celloNote();
+    cfg.nodes = [];
+  }
+  else if (name === 'xylophone') {
+    const scale = [523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.5];
+    cfg._xyloActive = true;
+    function xyloNote() {
+      if (!cfg._xyloActive || !audioCtx) return;
+      const freq = scale[Math.floor(Math.random() * scale.length)];
+      const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
+      const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = freq * 4;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.03;
+      osc.connect(g); osc2.connect(g2); g2.connect(g); g.connect(gain);
+      osc.start(); osc2.start();
+      osc.stop(audioCtx.currentTime + 2); osc2.stop(audioCtx.currentTime + 2);
+      setTimeout(xyloNote, 1500 + Math.random() * 3000);
+    }
+    xyloNote();
+    cfg.nodes = [];
+  }
+  else if (name === 'synth') {
+    const chordSets = [
+      [261.63, 329.63, 392], [293.66, 369.99, 440],
+      [246.94, 311.13, 392], [220, 277.18, 329.63]
+    ];
+    cfg._synthActive = true;
+    function synthPad() {
+      if (!cfg._synthActive || !audioCtx) return;
+      const chord = chordSets[Math.floor(Math.random() * chordSets.length)];
+      const dur = 6 + Math.random() * 4;
+      chord.forEach(freq => {
+        const osc1 = audioCtx.createOscillator(); osc1.type = 'sawtooth'; osc1.frequency.value = freq;
+        const osc2 = audioCtx.createOscillator(); osc2.type = 'sawtooth'; osc2.frequency.value = freq * 1.005;
+        const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 400;
+        lp.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + dur * 0.4);
+        lp.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + dur);
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 1.5);
+        g.gain.setValueAtTime(0.06, audioCtx.currentTime + dur - 2);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+        osc1.connect(lp); osc2.connect(lp); lp.connect(g); g.connect(gain);
+        osc1.start(); osc2.start();
+        osc1.stop(audioCtx.currentTime + dur + 0.1);
+        osc2.stop(audioCtx.currentTime + dur + 0.1);
+      });
+      setTimeout(synthPad, (dur + 1) * 1000);
+    }
+    synthPad();
     cfg.nodes = [];
   }
 }
@@ -873,6 +1005,9 @@ function stopSound(name) {
   cfg._guitarActive = false;
   cfg._fluteActive = false;
   cfg._harpActive = false;
+  cfg._celloActive = false;
+  cfg._xyloActive = false;
+  cfg._synthActive = false;
   cfg.nodes.forEach(n => {
     try { n.stop && n.stop(); } catch(e) {}
     try { n.disconnect(); } catch(e) {}

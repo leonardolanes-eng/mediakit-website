@@ -19,12 +19,14 @@
   const SOUND_LABELS = {
     rain:'Lluvia', cafe:'Cafe', piano:'Piano', ocean:'Oceano',
     fire:'Fuego', wind:'Viento', birds:'Pajaros', thunder:'Truenos',
-    night:'Noche', river:'Rio', guitar:'Guitarra', flute:'Flauta', harp:'Arpa'
+    night:'Noche', river:'Rio', guitar:'Guitarra', flute:'Flauta', harp:'Arpa',
+    cello:'Violonchelo', xylophone:'Xilofono', synth:'Sintetizador'
   };
   const SOUND_ICONS = {
     rain:'\u{1F327}', cafe:'\u2615', piano:'\u{1F3B9}', ocean:'\u{1F30A}',
     fire:'\u{1F525}', wind:'\u{1F343}', birds:'\u{1F426}', thunder:'\u26A1',
-    night:'\u{1F319}', river:'\u{1F4A7}', guitar:'\u{1F3B8}', flute:'\u{1F3B6}', harp:'\u{1F3B5}'
+    night:'\u{1F319}', river:'\u{1F4A7}', guitar:'\u{1F3B8}', flute:'\u{1F3B6}', harp:'\u{1F3B5}',
+    cello:'\u{1F3BB}', xylophone:'\u{1F3B6}', synth:'\u{1F3BC}'
   };
 
   // Default preset for quick start
@@ -238,6 +240,68 @@
         setTimeout(arp, 3500+Math.random()*5000);
       }
       arp();
+    } else if (name === 'cello') {
+      cfg._active = true;
+      const notes = [130.81,146.83,164.81,174.61,196,220];
+      function celloN() {
+        if (!cfg._active) return;
+        const freq = notes[Math.floor(Math.random()*notes.length)];
+        const o = audioCtx.createOscillator(); o.type='sawtooth'; o.frequency.value=freq;
+        const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=freq*3;
+        const vib = audioCtx.createOscillator(); vib.frequency.value=5;
+        const vg = audioCtx.createGain(); vg.gain.value=2;
+        vib.connect(vg); vg.connect(o.frequency);
+        const dur = 3+Math.random()*3;
+        const g2 = audioCtx.createGain();
+        g2.gain.setValueAtTime(0,audioCtx.currentTime);
+        g2.gain.linearRampToValueAtTime(0.15,audioCtx.currentTime+0.5);
+        g2.gain.setValueAtTime(0.15,audioCtx.currentTime+dur-1);
+        g2.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
+        o.connect(lp); lp.connect(g2); g2.connect(gain);
+        o.start(); vib.start();
+        o.stop(audioCtx.currentTime+dur+0.1); vib.stop(audioCtx.currentTime+dur+0.1);
+        setTimeout(celloN, (dur+0.5+Math.random()*2)*1000);
+      }
+      celloN();
+    } else if (name === 'xylophone') {
+      cfg._active = true;
+      const scale = [523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5];
+      function xyloN() {
+        if (!cfg._active) return;
+        const freq = scale[Math.floor(Math.random()*scale.length)];
+        const o = audioCtx.createOscillator(); o.type='sine'; o.frequency.value=freq;
+        const g2 = audioCtx.createGain();
+        g2.gain.setValueAtTime(0,audioCtx.currentTime);
+        g2.gain.linearRampToValueAtTime(0.14,audioCtx.currentTime+0.005);
+        g2.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+1.5);
+        o.connect(g2); g2.connect(gain);
+        o.start(); o.stop(audioCtx.currentTime+2);
+        setTimeout(xyloN, 1500+Math.random()*3000);
+      }
+      xyloN();
+    } else if (name === 'synth') {
+      cfg._active = true;
+      const chords = [[261.63,329.63,392],[293.66,369.99,440],[246.94,311.13,392]];
+      function synthP() {
+        if (!cfg._active) return;
+        const chord = chords[Math.floor(Math.random()*chords.length)];
+        const dur = 6+Math.random()*4;
+        chord.forEach(freq => {
+          const o1 = audioCtx.createOscillator(); o1.type='sawtooth'; o1.frequency.value=freq;
+          const o2 = audioCtx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=freq*1.005;
+          const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=400;
+          const g2 = audioCtx.createGain();
+          g2.gain.setValueAtTime(0,audioCtx.currentTime);
+          g2.gain.linearRampToValueAtTime(0.06,audioCtx.currentTime+1.5);
+          g2.gain.setValueAtTime(0.06,audioCtx.currentTime+dur-2);
+          g2.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
+          o1.connect(lp); o2.connect(lp); lp.connect(g2); g2.connect(gain);
+          o1.start(); o2.start();
+          o1.stop(audioCtx.currentTime+dur+0.1); o2.stop(audioCtx.currentTime+dur+0.1);
+        });
+        setTimeout(synthP, (dur+1)*1000);
+      }
+      synthP();
     }
 
     miniSounds[name] = cfg;
