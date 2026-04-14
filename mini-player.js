@@ -463,7 +463,26 @@
     });
   }
 
+  // Create global floating bubbles on every page
+  function createGlobalBubbles() {
+    if (document.getElementById('globalBubbles')) return;
+    const container = document.createElement('div');
+    container.id = 'globalBubbles';
+    for (let i = 0; i < 25; i++) {
+      const span = document.createElement('span');
+      const size = Math.random() * 70 + 12;
+      span.style.width = size + 'px';
+      span.style.height = size + 'px';
+      span.style.left = Math.random() * 100 + '%';
+      span.style.animationDuration = (Math.random() * 18 + 10) + 's';
+      span.style.animationDelay = (Math.random() * 15) + 's';
+      container.appendChild(span);
+    }
+    document.body.prepend(container);
+  }
+
   // Initialize
+  createGlobalBubbles();
   createMiniPlayer();
   updateMiniUI();
 
