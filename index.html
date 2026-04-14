@@ -22,13 +22,12 @@
       <a href="index.html" class="navbar-logo"><img src="images/logo.png" alt="Relajate.com" class="navbar-logo-img"></a>
       <button class="navbar-toggle" id="navToggle" aria-label="Men&uacute;">&#9776;</button>
       <div class="navbar-links" id="navLinks">
-        <a href="#inicio" class="active">Inicio</a>
-        <a href="#funciones">Funciones</a>
-        <a href="#comunidad">Comunidad</a>
+        <a href="index.html" class="active">Inicio</a>
         <a href="games.html">Juegos</a>
         <a href="breathing.html">Respiraci&oacute;n</a>
         <a href="sonidos.html">Sonidos</a>
         <a href="journal.html">Diario</a>
+        <a href="community.html">Comunidad</a>
       </div>
     </div>
   </nav>
@@ -47,75 +46,6 @@
         <a href="games.html" class="btn btn-primary btn-lg">Jugar Ahora</a>
         <a href="breathing.html" class="btn btn-secondary btn-lg">Respirar</a>
       </div>
-    </div>
-  </section>
-
-  <!-- Features -->
-  <section class="section" id="funciones">
-    <h2 class="section-title">Tu momento de calma diario</h2>
-    <p class="section-subtitle">Herramientas dise&ntilde;adas para ayudarte a relajarte, reflexionar y recargar energ&iacute;a.</p>
-    <div class="card-grid">
-      <!-- Games Card -->
-      <div class="card animate-on-scroll">
-        <div class="card-icon blue">&#129513;</div>
-        <h3>Juegos R&aacute;pidos</h3>
-        <p>Tres juegos diarios dise&ntilde;ados para relajarte mientras ejercitas tu mente. Conecta palabras, combina colores y memoriza patrones.</p>
-        <a href="games.html" class="card-link">Jugar ahora &rarr;</a>
-      </div>
-      <!-- Breathing Card -->
-      <div class="card animate-on-scroll">
-        <div class="card-icon lavender">&#129729;</div>
-        <h3>Ejercicios de Respiraci&oacute;n</h3>
-        <p>Gu&iacute;as visuales interactivas para t&eacute;cnicas de respiraci&oacute;n comprobadas: 4-7-8, cuadrada y consciente. Reduce el estr&eacute;s en minutos.</p>
-        <a href="breathing.html" class="card-link">Respirar ahora &rarr;</a>
-      </div>
-      <!-- Journal Card -->
-      <div class="card animate-on-scroll">
-        <div class="card-icon sage">&#128197;</div>
-        <h3>Micro Diario</h3>
-        <p>Reflexiona en 280 caracteres. Un prompt diario, selector de estado de &aacute;nimo y calendario de entradas. Tu espacio seguro de reflexi&oacute;n.</p>
-        <a href="journal.html" class="card-link">Escribir ahora &rarr;</a>
-      </div>
-      <!-- Sounds Card -->
-      <div class="card animate-on-scroll">
-        <div class="card-icon" style="background:rgba(44,62,80,0.1);color:#2c3e50;">&#127925;</div>
-        <h3>Sonidos Ambientales</h3>
-        <p>Mezcla lluvia, caf&eacute;, piano, oc&eacute;ano y m&aacute;s con sliders personalizables. Crea tu ambiente perfecto de relajaci&oacute;n.</p>
-        <a href="sonidos.html" class="card-link">Escuchar ahora &rarr;</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Daily Stats -->
-  <section class="section" style="background:var(--gray-50);border-radius:var(--radius-xl);max-width:900px;margin:0 auto 3rem;">
-    <h2 class="section-title">Tu Progreso</h2>
-    <p class="section-subtitle">Mant&eacute;n tu racha diaria visitando Relajate.com cada d&iacute;a</p>
-    <div class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));text-align:center;">
-      <div class="card">
-        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statStreak">0</div>
-        <div style="color:var(--text-secondary);font-weight:600;">D&iacute;as de racha</div>
-      </div>
-      <div class="card">
-        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statGames">0</div>
-        <div style="color:var(--text-secondary);font-weight:600;">Juegos completados</div>
-      </div>
-      <div class="card">
-        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statBreath">0</div>
-        <div style="color:var(--text-secondary);font-weight:600;">Sesiones de respiraci&oacute;n</div>
-      </div>
-      <div class="card">
-        <div style="font-size:2.5rem;margin-bottom:0.5rem;" id="statJournal">0</div>
-        <div style="color:var(--text-secondary);font-weight:600;">Entradas de diario</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Community CTA -->
-  <section class="section" id="comunidad">
-    <h2 class="section-title">Comunidad Relajate</h2>
-    <p class="section-subtitle">&Uacute;nete a miles de personas que hacen una pausa diaria para su bienestar mental.</p>
-    <div style="text-align:center;">
-      <a href="community.html" class="btn btn-solid btn-lg">Explorar Comunidad</a>
     </div>
   </section>
 
@@ -203,32 +133,9 @@
       }
 
       document.getElementById('streakCount').textContent = streak.count;
-      document.getElementById('statStreak').textContent = streak.count;
       return streak.count;
     }
     updateStreak();
-
-    // --- Load stats ---
-    function loadStats() {
-      const games = parseInt(localStorage.getItem('relajate_games_completed') || '0');
-      const breath = parseInt(localStorage.getItem('relajate_breath_sessions') || '0');
-      const entries = JSON.parse(localStorage.getItem('relajate_journal_entries') || '[]');
-      document.getElementById('statGames').textContent = games;
-      document.getElementById('statBreath').textContent = breath;
-      document.getElementById('statJournal').textContent = entries.length;
-    }
-    loadStats();
-
-    // --- Scroll animations ---
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
 
     // --- Register SW ---
     if ('serviceWorker' in navigator) {
