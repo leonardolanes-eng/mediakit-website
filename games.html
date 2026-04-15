@@ -534,9 +534,10 @@
     <div class="game-board">
       <div class="game-header">
         <h3>Camino al 100</h3>
-        <span class="game-score">Mejor: <span id="caminoBest">--</span></span>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="caminoTimer">0:00</span></div>
+        <span class="game-score">&#127942; Mejor: <span id="caminoBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Traza un camino de n&uacute;meros adyacentes que sumen exactamente el objetivo. Sin levantar el dedo.</p>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Traza un camino de n&uacute;meros adyacentes que sumen exactamente el objetivo en el menor tiempo posible.</p>
       <div class="camino-target">Objetivo: <span id="caminoTarget">100</span></div>
       <div class="camino-sum" id="caminoSum">&nbsp;</div>
       <div class="camino-grid" id="caminoGrid"></div>
@@ -2600,6 +2601,8 @@ function initCaminoGame() {
   const shareBtn = document.getElementById('shareCaminoBtn');
   const shareText = document.getElementById('caminoShareText');
 
+  const timerSpan = document.getElementById('caminoTimer');
+
   const ROWS = 4, COLS = 4;
   let cells = [];
   let boardData = [];
@@ -2610,6 +2613,9 @@ function initCaminoGame() {
   let target = 100;
   let bestClosest = null; // { diff, len, path }
   let isDragging = false;
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let timerStarted = false;
 
   const dayIdx = getDayIndex();
   const rng = seededRandom(dayIdx + 5555);
@@ -2617,6 +2623,33 @@ function initCaminoGame() {
   // Target varies daily: 80-120
   target = 80 + Math.floor(rng() * 41);
   targetSpan.textContent = target;
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + sec.toString().padStart(2, '0');
+  }
+
+  function startTimer() {
+    if (timerStarted || solved) return;
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      timerSpan.textContent = formatTime(timerSeconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  function resetTimer() {
+    stopTimer();
+    timerSeconds = 0;
+    timerStarted = false;
+    timerSpan.textContent = '0:00';
+  }
 
   // Generate board
   function generateBoard() {
@@ -2728,6 +2761,7 @@ function initCaminoGame() {
 
   function addToPath(r, c) {
     if (solved) return;
+    startTimer();
 
     // Check if it's already the last cell (ignore)
     if (path.length > 0 && path[path.length - 1].r === r && path[path.length - 1].c === c) return;
@@ -2764,6 +2798,7 @@ function initCaminoGame() {
     // Check win
     if (newSum === target) {
       solved = true;
+      stopTimer();
       attempts++;
       attemptsSpan.textContent = attempts;
       // Animate win
@@ -2774,15 +2809,15 @@ function initCaminoGame() {
       });
       setTimeout(() => {
         launchConfetti();
-        showToast('🎯 ¡Camino perfecto! Suma = ' + target);
+        showToast('🎯 ¡Camino perfecto en ' + formatTime(timerSeconds) + '!');
         giveUpBtn.style.display = 'none';
         shareBtn.style.display = 'inline-flex';
-        // Save best
-        const bestKey = 'relajate_camino_best';
-        const prev = parseInt(localStorage.getItem(bestKey) || '999');
-        if (path.length < prev) {
-          localStorage.setItem(bestKey, path.length);
-          bestSpan.textContent = path.length;
+        // Save best time
+        const bestKey = 'relajate_camino_best_time';
+        const prev = parseInt(localStorage.getItem(bestKey) || '9999');
+        if (timerSeconds < prev) {
+          localStorage.setItem(bestKey, timerSeconds);
+          bestSpan.textContent = formatTime(timerSeconds);
         }
       }, path.length * 80 + 200);
       saveDayState();
@@ -2793,6 +2828,7 @@ function initCaminoGame() {
   function clearPath() {
     if (solved) return;
     path = [];
+    resetTimer();
     renderPath();
   }
 
@@ -2807,6 +2843,7 @@ function initCaminoGame() {
     path = [];
     bestClosest = null;
     bestPathDiv.textContent = '';
+    resetTimer();
     generateBoard();
     renderBoard();
     shareBtn.style.display = 'none';
@@ -2816,6 +2853,7 @@ function initCaminoGame() {
   function giveUp() {
     if (solved) return;
     solved = true;
+    stopTimer();
     showToast('El objetivo era ' + target + '. ¡Intenta de nuevo!');
     giveUpBtn.style.display = 'none';
     shareBtn.style.display = 'inline-flex';
@@ -2832,7 +2870,8 @@ function initCaminoGame() {
       gridVisual += '\n';
     }
     const won = pathSum === target;
-    const text = 'Camino al ' + target + ' - Relajate.com ' + (won ? '🎯' : '❌') + '\n' + gridVisual + (won ? '✅ ' + path.length + ' casillas' : '❌ Mejor: ' + (bestClosest ? bestClosest.sum : 0) + '/' + target) + '\nhttps://relajate.com/games.html';
+    const timeStr = formatTime(timerSeconds);
+    const text = 'Camino al ' + target + ' - Relajate.com ' + (won ? '🎯' : '❌') + '\n' + gridVisual + (won ? '✅ ' + path.length + ' casillas en ⏱ ' + timeStr : '❌ Mejor: ' + (bestClosest ? bestClosest.sum : 0) + '/' + target) + '\nhttps://relajate.com/games.html';
 
     if (navigator.share) {
       navigator.share({ text }).catch(() => {});
@@ -2888,9 +2927,9 @@ function initCaminoGame() {
   giveUpBtn.addEventListener('click', giveUp);
   shareBtn.addEventListener('click', shareResult);
 
-  // Load best
-  const bestVal = localStorage.getItem('relajate_camino_best');
-  if (bestVal) bestSpan.textContent = bestVal;
+  // Load best time
+  const bestVal = localStorage.getItem('relajate_camino_best_time');
+  if (bestVal) bestSpan.textContent = formatTime(parseInt(bestVal));
 
   // Check if already solved today
   const dayState = JSON.parse(localStorage.getItem('relajate_camino_' + dayIdx) || 'null');
