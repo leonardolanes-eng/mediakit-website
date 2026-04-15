@@ -463,27 +463,17 @@
     });
   }
 
-  // Create global floating organic blobs on every page
+  // Create global floating spheres on every page
   function createGlobalBubbles() {
     if (document.getElementById('globalBubbles')) return;
     const container = document.createElement('div');
     container.id = 'globalBubbles';
-    const blobRadii = [
-      '42% 58% 63% 37% / 41% 44% 56% 59%',
-      '60% 40% 30% 70% / 50% 60% 40% 50%',
-      '35% 65% 50% 50% / 60% 35% 65% 40%',
-      '50% 50% 35% 65% / 40% 55% 45% 60%',
-      '55% 45% 60% 40% / 45% 50% 50% 55%',
-      '40% 60% 55% 45% / 55% 40% 60% 45%',
-      '65% 35% 45% 55% / 35% 60% 40% 65%'
-    ];
     for (let i = 0; i < 22; i++) {
       const span = document.createElement('span');
       const size = Math.random() * 80 + 15;
       span.style.width = size + 'px';
-      span.style.height = (size * (0.8 + Math.random() * 0.4)) + 'px';
+      span.style.height = size + 'px';
       span.style.left = Math.random() * 100 + '%';
-      span.style.borderRadius = blobRadii[Math.floor(Math.random() * blobRadii.length)];
       span.style.animationDuration = (Math.random() * 18 + 10) + 's';
       span.style.animationDelay = (Math.random() * 15) + 's';
       container.appendChild(span);
