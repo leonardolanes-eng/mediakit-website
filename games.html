@@ -219,6 +219,55 @@
     .wordle-key.present { background: #c9b458; color: white; }
     .wordle-key.absent { background: #787c7e; color: white; }
     .wordle-msg { text-align: center; font-weight: 700; min-height: 1.5rem; margin: 0.5rem 0; font-size: 1rem; }
+
+    /* Emoji Zen */
+    .emoji-display {
+      display: flex; justify-content: center; gap: 12px; margin: 1.5rem 0;
+      font-size: 3rem; line-height: 1;
+    }
+    .emoji-display span {
+      animation: emojiPop 0.5s ease both;
+      display: inline-block;
+    }
+    @keyframes emojiPop {
+      0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+      60% { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .emoji-hint-box {
+      text-align: center; margin: 1rem 0; min-height: 1.5rem;
+      font-size: 0.95rem; color: var(--text-secondary); font-weight: 600;
+    }
+    .emoji-input-area {
+      display: flex; gap: 8px; max-width: 400px; margin: 1rem auto; justify-content: center;
+    }
+    .emoji-input {
+      flex: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md);
+      border: 2px solid var(--border-color); background: var(--bg-card);
+      font-size: 1rem; font-weight: 600; color: var(--text-primary);
+      text-align: center; outline: none; transition: border-color 0.2s;
+    }
+    .emoji-input:focus { border-color: var(--blue); }
+    .emoji-input::placeholder { color: var(--gray-400); font-weight: 400; }
+    .emoji-guesses {
+      max-width: 400px; margin: 1rem auto; display: flex; flex-direction: column; gap: 6px;
+    }
+    .emoji-guess-item {
+      display: flex; align-items: center; gap: 8px; padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm); background: rgba(231,76,60,0.08);
+      font-size: 0.9rem; font-weight: 600; animation: fadeInUp 0.3s ease;
+    }
+    .emoji-guess-item.correct {
+      background: rgba(135,174,115,0.15); color: var(--sage-dark);
+    }
+    .emoji-category {
+      text-align: center; font-size: 0.8rem; color: var(--text-secondary);
+      margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .emoji-result-answer {
+      text-align: center; font-size: 1.3rem; font-weight: 800; margin: 0.5rem 0;
+      color: var(--blue-dark);
+    }
   </style>
 </head>
 <body>
@@ -249,6 +298,7 @@
     <button class="game-tab" data-game="sumzen">&#128290; Suma Zen</button>
     <button class="game-tab" data-game="memory">&#127795; Memoria Natural</button>
     <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
+    <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -379,6 +429,31 @@
         <button class="btn btn-solid btn-sm" id="shareWordleBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="wordleShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 7: Emoji Zen -->
+  <div class="game-container" id="game-emojizen" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Emoji Zen</h3>
+        <span class="game-score">Intento: <span id="emojiAttempt">0</span>/5</span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">&iquest;Qu&eacute; representan estos emojis? Adivina la pel&iacute;cula, frase o concepto.</p>
+      <div class="emoji-category" id="emojiCategory"></div>
+      <div class="emoji-display" id="emojiDisplay"></div>
+      <div class="emoji-hint-box" id="emojiHint"></div>
+      <div class="emoji-input-area">
+        <input type="text" class="emoji-input" id="emojiInput" placeholder="Escribe tu respuesta..." maxlength="50" autocomplete="off">
+        <button class="btn btn-solid btn-sm" id="submitEmojiBtn">&#10003;</button>
+      </div>
+      <div class="emoji-guesses" id="emojiGuesses"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="emojiHintBtn">&#128161; Pista</button>
+        <button class="btn btn-outline btn-sm" id="giveUpEmojiBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareEmojiBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="emojiShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -2194,6 +2269,222 @@ document.getElementById('shareWordleBtn').addEventListener('click', () => {
   if (navigator.clipboard) navigator.clipboard.writeText(emoji).then(() => showToast('¡Copiado!'));
 });
 
+// ==================== GAME 7: EMOJI ZEN ====================
+const EMOJI_PUZZLES = [
+  { emojis: '🌊🧘‍♂️🌅', answer: 'meditación en la playa', category: 'Concepto', hint: 'Relajación junto al mar', accepts: ['meditacion en la playa','meditacion playa','meditar en la playa','yoga en la playa','playa zen'] },
+  { emojis: '🦁👑🌍', answer: 'el rey león', category: 'Película', hint: 'Clásico animado de Disney', accepts: ['rey leon','el rey leon','lion king','the lion king'] },
+  { emojis: '🚢❄️💔', answer: 'titanic', category: 'Película', hint: 'Un barco que nunca llegó a destino', accepts: ['titanic','el titanic'] },
+  { emojis: '☕📖🌧️', answer: 'tarde lluviosa', category: 'Momento', hint: 'Lo mejor de un día gris', accepts: ['tarde lluviosa','dia lluvioso','dia de lluvia','tarde de lluvia','leer con lluvia','cafe y lluvia'] },
+  { emojis: '🌙⭐😴', answer: 'buenas noches', category: 'Frase', hint: 'Lo que dices antes de dormir', accepts: ['buenas noches','dulces suenos','dulces sueños','hora de dormir'] },
+  { emojis: '🧙‍♂️💍🌋', answer: 'el señor de los anillos', category: 'Película', hint: 'Un anillo para gobernarlos a todos', accepts: ['señor de los anillos','el senor de los anillos','lord of the rings','senor anillos'] },
+  { emojis: '🎃👻🍬', answer: 'halloween', category: 'Celebración', hint: 'Noche de brujas', accepts: ['halloween','noche de brujas','dia de brujas'] },
+  { emojis: '🏖️🍹📚', answer: 'vacaciones', category: 'Concepto', hint: 'Tiempo libre bien aprovechado', accepts: ['vacaciones','vacaciones de verano','descanso','relax en la playa'] },
+  { emojis: '🎄🎁⭐', answer: 'navidad', category: 'Celebración', hint: 'La época más mágica del año', accepts: ['navidad','nochebuena','christmas','feliz navidad'] },
+  { emojis: '🌺🐝☀️', answer: 'primavera', category: 'Estación', hint: 'Cuando todo florece', accepts: ['primavera','spring','flores'] },
+  { emojis: '🧪🦖🏝️', answer: 'jurassic park', category: 'Película', hint: 'Dinosaurios revividos con ciencia', accepts: ['jurassic park','jurasic park','parque jurasico','parque jurásico'] },
+  { emojis: '👸❄️⛄', answer: 'frozen', category: 'Película', hint: '¡Suéltalo, suéltalo!', accepts: ['frozen','frozen una aventura congelada'] },
+  { emojis: '🍝👨‍🍳🇮🇹', answer: 'cocina italiana', category: 'Concepto', hint: 'Pasta, pizza y amore', accepts: ['cocina italiana','comida italiana','italia','pasta italiana','pasta'] },
+  { emojis: '🧘‍♀️🕯️🎵', answer: 'meditación', category: 'Concepto', hint: 'Calma interior con ayuda', accepts: ['meditacion','meditación','meditar','mindfulness','relajacion'] },
+  { emojis: '🦈🌊😱', answer: 'tiburón', category: 'Película', hint: 'Mejor no meterse al agua', accepts: ['tiburon','tiburón','jaws'] },
+  { emojis: '🌈🦄✨', answer: 'fantasía', category: 'Concepto', hint: 'Un mundo de imaginación', accepts: ['fantasia','fantasía','mundo magico','mundo mágico','magia','unicornio'] },
+  { emojis: '🏋️‍♂️💪🥗', answer: 'vida saludable', category: 'Concepto', hint: 'Cuerpo y mente en forma', accepts: ['vida saludable','vida sana','salud','fitness','ejercicio y dieta'] },
+  { emojis: '🚀🌕👨‍🚀', answer: 'llegada a la luna', category: 'Evento', hint: 'Un pequeño paso para el hombre...', accepts: ['llegada a la luna','viaje a la luna','alunizaje','apollo','apollo 11','luna'] },
+  { emojis: '🐟🔵🐚', answer: 'buscando a nemo', category: 'Película', hint: 'Un pez payaso perdido', accepts: ['buscando a nemo','finding nemo','nemo'] },
+  { emojis: '☀️🕶️🏄', answer: 'verano', category: 'Estación', hint: 'Sol, playa y diversión', accepts: ['verano','summer','playa'] },
+  { emojis: '🌍💚♻️', answer: 'ecología', category: 'Concepto', hint: 'Cuidar nuestro planeta', accepts: ['ecologia','ecología','medio ambiente','reciclaje','reciclar','planeta verde'] },
+  { emojis: '🐭🏰✨', answer: 'disney', category: 'Marca', hint: 'Donde los sueños se hacen realidad', accepts: ['disney','walt disney','disneyland','disneylandia'] },
+  { emojis: '🎭😂😢', answer: 'teatro', category: 'Arte', hint: 'Las dos máscaras clásicas', accepts: ['teatro','drama','comedia y drama','actuacion','actuación'] },
+  { emojis: '🌊🐋🎶', answer: 'canto de ballenas', category: 'Naturaleza', hint: 'Música submarina natural', accepts: ['canto de ballenas','ballenas','canto ballena','oceano','sonidos del mar','sonidos del oceano'] },
+  { emojis: '🎸🔥🎤', answer: 'concierto de rock', category: 'Evento', hint: 'Guitarra, fuego y voz a todo volumen', accepts: ['concierto de rock','rock','concierto','musica rock','música rock'] },
+  { emojis: '🍿🎬🌙', answer: 'noche de cine', category: 'Momento', hint: 'Palomitas y buena compañía', accepts: ['noche de cine','cine','ir al cine','pelicula','película','noche de peliculas'] },
+  { emojis: '🧗‍♂️⛰️🏔️', answer: 'montañismo', category: 'Deporte', hint: 'Conquistar la cumbre', accepts: ['montañismo','montanismo','escalar','alpinismo','senderismo','montaña','montana'] },
+  { emojis: '🐉🔥⚔️', answer: 'game of thrones', category: 'Serie', hint: 'El invierno se acerca', accepts: ['game of thrones','juego de tronos','got'] },
+  { emojis: '🍫🏭👦', answer: 'charlie y la fábrica de chocolate', category: 'Película', hint: 'Un boleto dorado', accepts: ['charlie y la fabrica de chocolate','charlie fabrica chocolate','willy wonka','wonka','fabrica de chocolate','fábrica de chocolate'] },
+  { emojis: '🌸🇯🇵🗾', answer: 'japón en primavera', category: 'Lugar', hint: 'Cerezos en flor', accepts: ['japon','japón','japon en primavera','sakura','cerezos','cherry blossom'] },
+  { emojis: '🎪🤡🎈', answer: 'circo', category: 'Espectáculo', hint: 'Diversión bajo la carpa', accepts: ['circo','el circo','payaso','payasos'] },
+  { emojis: '🧠💡✍️', answer: 'creatividad', category: 'Concepto', hint: 'Cuando las ideas fluyen', accepts: ['creatividad','inspiracion','inspiración','idea','ideas','pensar','brainstorming'] },
+  { emojis: '🌄🏕️🔥', answer: 'camping', category: 'Actividad', hint: 'Dormir bajo las estrellas', accepts: ['camping','campamento','acampar','fogata'] },
+  { emojis: '🐀👨‍🍳🇫🇷', answer: 'ratatouille', category: 'Película', hint: 'Cualquiera puede cocinar', accepts: ['ratatouille','ratatui','rattatouille'] },
+  { emojis: '🌊🏄‍♂️🤙', answer: 'surf', category: 'Deporte', hint: 'Cabalgar las olas', accepts: ['surf','surfear','surfing','surfer'] },
+  { emojis: '📱💬❤️', answer: 'mensaje de amor', category: 'Momento', hint: 'Ese texto que te hace sonreír', accepts: ['mensaje de amor','mensaje','amor','chat de amor','whatsapp','te quiero','te amo'] },
+  { emojis: '🎹🌙🕯️', answer: 'claro de luna', category: 'Música', hint: 'Sonata de Beethoven', accepts: ['claro de luna','moonlight','beethoven','sonata','piano de noche'] },
+  { emojis: '🐧❄️🌊', answer: 'antártida', category: 'Lugar', hint: 'El continente más frío', accepts: ['antartida','antártida','polo sur','antarctica','pingüinos','pinguinos'] },
+  { emojis: '🧛🏰🌙', answer: 'drácula', category: 'Personaje', hint: 'El conde de Transilvania', accepts: ['dracula','drácula','vampiro','vampiros','conde dracula'] },
+  { emojis: '🎨🖌️🌻', answer: 'van gogh', category: 'Artista', hint: 'Los girasoles más famosos del mundo', accepts: ['van gogh','vincent van gogh','girasoles','los girasoles','pintura'] },
+];
+
+function initEmojiGame() {
+  const dayIdx = getDayIndex();
+  const rng = seededRandom(dayIdx + 7777);
+  const puzzleIdx = Math.floor(rng() * EMOJI_PUZZLES.length);
+  const puzzle = EMOJI_PUZZLES[puzzleIdx];
+
+  const stateKey = 'relajate_emoji_' + dayIdx;
+  let state = JSON.parse(localStorage.getItem(stateKey) || 'null');
+  if (!state) {
+    state = { guesses: [], solved: false, hintsUsed: 0, gaveUp: false };
+  }
+
+  const display = document.getElementById('emojiDisplay');
+  const input = document.getElementById('emojiInput');
+  const submitBtn = document.getElementById('submitEmojiBtn');
+  const guessesDiv = document.getElementById('emojiGuesses');
+  const hintBox = document.getElementById('emojiHint');
+  const hintBtn = document.getElementById('emojiHintBtn');
+  const giveUpBtn = document.getElementById('giveUpEmojiBtn');
+  const shareBtn = document.getElementById('shareEmojiBtn');
+  const shareText = document.getElementById('emojiShareText');
+  const attemptSpan = document.getElementById('emojiAttempt');
+  const categoryDiv = document.getElementById('emojiCategory');
+
+  const maxGuesses = 5;
+
+  function normalize(str) {
+    return str.toLowerCase().trim()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ');
+  }
+
+  function checkAnswer(guess) {
+    const norm = normalize(guess);
+    if (norm === normalize(puzzle.answer)) return true;
+    return puzzle.accepts.some(a => normalize(a) === norm);
+  }
+
+  function renderEmojis() {
+    const emojis = [...puzzle.emojis].filter(c => c.trim() && !/[\uFE00-\uFE0F\u200D]/.test(c));
+    // Split by grapheme clusters
+    const segments = [...new Intl.Segmenter('es', { granularity: 'grapheme' }).segment(puzzle.emojis)]
+      .map(s => s.segment)
+      .filter(s => s.trim());
+    display.innerHTML = '';
+    segments.forEach((emoji, i) => {
+      const span = document.createElement('span');
+      span.textContent = emoji;
+      span.style.animationDelay = (i * 0.15) + 's';
+      display.appendChild(span);
+    });
+    categoryDiv.textContent = puzzle.category;
+  }
+
+  function renderGuesses() {
+    guessesDiv.innerHTML = '';
+    state.guesses.forEach(g => {
+      const div = document.createElement('div');
+      div.className = 'emoji-guess-item' + (g.correct ? ' correct' : '');
+      div.innerHTML = (g.correct ? '✅' : '❌') + ' ' + g.text;
+      guessesDiv.appendChild(div);
+    });
+    attemptSpan.textContent = state.guesses.length;
+  }
+
+  function showHint() {
+    if (state.solved || state.gaveUp) return;
+    state.hintsUsed++;
+    hintBox.textContent = '💡 Pista: ' + puzzle.hint;
+    saveState();
+  }
+
+  function endGame(won) {
+    input.disabled = true;
+    submitBtn.disabled = true;
+    hintBtn.style.display = 'none';
+    giveUpBtn.style.display = 'none';
+    shareBtn.style.display = 'inline-flex';
+
+    if (won) {
+      hintBox.innerHTML = '🎉 ¡Correcto!';
+      hintBox.style.color = 'var(--sage-dark)';
+      hintBox.style.fontSize = '1.1rem';
+      launchConfetti();
+    } else {
+      hintBox.innerHTML = '';
+    }
+
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'emoji-result-answer';
+    answerDiv.textContent = puzzle.emojis + ' = ' + puzzle.answer;
+    hintBox.parentNode.insertBefore(answerDiv, hintBox.nextSibling);
+  }
+
+  function submitGuess() {
+    const guess = input.value.trim();
+    if (!guess || state.solved || state.gaveUp) return;
+    if (state.guesses.length >= maxGuesses) return;
+
+    const correct = checkAnswer(guess);
+    state.guesses.push({ text: guess, correct });
+
+    if (correct) {
+      state.solved = true;
+      saveState();
+      renderGuesses();
+      endGame(true);
+      return;
+    }
+
+    if (state.guesses.length >= maxGuesses) {
+      state.gaveUp = true;
+      saveState();
+      renderGuesses();
+      endGame(false);
+      return;
+    }
+
+    saveState();
+    renderGuesses();
+    input.value = '';
+    input.focus();
+  }
+
+  function giveUp() {
+    if (state.solved || state.gaveUp) return;
+    state.gaveUp = true;
+    saveState();
+    endGame(false);
+  }
+
+  function shareResult() {
+    const emojis = puzzle.emojis;
+    const result = state.guesses.map(g => g.correct ? '🟩' : '🟥').join('');
+    const status = state.solved ? '✅' : '❌';
+    const text = `Emoji Zen - Relajate.com ${status}\n${emojis}\n${result} (${state.guesses.length}/${maxGuesses})\n${state.hintsUsed > 0 ? '💡 Con pista' : '💪 Sin pista'}\nhttps://relajate.com/games.html`;
+
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Resultado copiado al portapapeles');
+      });
+    }
+    shareText.textContent = text;
+    shareText.style.display = 'block';
+  }
+
+  function saveState() {
+    localStorage.setItem(stateKey, JSON.stringify(state));
+  }
+
+  // Wire events
+  submitBtn.addEventListener('click', submitGuess);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
+  hintBtn.addEventListener('click', showHint);
+  giveUpBtn.addEventListener('click', giveUp);
+  shareBtn.addEventListener('click', shareResult);
+
+  // Initial render
+  renderEmojis();
+  renderGuesses();
+
+  if (state.hintsUsed > 0) {
+    hintBox.textContent = '💡 Pista: ' + puzzle.hint;
+  }
+
+  if (state.solved || state.gaveUp) {
+    endGame(state.solved);
+  }
+}
+
 // Init all games
 initWordGame();
 initColorGame();
@@ -2201,6 +2492,7 @@ initPatternGame();
 initSumGame();
 initMemoryGame();
 initWordleGame();
+initEmojiGame();
 </script>
 <script src="mini-player.js"></script>
 </body>
