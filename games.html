@@ -268,6 +268,77 @@
       text-align: center; font-size: 1.3rem; font-weight: 800; margin: 0.5rem 0;
       color: var(--blue-dark);
     }
+
+    /* Camino al 100 */
+    .camino-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+      max-width: 320px; margin: 1rem auto; position: relative;
+      touch-action: none;
+    }
+    .camino-cell {
+      aspect-ratio: 1; border-radius: var(--radius-md); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.5rem; color: var(--text-primary);
+      background: var(--bg-card); border: 3px solid var(--border-color);
+      transition: all 0.2s ease; user-select: none; position: relative;
+      z-index: 2;
+    }
+    .camino-cell:hover { transform: scale(1.05); border-color: var(--blue-light); }
+    .camino-cell.in-path {
+      background: var(--blue); color: white; border-color: var(--blue-dark);
+      transform: scale(1.08); box-shadow: 0 4px 15px rgba(107,155,210,0.5);
+    }
+    .camino-cell.in-path:nth-child(odd) { background: var(--lavender); border-color: var(--lavender-dark); box-shadow: 0 4px 15px rgba(155,142,196,0.5); }
+    .camino-cell.path-head {
+      transform: scale(1.15); box-shadow: 0 0 20px rgba(107,155,210,0.7);
+      animation: caminoPulse 1s ease infinite;
+    }
+    .camino-cell.path-break {
+      background: #e74c3c !important; border-color: #c0392b !important; color: white;
+      animation: caminoShake 0.4s ease;
+    }
+    .camino-cell.path-win {
+      background: var(--sage) !important; border-color: var(--sage-dark) !important; color: white;
+      animation: caminoBounce 0.5s ease;
+    }
+    @keyframes caminoPulse {
+      0%,100% { box-shadow: 0 0 10px rgba(107,155,210,0.4); }
+      50% { box-shadow: 0 0 25px rgba(107,155,210,0.7); }
+    }
+    @keyframes caminoShake {
+      0%,100% { transform: translateX(0) scale(1.08); }
+      25% { transform: translateX(-6px) scale(1.08); }
+      75% { transform: translateX(6px) scale(1.08); }
+    }
+    @keyframes caminoBounce {
+      0% { transform: scale(1.08); }
+      40% { transform: scale(1.25); }
+      100% { transform: scale(1.08); }
+    }
+    .camino-sum {
+      text-align: center; font-size: 2rem; font-weight: 800; margin: 0.5rem 0;
+      color: var(--blue-dark); transition: color 0.2s;
+      min-height: 2.5rem;
+    }
+    .camino-sum.over { color: #e74c3c; }
+    .camino-sum.exact { color: var(--sage-dark); }
+    .camino-target {
+      text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .camino-target span { font-size: 1.6rem; color: var(--lavender-dark); font-weight: 800; }
+    .camino-path-line {
+      position: absolute; background: rgba(107,155,210,0.35); border-radius: 4px;
+      z-index: 1; pointer-events: none; transition: all 0.15s ease;
+    }
+    .camino-stats {
+      display: flex; justify-content: center; gap: 1.5rem; margin: 0.75rem 0;
+      font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .camino-stats span { display: flex; align-items: center; gap: 4px; }
+    .camino-best-path {
+      text-align: center; font-size: 0.85rem; color: var(--text-secondary);
+      margin-top: 0.5rem; min-height: 1.2rem;
+    }
   </style>
 </head>
 <body>
@@ -299,6 +370,7 @@
     <button class="game-tab" data-game="memory">&#127795; Memoria Natural</button>
     <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
     <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
+    <button class="game-tab" data-game="camino">&#128739; Camino al 100</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -454,6 +526,33 @@
         <button class="btn btn-solid btn-sm" id="shareEmojiBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="emojiShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 8: Camino al 100 -->
+  <div class="game-container" id="game-camino" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Camino al 100</h3>
+        <span class="game-score">Mejor: <span id="caminoBest">--</span></span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Traza un camino de n&uacute;meros adyacentes que sumen exactamente el objetivo. Sin levantar el dedo.</p>
+      <div class="camino-target">Objetivo: <span id="caminoTarget">100</span></div>
+      <div class="camino-sum" id="caminoSum">&nbsp;</div>
+      <div class="camino-grid" id="caminoGrid"></div>
+      <div class="camino-stats">
+        <span>&#128099; Casillas: <strong id="caminoPathLen">0</strong></span>
+        <span>&#127942; Intentos: <strong id="caminoAttempts">0</strong></span>
+      </div>
+      <div class="camino-best-path" id="caminoBestPath"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="caminoUndoBtn">&#8617; Deshacer</button>
+        <button class="btn btn-outline btn-sm" id="caminoClearBtn">&#10060; Limpiar</button>
+        <button class="btn btn-outline btn-sm" id="caminoNewBtn">&#128260; Nuevo</button>
+        <button class="btn btn-outline btn-sm" id="giveUpCaminoBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareCaminoBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="caminoShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -2485,6 +2584,326 @@ function initEmojiGame() {
   }
 }
 
+// ==================== GAME 8: CAMINO AL 100 ====================
+function initCaminoGame() {
+  const grid = document.getElementById('caminoGrid');
+  const sumDisplay = document.getElementById('caminoSum');
+  const targetSpan = document.getElementById('caminoTarget');
+  const pathLenSpan = document.getElementById('caminoPathLen');
+  const attemptsSpan = document.getElementById('caminoAttempts');
+  const bestSpan = document.getElementById('caminoBest');
+  const bestPathDiv = document.getElementById('caminoBestPath');
+  const undoBtn = document.getElementById('caminoUndoBtn');
+  const clearBtn = document.getElementById('caminoClearBtn');
+  const newBtn = document.getElementById('caminoNewBtn');
+  const giveUpBtn = document.getElementById('giveUpCaminoBtn');
+  const shareBtn = document.getElementById('shareCaminoBtn');
+  const shareText = document.getElementById('caminoShareText');
+
+  const ROWS = 4, COLS = 4;
+  let cells = [];
+  let boardData = [];
+  let path = [];
+  let pathSum = 0;
+  let attempts = 0;
+  let solved = false;
+  let target = 100;
+  let bestClosest = null; // { diff, len, path }
+  let isDragging = false;
+
+  const dayIdx = getDayIndex();
+  const rng = seededRandom(dayIdx + 5555);
+
+  // Target varies daily: 80-120
+  target = 80 + Math.floor(rng() * 41);
+  targetSpan.textContent = target;
+
+  // Generate board
+  function generateBoard() {
+    boardData = [];
+    for (let r = 0; r < ROWS; r++) {
+      boardData[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        boardData[r][c] = 1 + Math.floor(rng() * 9);
+      }
+    }
+  }
+
+  function isAdjacent(r1, c1, r2, c2) {
+    return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+  }
+
+  function getCellIdx(r, c) { return r * COLS + c; }
+
+  function renderBoard() {
+    grid.innerHTML = '';
+    cells = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'camino-cell';
+        cell.textContent = boardData[r][c];
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cells.push(cell);
+        grid.appendChild(cell);
+      }
+    }
+    renderPath();
+  }
+
+  function renderPath() {
+    // Clear all states
+    cells.forEach(cell => {
+      cell.classList.remove('in-path', 'path-head', 'path-break', 'path-win');
+    });
+
+    // Remove old lines
+    grid.querySelectorAll('.camino-path-line').forEach(l => l.remove());
+
+    path.forEach((pos, i) => {
+      const idx = getCellIdx(pos.r, pos.c);
+      cells[idx].classList.add('in-path');
+      if (i === path.length - 1 && !solved) {
+        cells[idx].classList.add('path-head');
+      }
+
+      // Draw connecting line
+      if (i > 0) {
+        const prev = path[i - 1];
+        drawLine(prev.r, prev.c, pos.r, pos.c);
+      }
+    });
+
+    // Update sum
+    pathSum = path.reduce((s, p) => s + boardData[p.r][p.c], 0);
+    if (path.length === 0) {
+      sumDisplay.innerHTML = '&nbsp;';
+      sumDisplay.className = 'camino-sum';
+    } else {
+      sumDisplay.textContent = pathSum + ' / ' + target;
+      sumDisplay.className = 'camino-sum' + (pathSum > target ? ' over' : pathSum === target ? ' exact' : '');
+    }
+    pathLenSpan.textContent = path.length;
+
+    // Track best
+    if (path.length > 0) {
+      const diff = Math.abs(pathSum - target);
+      if (!bestClosest || diff < bestClosest.diff || (diff === bestClosest.diff && path.length < bestClosest.len)) {
+        bestClosest = { diff, len: path.length, sum: pathSum };
+        if (diff === 0) {
+          bestPathDiv.textContent = '🎯 ¡Camino perfecto con ' + path.length + ' casillas!';
+        } else {
+          bestPathDiv.textContent = '📍 Más cerca: ' + bestClosest.sum + '/' + target + ' (' + path.length + ' casillas)';
+        }
+      }
+    }
+  }
+
+  function drawLine(r1, c1, r2, c2) {
+    const cell1 = cells[getCellIdx(r1, c1)];
+    const cell2 = cells[getCellIdx(r2, c2)];
+    const rect1 = cell1.getBoundingClientRect();
+    const rect2 = cell2.getBoundingClientRect();
+    const gridRect = grid.getBoundingClientRect();
+
+    const x1 = rect1.left + rect1.width / 2 - gridRect.left;
+    const y1 = rect1.top + rect1.height / 2 - gridRect.top;
+    const x2 = rect2.left + rect2.width / 2 - gridRect.left;
+    const y2 = rect2.top + rect2.height / 2 - gridRect.top;
+
+    const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+    const line = document.createElement('div');
+    line.className = 'camino-path-line';
+    line.style.width = len + 'px';
+    line.style.height = '8px';
+    line.style.left = x1 + 'px';
+    line.style.top = (y1 - 4) + 'px';
+    line.style.transformOrigin = '0 50%';
+    line.style.transform = 'rotate(' + angle + 'deg)';
+    grid.appendChild(line);
+  }
+
+  function addToPath(r, c) {
+    if (solved) return;
+
+    // Check if it's already the last cell (ignore)
+    if (path.length > 0 && path[path.length - 1].r === r && path[path.length - 1].c === c) return;
+
+    // Check if clicking the second-to-last (undo last)
+    if (path.length >= 2 && path[path.length - 2].r === r && path[path.length - 2].c === c) {
+      path.pop();
+      renderPath();
+      return;
+    }
+
+    // Check if already in path
+    if (path.some(p => p.r === r && p.c === c)) return;
+
+    // Check adjacency
+    if (path.length > 0) {
+      const last = path[path.length - 1];
+      if (!isAdjacent(last.r, last.c, r, c)) return;
+    }
+
+    // Check if sum would exceed
+    const newSum = pathSum + boardData[r][c];
+    if (newSum > target) {
+      // Flash red
+      const idx = getCellIdx(r, c);
+      cells[idx].classList.add('path-break');
+      setTimeout(() => cells[idx].classList.remove('path-break'), 500);
+      return;
+    }
+
+    path.push({ r, c });
+    renderPath();
+
+    // Check win
+    if (newSum === target) {
+      solved = true;
+      attempts++;
+      attemptsSpan.textContent = attempts;
+      // Animate win
+      path.forEach((p, i) => {
+        setTimeout(() => {
+          cells[getCellIdx(p.r, p.c)].classList.add('path-win');
+        }, i * 80);
+      });
+      setTimeout(() => {
+        launchConfetti();
+        showToast('🎯 ¡Camino perfecto! Suma = ' + target);
+        giveUpBtn.style.display = 'none';
+        shareBtn.style.display = 'inline-flex';
+        // Save best
+        const bestKey = 'relajate_camino_best';
+        const prev = parseInt(localStorage.getItem(bestKey) || '999');
+        if (path.length < prev) {
+          localStorage.setItem(bestKey, path.length);
+          bestSpan.textContent = path.length;
+        }
+      }, path.length * 80 + 200);
+      saveDayState();
+      return;
+    }
+  }
+
+  function clearPath() {
+    if (solved) return;
+    path = [];
+    renderPath();
+  }
+
+  function undoLast() {
+    if (solved || path.length === 0) return;
+    path.pop();
+    renderPath();
+  }
+
+  function newBoard() {
+    solved = false;
+    path = [];
+    bestClosest = null;
+    bestPathDiv.textContent = '';
+    generateBoard();
+    renderBoard();
+    shareBtn.style.display = 'none';
+    giveUpBtn.style.display = 'inline-flex';
+  }
+
+  function giveUp() {
+    if (solved) return;
+    solved = true;
+    showToast('El objetivo era ' + target + '. ¡Intenta de nuevo!');
+    giveUpBtn.style.display = 'none';
+    shareBtn.style.display = 'inline-flex';
+  }
+
+  function shareResult() {
+    // Build path visual
+    let gridVisual = '';
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const inPath = path.some(p => p.r === r && p.c === c);
+        gridVisual += inPath ? '🟦' : '⬜';
+      }
+      gridVisual += '\n';
+    }
+    const won = pathSum === target;
+    const text = 'Camino al ' + target + ' - Relajate.com ' + (won ? '🎯' : '❌') + '\n' + gridVisual + (won ? '✅ ' + path.length + ' casillas' : '❌ Mejor: ' + (bestClosest ? bestClosest.sum : 0) + '/' + target) + '\nhttps://relajate.com/games.html';
+
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showToast('Resultado copiado'));
+    }
+    shareText.textContent = text;
+    shareText.style.display = 'block';
+  }
+
+  function saveDayState() {
+    localStorage.setItem('relajate_camino_' + dayIdx, JSON.stringify({ solved, pathLen: path.length, attempts }));
+  }
+
+  // Drag/touch support for continuous path drawing
+  function getCellFromEvent(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (el && el.classList.contains('camino-cell')) {
+      return { r: parseInt(el.dataset.row), c: parseInt(el.dataset.col) };
+    }
+    return null;
+  }
+
+  grid.addEventListener('mousedown', e => {
+    const cell = getCellFromEvent(e);
+    if (cell) { isDragging = true; addToPath(cell.r, cell.c); }
+  });
+  grid.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const cell = getCellFromEvent(e);
+    if (cell) addToPath(cell.r, cell.c);
+  });
+  document.addEventListener('mouseup', () => { isDragging = false; });
+
+  grid.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const cell = getCellFromEvent(e);
+    if (cell) { isDragging = true; addToPath(cell.r, cell.c); }
+  }, { passive: false });
+  grid.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!isDragging) return;
+    const cell = getCellFromEvent(e);
+    if (cell) addToPath(cell.r, cell.c);
+  }, { passive: false });
+  grid.addEventListener('touchend', () => { isDragging = false; });
+
+  // Buttons
+  undoBtn.addEventListener('click', undoLast);
+  clearBtn.addEventListener('click', clearPath);
+  newBtn.addEventListener('click', newBoard);
+  giveUpBtn.addEventListener('click', giveUp);
+  shareBtn.addEventListener('click', shareResult);
+
+  // Load best
+  const bestVal = localStorage.getItem('relajate_camino_best');
+  if (bestVal) bestSpan.textContent = bestVal;
+
+  // Check if already solved today
+  const dayState = JSON.parse(localStorage.getItem('relajate_camino_' + dayIdx) || 'null');
+  if (dayState && dayState.solved) {
+    attempts = dayState.attempts;
+    attemptsSpan.textContent = attempts;
+  }
+
+  // Init
+  generateBoard();
+  renderBoard();
+}
+
 // Init all games
 initWordGame();
 initColorGame();
@@ -2493,6 +2912,7 @@ initSumGame();
 initMemoryGame();
 initWordleGame();
 initEmojiGame();
+initCaminoGame();
 </script>
 <script src="mini-player.js"></script>
 </body>
