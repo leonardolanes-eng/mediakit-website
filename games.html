@@ -2624,6 +2624,8 @@ function initCaminoGame() {
   target = 80 + Math.floor(rng() * 41);
   targetSpan.textContent = target;
 
+  let timerStartTime = null;
+
   function formatTime(s) {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -2631,24 +2633,23 @@ function initCaminoGame() {
   }
 
   function startTimer() {
-    if (timerStarted || solved) return;
+    if (timerStarted) return;
     timerStarted = true;
+    timerStartTime = Date.now();
     timerInterval = setInterval(() => {
-      timerSeconds++;
+      if (!timerStarted) return;
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
       timerSpan.textContent = formatTime(timerSeconds);
-    }, 1000);
+    }, 200);
   }
 
   function stopTimer() {
+    if (timerStartTime) {
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+      timerSpan.textContent = formatTime(timerSeconds);
+    }
     clearInterval(timerInterval);
     timerInterval = null;
-  }
-
-  function resetTimer() {
-    stopTimer();
-    timerSeconds = 0;
-    timerStarted = false;
-    timerSpan.textContent = '0:00';
   }
 
   function isAdjacent(r1, c1, r2, c2) {
