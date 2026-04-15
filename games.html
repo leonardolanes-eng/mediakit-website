@@ -175,6 +175,50 @@
     .mem-card.just-matched .mem-card-inner {
       animation: memMatch 0.5s ease;
     }
+
+    /* Palabra del Día (Wordle) */
+    .wordle-board { max-width: 350px; margin: 0 auto; }
+    .wordle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 1rem auto; max-width: 330px; }
+    .wordle-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 800; text-transform: uppercase;
+      border: 2px solid var(--gray-300); border-radius: var(--radius-sm);
+      background: var(--bg-card); color: var(--text-primary);
+      transition: transform 0.1s ease;
+    }
+    .wordle-cell.filled { border-color: var(--gray-500); animation: wordlePop 0.1s ease; }
+    .wordle-cell.correct { background: #6aaa64; color: white; border-color: #6aaa64; }
+    .wordle-cell.present { background: #c9b458; color: white; border-color: #c9b458; }
+    .wordle-cell.absent { background: #787c7e; color: white; border-color: #787c7e; }
+    @keyframes wordlePop { 0% { transform: scale(0.9); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes wordleFlip {
+      0% { transform: rotateX(0); }
+      50% { transform: rotateX(90deg); }
+      100% { transform: rotateX(0); }
+    }
+    .wordle-cell.flip { animation: wordleFlip 0.5s ease; }
+    .wordle-cell.bounce { animation: wordleBounce 0.5s ease; }
+    @keyframes wordleBounce {
+      0%,100% { transform: translateY(0); }
+      30% { transform: translateY(-20px); }
+      60% { transform: translateY(-10px); }
+    }
+    .wordle-keyboard { display: flex; flex-direction: column; gap: 6px; max-width: 500px; margin: 1.5rem auto 0; }
+    .wordle-kb-row { display: flex; gap: 4px; justify-content: center; }
+    .wordle-key {
+      min-width: 30px; height: 52px; border-radius: 6px; border: none;
+      background: var(--gray-200); color: var(--text-primary);
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      text-transform: uppercase; transition: all 0.15s ease;
+      padding: 0 8px; flex: 1; max-width: 44px;
+    }
+    .wordle-key:hover { background: var(--gray-300); }
+    .wordle-key.wide { max-width: 65px; min-width: 55px; font-size: 0.7rem; }
+    .wordle-key.correct { background: #6aaa64; color: white; }
+    .wordle-key.present { background: #c9b458; color: white; }
+    .wordle-key.absent { background: #787c7e; color: white; }
+    .wordle-msg { text-align: center; font-weight: 700; min-height: 1.5rem; margin: 0.5rem 0; font-size: 1rem; }
   </style>
 </head>
 <body>
@@ -204,6 +248,7 @@
     <button class="game-tab" data-game="pattern">&#129504; Patr&oacute;n Zen</button>
     <button class="game-tab" data-game="sumzen">&#128290; Suma Zen</button>
     <button class="game-tab" data-game="memory">&#127795; Memoria Natural</button>
+    <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -315,6 +360,25 @@
         <button class="btn btn-solid btn-sm" id="shareMemBtn">&#128228; Compartir</button>
       </div>
       <div id="memShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 6: Palabra del Día -->
+  <div class="game-container" id="game-wordle" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Palabra del D&iacute;a</h3>
+        <span class="game-score">Intento: <span id="wordleAttempt">0</span>/6</span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Adivina la palabra de 5 letras. Tienes 6 intentos.</p>
+      <div class="wordle-msg" id="wordleMsg"></div>
+      <div class="wordle-grid" id="wordleGrid"></div>
+      <div class="wordle-keyboard" id="wordleKeyboard"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="giveUpWordleBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareWordleBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="wordleShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -1814,12 +1878,329 @@ document.getElementById('giveUpMemBtn').addEventListener('click', () => {
   showToast('Te rendiste. \u00a1Int\u00e9ntalo de nuevo!');
 });
 
+// ==================== GAME 6: PALABRA DEL DÍA (Wordle) ====================
+const WORDLE_WORDS = [
+  'PLAYA','CIELO','MUNDO','CAMPO','FUEGO','PERRO','NOCHE','VERDE','PADRE','PLAZA',
+  'LIBRO','MUJER','GENTE','PARTE','PUNTO','FORMA','NUEVO','GRUPO','JUEGO','MEDIO',
+  'CAUSA','MEJOR','ORDEN','FALTA','HECHO','GOLPE','LUCHA','CLASE','PLANO','DULCE',
+  'COMER','BEBER','SALIR','VIVIR','SABER','PODER','DECIR','ESTAR','TENER','HABER',
+  'CLARO','LINDO','SUAVE','LARGO','BREVE','NEGRO','RUBIO','DIGNO','FIRME','NOBLE',
+  'FLACO','MANSO','TERSO','DENSO','SERIO','MORENO','LLENO','JUSTO','BUENO','MISMO',
+  'TORRE','MONTE','SELVA','ARENA','PLUMA','HOJAS','FLORE','CORAL','NIEVE','HIELO',
+  'TIGRE','GATOS','LOBO','CERDO','CABRA','BURRO','TOROS','PATOS','RANAS','ABEJA',
+  'PIANO','FRESA','LIMON','MELON','MANGO','NUBES','OTOÑO','ROCIO','BRISA','SENDA',
+  'PAPEL','SILLA','SOPLA','MARCA','RITMO','GUSTO','PARED','TECHO','MESA','VENTA',
+  'PRISA','RIEGO','MARES','FAROL','GLOBO','RUMBO','SABIO','CELTA','GRATO','GENIO',
+  'VIEJO','FRUTO','SUEÑO','HUEVO','QUESO','JUGAR','NADAR','SONAR','AROMA','FIESTA',
+  'MENTA','SALUD','LATIR','CALOR','VAPOR','CLIMA','MORIR','NACER','CREAR','PINTAR',
+  'SONAR','CANTO','DANZA','VERSO','RIMAS','LENTO','FUGAZ','TENSO','GRAVE','AGUDO',
+  'CLAVE','SIGNO','GRANO','SABOR','MITAD','BRAZO','DIENTE','PECHO','LABIO','CUERO',
+  'TROZO','DISCO','CABLE','GLOBO','MOTOR','RUEDA','TUNEL','VUELO','RANGO','LUCIR',
+  'HORNO','MOLDE','PLATA','COBRE','ZINC','JADE','TOPAZ','AMBAR','OPALO','RUBIS',
+  'PUENTE','CARRO','ANCLA','REMOS','BALSA','TIMÓN','MURAL','LIENZO','CINCEL','BURIL',
+  'ARBOL','TRONC','RAÍCE','FLORI','FRESC','LIMPI','CLARI','PURIS','BRILL','NOBLE',
+  'MAGIA','DRAMA','FARSA','GENIO','JUICIO','GUION','ACTOS','MITOS','EPICA','LIRIC',
+  'TRIGO','AVENA','ARROZ','MAÍCE','CEBAD','SORGO','LINAZ','ALFALFA','PASTOS','RAMAS',
+  'LAPIZ','TINTA','BORDO','SOBRE','SELLO','CARTA','DICHO','FRASE','TEXTO','POEMA',
+  'RAZON','MENTE','IDEAS','LOGRO','EXITO','FALSO','CIERTA','DICHA','ALMAS','VALOR',
+  'FUROR','CALMA','GOCES','PENAS','RISAS','GRIMA','SUSTO','TEMOR','ANSÍA','ALIVIO',
+  'PLAZA','CALLE','BARCO','TRAMA','VUELO','RITMO','PULSO','FONDO','GIROS','TRAZO'
+];
+// Filter to exactly 5 letters and deduplicate
+const WORDLE_VALID = [...new Set(WORDLE_WORDS.filter(w => w.length === 5))];
+
+let wordleState = {
+  answer: '',
+  guesses: [],
+  current: '',
+  row: 0,
+  gameOver: false,
+  won: false
+};
+
+function getWordleAnswer() {
+  const rng = seededRandom(getDayIndex() + 9999);
+  return WORDLE_VALID[Math.floor(rng() * WORDLE_VALID.length)];
+}
+
+function initWordleGame() {
+  wordleState.answer = getWordleAnswer();
+  wordleState.guesses = [];
+  wordleState.current = '';
+  wordleState.row = 0;
+  wordleState.gameOver = false;
+  wordleState.won = false;
+
+  // Check saved state
+  const saved = localStorage.getItem('relajate_wordle_' + getDayIndex());
+  if (saved) {
+    const data = JSON.parse(saved);
+    wordleState.guesses = data.guesses || [];
+    wordleState.row = wordleState.guesses.length;
+    wordleState.gameOver = data.gameOver || false;
+    wordleState.won = data.won || false;
+  }
+
+  document.getElementById('wordleMsg').textContent = '';
+  document.getElementById('shareWordleBtn').style.display = wordleState.gameOver ? '' : 'none';
+  document.getElementById('giveUpWordleBtn').style.display = wordleState.gameOver ? 'none' : '';
+  renderWordleGrid();
+  renderWordleKeyboard();
+  updateWordleAttempt();
+
+  if (wordleState.won) {
+    document.getElementById('wordleMsg').textContent = '¡Felicidades! Adivinaste en ' + wordleState.guesses.length + ' intento' + (wordleState.guesses.length > 1 ? 's' : '');
+  } else if (wordleState.gameOver) {
+    document.getElementById('wordleMsg').textContent = 'La palabra era: ' + wordleState.answer;
+  }
+}
+
+function renderWordleGrid() {
+  const grid = document.getElementById('wordleGrid');
+  grid.innerHTML = '';
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 5; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'wordle-cell';
+      cell.id = 'wc-' + r + '-' + c;
+      if (r < wordleState.guesses.length) {
+        const guess = wordleState.guesses[r];
+        cell.textContent = guess[c];
+        cell.classList.add('filled');
+        const result = getWordleResult(guess);
+        cell.classList.add(result[c]);
+      } else if (r === wordleState.row) {
+        if (c < wordleState.current.length) {
+          cell.textContent = wordleState.current[c];
+          cell.classList.add('filled');
+        }
+      }
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function getWordleResult(guess) {
+  const answer = wordleState.answer;
+  const result = ['absent','absent','absent','absent','absent'];
+  const answerCounts = {};
+
+  // First pass: correct
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === answer[i]) {
+      result[i] = 'correct';
+    } else {
+      answerCounts[answer[i]] = (answerCounts[answer[i]] || 0) + 1;
+    }
+  }
+  // Second pass: present
+  for (let i = 0; i < 5; i++) {
+    if (result[i] !== 'correct' && answerCounts[guess[i]] > 0) {
+      result[i] = 'present';
+      answerCounts[guess[i]]--;
+    }
+  }
+  return result;
+}
+
+function renderWordleKeyboard() {
+  const kb = document.getElementById('wordleKeyboard');
+  kb.innerHTML = '';
+  const rows = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L','Ñ'],
+    ['ENTER','Z','X','C','V','B','N','M','⌫']
+  ];
+  const keyStates = getWordleKeyStates();
+
+  rows.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'wordle-kb-row';
+    row.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'wordle-key';
+      if (key === 'ENTER' || key === '⌫') btn.classList.add('wide');
+      btn.textContent = key === 'ENTER' ? 'Enviar' : key;
+      btn.dataset.key = key;
+      if (keyStates[key]) btn.classList.add(keyStates[key]);
+      btn.addEventListener('click', () => handleWordleKey(key));
+      rowDiv.appendChild(btn);
+    });
+    kb.appendChild(rowDiv);
+  });
+}
+
+function getWordleKeyStates() {
+  const states = {};
+  wordleState.guesses.forEach(guess => {
+    const result = getWordleResult(guess);
+    for (let i = 0; i < 5; i++) {
+      const letter = guess[i];
+      const current = states[letter];
+      if (result[i] === 'correct') {
+        states[letter] = 'correct';
+      } else if (result[i] === 'present' && current !== 'correct') {
+        states[letter] = 'present';
+      } else if (!current) {
+        states[letter] = 'absent';
+      }
+    }
+  });
+  return states;
+}
+
+function handleWordleKey(key) {
+  if (wordleState.gameOver) return;
+
+  if (key === '⌫') {
+    wordleState.current = wordleState.current.slice(0, -1);
+    renderWordleGrid();
+    return;
+  }
+
+  if (key === 'ENTER') {
+    submitWordleGuess();
+    return;
+  }
+
+  if (wordleState.current.length < 5) {
+    wordleState.current += key;
+    renderWordleGrid();
+  }
+}
+
+function submitWordleGuess() {
+  if (wordleState.current.length !== 5) {
+    document.getElementById('wordleMsg').textContent = 'Escribe 5 letras';
+    shakeWordleRow();
+    return;
+  }
+
+  const guess = wordleState.current;
+  document.getElementById('wordleMsg').textContent = '';
+
+  // Animate flip
+  const result = getWordleResult(guess);
+  const row = wordleState.row;
+  for (let i = 0; i < 5; i++) {
+    const cell = document.getElementById('wc-' + row + '-' + i);
+    setTimeout(() => {
+      cell.classList.add('flip');
+      setTimeout(() => {
+        cell.classList.add(result[i]);
+        cell.classList.remove('flip');
+      }, 250);
+    }, i * 150);
+  }
+
+  wordleState.guesses.push(guess);
+  wordleState.current = '';
+  wordleState.row++;
+
+  setTimeout(() => {
+    if (guess === wordleState.answer) {
+      wordleState.won = true;
+      wordleState.gameOver = true;
+      document.getElementById('wordleMsg').textContent = '¡Felicidades! Adivinaste en ' + wordleState.guesses.length + ' intento' + (wordleState.guesses.length > 1 ? 's' : '');
+      document.getElementById('shareWordleBtn').style.display = '';
+      document.getElementById('giveUpWordleBtn').style.display = 'none';
+      launchConfetti();
+      incrementGamesCompleted();
+      // Bounce winning row
+      for (let i = 0; i < 5; i++) {
+        const cell = document.getElementById('wc-' + (row) + '-' + i);
+        setTimeout(() => cell.classList.add('bounce'), i * 100);
+      }
+    } else if (wordleState.row >= 6) {
+      wordleState.gameOver = true;
+      document.getElementById('wordleMsg').textContent = 'La palabra era: ' + wordleState.answer;
+      document.getElementById('shareWordleBtn').style.display = '';
+      document.getElementById('giveUpWordleBtn').style.display = 'none';
+    }
+
+    renderWordleKeyboard();
+    updateWordleAttempt();
+    saveWordleState();
+  }, 5 * 150 + 300);
+}
+
+function shakeWordleRow() {
+  const row = wordleState.row;
+  for (let i = 0; i < 5; i++) {
+    const cell = document.getElementById('wc-' + row + '-' + i);
+    cell.style.animation = 'none';
+    cell.offsetHeight; // trigger reflow
+    cell.style.animation = 'shake 0.3s ease';
+  }
+}
+
+function updateWordleAttempt() {
+  document.getElementById('wordleAttempt').textContent = wordleState.row;
+}
+
+function saveWordleState() {
+  localStorage.setItem('relajate_wordle_' + getDayIndex(), JSON.stringify({
+    guesses: wordleState.guesses,
+    gameOver: wordleState.gameOver,
+    won: wordleState.won
+  }));
+}
+
+// Physical keyboard input for Wordle
+document.addEventListener('keydown', (e) => {
+  // Only handle if Wordle tab is active
+  const wordleContainer = document.getElementById('game-wordle');
+  if (!wordleContainer || wordleContainer.style.display === 'none') return;
+  if (wordleState.gameOver) return;
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleWordleKey('ENTER');
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    handleWordleKey('⌫');
+  } else {
+    const letter = e.key.toUpperCase();
+    if (/^[A-ZÑ]$/.test(letter)) {
+      handleWordleKey(letter);
+    }
+  }
+});
+
+// Give Up
+document.getElementById('giveUpWordleBtn').addEventListener('click', () => {
+  if (wordleState.gameOver) return;
+  wordleState.gameOver = true;
+  document.getElementById('wordleMsg').textContent = 'La palabra era: ' + wordleState.answer;
+  document.getElementById('shareWordleBtn').style.display = '';
+  document.getElementById('giveUpWordleBtn').style.display = 'none';
+  saveWordleState();
+});
+
+// Share
+document.getElementById('shareWordleBtn').addEventListener('click', () => {
+  let emoji = 'Relajate.com - Palabra del Día\n';
+  emoji += wordleState.won
+    ? wordleState.guesses.length + '/6'
+    : 'X/6';
+  emoji += '\n\n';
+  wordleState.guesses.forEach(guess => {
+    const result = getWordleResult(guess);
+    emoji += result.map(r => r === 'correct' ? '🟩' : r === 'present' ? '🟨' : '⬜').join('') + '\n';
+  });
+  emoji += '\n📝 relajate.com';
+  document.getElementById('wordleShareText').style.display = 'block';
+  document.getElementById('wordleShareText').textContent = emoji;
+  if (navigator.clipboard) navigator.clipboard.writeText(emoji).then(() => showToast('¡Copiado!'));
+});
+
 // Init all games
 initWordGame();
 initColorGame();
 initPatternGame();
 initSumGame();
 initMemoryGame();
+initWordleGame();
 </script>
 <script src="mini-player.js"></script>
 </body>
