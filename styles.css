@@ -216,7 +216,7 @@ input, textarea, select { font-family: var(--font-body); }
 }
 
 .navbar-logo-img {
-  height: 32px;
+  height: 22px;
   width: auto;
   transition: var(--transition-fast);
 }
