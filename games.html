@@ -2651,19 +2651,102 @@ function initCaminoGame() {
     timerSpan.textContent = '0:00';
   }
 
-  // Generate board
+  function isAdjacent(r1, c1, r2, c2) {
+    return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+  }
+
+  // Generate board with a guaranteed solution using 65-90% of cells
   function generateBoard() {
+    // Build a random valid path of 10-14 cells (65-87% of 16)
+    const pathLen = 10 + Math.floor(rng() * 5); // 10,11,12,13,14
+
+    let solutionPath = null;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const visited = new Set();
+      const tryPath = [];
+      // Random start
+      const startR = Math.floor(rng() * ROWS);
+      const startC = Math.floor(rng() * COLS);
+      tryPath.push({ r: startR, c: startC });
+      visited.add(startR + ',' + startC);
+
+      while (tryPath.length < pathLen) {
+        const last = tryPath[tryPath.length - 1];
+        // Get unvisited neighbors
+        const neighbors = [];
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = last.r + dr, nc = last.c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !visited.has(nr + ',' + nc)) {
+              neighbors.push({ r: nr, c: nc });
+            }
+          }
+        }
+        if (neighbors.length === 0) break;
+        // Pick random neighbor
+        const next = neighbors[Math.floor(rng() * neighbors.length)];
+        tryPath.push(next);
+        visited.add(next.r + ',' + next.c);
+      }
+
+      if (tryPath.length >= pathLen) {
+        solutionPath = tryPath;
+        break;
+      }
+    }
+
+    if (!solutionPath) {
+      // Fallback: simple snake path
+      solutionPath = [];
+      outer: for (let r = 0; r < ROWS; r++) {
+        const cols = r % 2 === 0 ? [0,1,2,3] : [3,2,1,0];
+        for (const c of cols) {
+          solutionPath.push({ r, c });
+          if (solutionPath.length >= pathLen) break outer;
+        }
+      }
+    }
+
+    // Assign values along the path so they sum to target
     boardData = [];
     for (let r = 0; r < ROWS; r++) {
       boardData[r] = [];
       for (let c = 0; c < COLS; c++) {
-        boardData[r][c] = 1 + Math.floor(rng() * 9);
+        boardData[r][c] = 0;
       }
     }
-  }
 
-  function isAdjacent(r1, c1, r2, c2) {
-    return Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1 && !(r1 === r2 && c1 === c2);
+    let remaining = target;
+    for (let i = 0; i < solutionPath.length; i++) {
+      const p = solutionPath[i];
+      if (i === solutionPath.length - 1) {
+        // Last cell gets whatever is left
+        boardData[p.r][p.c] = Math.max(1, Math.min(9, remaining));
+      } else {
+        const cellsLeft = solutionPath.length - i;
+        // Ensure we can still fill remaining cells (each 1-9)
+        const minNeeded = cellsLeft - 1; // rest get at least 1
+        const maxNeeded = (cellsLeft - 1) * 9; // rest get at most 9
+        const lo = Math.max(1, remaining - maxNeeded);
+        const hi = Math.min(9, remaining - minNeeded);
+        if (lo > hi) {
+          boardData[p.r][p.c] = Math.max(1, Math.min(9, Math.floor(remaining / cellsLeft)));
+        } else {
+          boardData[p.r][p.c] = lo + Math.floor(rng() * (hi - lo + 1));
+        }
+        remaining -= boardData[p.r][p.c];
+      }
+    }
+
+    // Fill non-path cells with random 1-9
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (boardData[r][c] === 0) {
+          boardData[r][c] = 1 + Math.floor(rng() * 9);
+        }
+      }
+    }
   }
 
   function getCellIdx(r, c) { return r * COLS + c; }
@@ -2828,7 +2911,6 @@ function initCaminoGame() {
   function clearPath() {
     if (solved) return;
     path = [];
-    resetTimer();
     renderPath();
   }
 
