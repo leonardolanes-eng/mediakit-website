@@ -7,7 +7,7 @@
   <meta name="description" content="Juegos diarios relajantes: Conecta Palabras, Flujo de Colores y Patr&oacute;n Zen. Ejercita tu mente mientras te relajas.">
   <meta name="theme-color" content="#6B9BD2">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <style>
     /* Word Connect */
     .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 1rem 0; }
@@ -2185,30 +2185,32 @@ function renderMemoryGame() {
 
     const front = document.createElement('div');
     front.className = 'mem-card-front';
-    front.textContent = '\u{1F30E}';
+    front.textContent = '?';
 
     const back = document.createElement('div');
     back.className = 'mem-card-back';
 
-    if (card.type === 'flag') {
+    function makeFlagImg(code, w) {
       const img = document.createElement('img');
-      img.src = flagImg(card.flagCode);
-      img.alt = card.label;
-      img.style.cssText = 'width:48px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,0.2);';
+      img.src = 'https://flagcdn.com/w160/' + code + '.png';
+      img.alt = code.toUpperCase();
+      img.crossOrigin = 'anonymous';
+      img.style.cssText = 'width:' + w + 'px;height:auto;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,0.25);';
+      img.onerror = function() { this.style.display='none'; };
+      return img;
+    }
+
+    if (card.type === 'flag') {
+      back.appendChild(makeFlagImg(card.flagCode, 56));
       const lb = document.createElement('span');
       lb.className = 'mem-label';
       lb.textContent = 'Bandera';
-      back.appendChild(img);
       back.appendChild(lb);
     } else if (card.type === 'name') {
-      const img = document.createElement('img');
-      img.src = flagImg(card.flagCode);
-      img.alt = card.text;
-      img.style.cssText = 'width:36px;height:auto;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.15);';
+      back.appendChild(makeFlagImg(card.flagCode, 40));
       const tx = document.createElement('span');
       tx.className = 'mem-text';
       tx.textContent = card.text;
-      back.appendChild(img);
       back.appendChild(tx);
     } else if (card.type === 'capital') {
       const em = document.createElement('span');
