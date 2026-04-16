@@ -38,8 +38,22 @@
   let miniSounds = {}; // name -> { gain, nodes }
   let miniMasterVol = 0.6;
 
+  // Ensure AudioContext is created and resumed (mobile requires user gesture)
+  function ensureAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = miniMasterVol;
+      masterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(function() {});
+    }
+    return audioCtx;
+  }
+
   function createNoise(type) {
-    const bufferSize = audioCtx.sampleRate * 4;
+    const bufferSize = audioCtx.sampleRate * 2; // 2 seconds (smaller for mobile)
     const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
       const data = buffer.getChannelData(ch);
@@ -61,13 +75,7 @@
   }
 
   function startMiniSound(name, volume) {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = miniMasterVol;
-      masterGain.connect(audioCtx.destination);
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    ensureAudioCtx();
 
     const gain = audioCtx.createGain();
     gain.gain.value = volume || 0.5;
@@ -448,13 +456,17 @@
     document.body.style.paddingBottom = '56px';
 
     // Play/pause button
-    document.getElementById('miniPlayBtn').addEventListener('click', () => {
+    function toggleMiniPlay(e) {
+      e.preventDefault();
+      ensureAudioCtx();
       if (miniPlaying) {
         stopAllMini();
       } else {
         startAllFromState();
       }
-    });
+    }
+    document.getElementById('miniPlayBtn').addEventListener('click', toggleMiniPlay);
+    document.getElementById('miniPlayBtn').addEventListener('touchend', toggleMiniPlay);
 
     // Volume
     document.getElementById('miniVol').addEventListener('input', (e) => {
@@ -486,18 +498,39 @@
   createMiniPlayer();
   updateMiniUI();
 
+  // Mobile audio unlock: resume AudioContext on first user gesture
+  function unlockAudio() {
+    ensureAudioCtx();
+    document.removeEventListener('click', unlockAudio, true);
+    document.removeEventListener('touchstart', unlockAudio, true);
+    document.removeEventListener('touchend', unlockAudio, true);
+  }
+  document.addEventListener('click', unlockAudio, true);
+  document.addEventListener('touchstart', unlockAudio, true);
+  document.addEventListener('touchend', unlockAudio, true);
+
+  // Resume AudioContext when page becomes visible (after screen lock/tab switch)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && audioCtx && audioCtx.state === 'suspended' && miniPlaying) {
+      audioCtx.resume().catch(function() {});
+    }
+  });
+
   // If sounds are active, auto-start on first user interaction (browser requires gesture)
   const active = getActiveSounds();
   if (Object.keys(active).length > 0 && !isOnSonidos) {
     function autoStart() {
+      ensureAudioCtx();
       if (!miniPlaying) {
         startAllFromState();
       }
       document.removeEventListener('click', autoStart);
       document.removeEventListener('touchstart', autoStart);
+      document.removeEventListener('touchend', autoStart);
     }
     document.addEventListener('click', autoStart);
     document.addEventListener('touchstart', autoStart);
+    document.addEventListener('touchend', autoStart);
   }
 
   // On sonidos.html, listen for localStorage changes to stay in sync

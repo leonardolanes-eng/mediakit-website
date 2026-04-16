@@ -573,15 +573,37 @@ const soundConfigs = {
 };
 
 function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.7;
-  masterGain.connect(audioCtx.destination);
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.7;
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(function() {});
+  }
 }
 
+// Mobile audio unlock on first gesture
+document.addEventListener('touchstart', function unlockSonidos() {
+  initAudio();
+  document.removeEventListener('touchstart', unlockSonidos, true);
+  document.removeEventListener('touchend', unlockSonidos, true);
+}, true);
+document.addEventListener('touchend', function unlockSonidos2() {
+  initAudio();
+  document.removeEventListener('touchend', unlockSonidos2, true);
+}, true);
+
+// Resume audio when page becomes visible
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && audioCtx && audioCtx.state === 'suspended' && isPlaying) {
+    audioCtx.resume().catch(function() {});
+  }
+});
+
 function createNoise(type) {
-  const bufferSize = audioCtx.sampleRate * 4;
+  const bufferSize = audioCtx.sampleRate * 2; // 2 seconds (smaller for mobile)
   const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const data = buffer.getChannelData(ch);
@@ -1020,8 +1042,7 @@ function stopSound(name) {
 }
 
 function toggleSound(name) {
-  initAudio();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  initAudio(); // also resumes if suspended
   const cfg = soundConfigs[name];
   cfg.active = !cfg.active;
 
@@ -1116,8 +1137,7 @@ document.getElementById('masterPlay').addEventListener('click', () => {
     document.getElementById('masterPlay').innerHTML = '&#9654;';
     stopVisualizer();
   } else {
-    initAudio();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    initAudio(); // also resumes if suspended
     const anyActive = Object.values(soundConfigs).some(s => s.active);
     if (!anyActive) {
       // Default: turn on rain
@@ -1159,8 +1179,7 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
       }
     });
 
-    initAudio();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    initAudio(); // also resumes if suspended
 
     // Activate preset sounds
     Object.keys(preset).forEach(name => {

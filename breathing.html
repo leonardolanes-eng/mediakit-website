@@ -794,15 +794,25 @@ let currentTrack = 'ocean';
 let musicGain = null;
 
 function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  musicGain = audioCtx.createGain();
-  musicGain.gain.value = 0.4;
-  musicGain.connect(audioCtx.destination);
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.4;
+    musicGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(function() {});
+  }
 }
 
+// Mobile audio unlock
+document.addEventListener('touchstart', function _unlockBreath() {
+  initAudio();
+  document.removeEventListener('touchstart', _unlockBreath, true);
+}, true);
+
 function createNoise() {
-  const bufferSize = audioCtx.sampleRate * 4;
+  const bufferSize = audioCtx.sampleRate * 2; // smaller for mobile
   const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const data = buffer.getChannelData(ch);
