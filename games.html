@@ -2179,22 +2179,61 @@ function renderMemoryGame() {
     if (memFlipped.includes(i)) cardEl.classList.add('flipped');
     cardEl.dataset.idx = i;
 
-    let backContent = '';
+    const front = document.createElement('div');
+    front.className = 'mem-card-front';
+    front.textContent = '\u{1F30E}';
+
+    const back = document.createElement('div');
+    back.className = 'mem-card-back';
+
     if (card.type === 'flag') {
-      backContent = '<span class="mem-emoji">' + card.display + '</span><span class="mem-label">' + card.label + '</span>';
+      const em = document.createElement('span');
+      em.className = 'mem-emoji';
+      em.textContent = card.display;
+      const lb = document.createElement('span');
+      lb.className = 'mem-label';
+      lb.textContent = card.label;
+      back.appendChild(em);
+      back.appendChild(lb);
     } else if (card.type === 'name') {
-      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-text">' + card.display + '</span>';
+      const em = document.createElement('span');
+      em.className = 'mem-emoji';
+      em.textContent = card.emoji;
+      const tx = document.createElement('span');
+      tx.className = 'mem-text';
+      tx.textContent = card.display;
+      back.appendChild(em);
+      back.appendChild(tx);
     } else if (card.type === 'capital') {
-      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-text">' + card.display + '</span><span class="mem-label">' + card.label + '</span>';
+      const em = document.createElement('span');
+      em.className = 'mem-emoji';
+      em.textContent = card.emoji;
+      const tx = document.createElement('span');
+      tx.className = 'mem-text';
+      tx.textContent = card.display;
+      const lb = document.createElement('span');
+      lb.className = 'mem-label';
+      lb.textContent = card.label;
+      back.appendChild(em);
+      back.appendChild(tx);
+      back.appendChild(lb);
     } else {
-      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-label">' + card.label + '</span>';
+      const em = document.createElement('span');
+      em.className = 'mem-emoji';
+      em.textContent = card.emoji;
+      const lb = document.createElement('span');
+      lb.className = 'mem-label';
+      lb.textContent = card.label;
+      back.appendChild(em);
+      back.appendChild(lb);
     }
 
-    cardEl.innerHTML =
-      '<div class="mem-card-inner">' +
-        '<div class="mem-card-front">🌎</div>' +
-        '<div class="mem-card-back">' + backContent + '</div>' +
-      '</div>';
+    const inner = document.createElement('div');
+    inner.className = 'mem-card-inner';
+    inner.appendChild(front);
+    inner.appendChild(back);
+    cardEl.appendChild(inner);
+
     cardEl.addEventListener('click', () => handleMemClick(i));
     grid.appendChild(cardEl);
   });
