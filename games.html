@@ -464,6 +464,69 @@
       border-color: var(--blue); color: white; background: var(--blue);
     }
 
+    /* Inline Music Player */
+    .inline-player {
+      display: flex; align-items: center; gap: 0.75rem;
+      max-width: 600px; margin: 0 auto 1.5rem;
+      padding: 0.7rem 1.2rem;
+      background: linear-gradient(135deg, rgba(155,142,196,0.12), rgba(107,155,210,0.12));
+      border: 1px solid rgba(155,142,196,0.2);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(8px);
+    }
+    .ip-play-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: none;
+      background: linear-gradient(135deg, #9B8EC4, #6B9BD2);
+      color: white; font-size: 1.15rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s ease;
+      box-shadow: 0 3px 10px rgba(107,155,210,0.35);
+    }
+    .ip-play-btn:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(107,155,210,0.5); }
+    .ip-play-btn.playing { background: linear-gradient(135deg, #6B9BD2, #87AE73); }
+    .ip-info { flex: 1; min-width: 0; }
+    .ip-label {
+      display: block; font-size: 0.82rem; font-weight: 800;
+      color: var(--text-primary); line-height: 1.2;
+    }
+    .ip-status {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      color: var(--text-secondary); line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ip-vol-wrap {
+      display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+    }
+    .ip-vol-icon { font-size: 1rem; cursor: pointer; user-select: none; }
+    .ip-vol {
+      width: 70px; height: 4px; -webkit-appearance: none; appearance: none;
+      background: rgba(155,142,196,0.25); border-radius: 3px; outline: none;
+    }
+    .ip-vol::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(135deg, #9B8EC4, #6B9BD2);
+      cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .ip-vol::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%; border: none;
+      background: linear-gradient(135deg, #9B8EC4, #6B9BD2);
+      cursor: pointer;
+    }
+    .ip-mixer-link {
+      font-size: 0.75rem; font-weight: 700; color: var(--lavender-dark);
+      text-decoration: none; white-space: nowrap; flex-shrink: 0;
+      padding: 0.3rem 0.6rem; border-radius: var(--radius-full);
+      border: 1px solid rgba(155,142,196,0.3); transition: all 0.2s;
+    }
+    .ip-mixer-link:hover {
+      background: rgba(155,142,196,0.12); border-color: var(--lavender);
+    }
+    @media(max-width: 500px) {
+      .inline-player { padding: 0.5rem 0.8rem; gap: 0.5rem; }
+      .ip-mixer-link { display: none; }
+      .ip-vol { width: 50px; }
+    }
+
     /* Community Stats Bar */
     .community-stats {
       display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
@@ -564,6 +627,20 @@
     <button class="game-tab" data-game="camino">&#128739; Camino al 100</button>
     <button class="game-tab" data-game="schulte">&#128290; Escalera Zen</button>
     <button class="game-tab" data-game="nonogram">&#128919; Nonograma Mini</button>
+  </div>
+
+  <!-- In-page Music Player -->
+  <div class="inline-player" id="inlinePlayer">
+    <button class="ip-play-btn" id="ipPlayBtn" title="Play / Pausa">&#9654;</button>
+    <div class="ip-info">
+      <span class="ip-label">&#127925; M&uacute;sica relajante</span>
+      <span class="ip-status" id="ipStatus">Pulsa play para escuchar</span>
+    </div>
+    <div class="ip-vol-wrap">
+      <span class="ip-vol-icon" id="ipVolIcon">&#128266;</span>
+      <input type="range" class="ip-vol" id="ipVol" min="0" max="100" value="60">
+    </div>
+    <a href="sonidos.html" class="ip-mixer-link" title="Personalizar sonidos">&#127899; Mixer</a>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -3921,5 +3998,100 @@ initSchulteGame();
 initNonogramGame();
 </script>
 <script src="mini-player.js"></script>
+<script>
+// ==================== INLINE PLAYER - syncs with mini-player ====================
+(function() {
+  const SOUND_ICONS = {
+    rain:'\u{1F327}', cafe:'\u2615', piano:'\u{1F3B9}', ocean:'\u{1F30A}',
+    fire:'\u{1F525}', wind:'\u{1F343}', birds:'\u{1F426}', thunder:'\u26A1',
+    night:'\u{1F319}', river:'\u{1F4A7}', guitar:'\u{1F3B8}', flute:'\u{1F3B6}',
+    harp:'\u{1F3B5}', cello:'\u{1F3BB}', xylophone:'\u{1F3B6}', synth:'\u{1F3BC}'
+  };
+  const SOUND_LABELS = {
+    rain:'Lluvia', cafe:'Caf\u00e9', piano:'Piano', ocean:'Oc\u00e9ano',
+    fire:'Fuego', wind:'Viento', birds:'P\u00e1jaros', thunder:'Truenos',
+    night:'Noche', river:'R\u00edo', guitar:'Guitarra', flute:'Flauta',
+    harp:'Arpa', cello:'Violonchelo', xylophone:'Xil\u00f3fono', synth:'Sintetizador'
+  };
+
+  const ipPlayBtn = document.getElementById('ipPlayBtn');
+  const ipStatus = document.getElementById('ipStatus');
+  const ipVol = document.getElementById('ipVol');
+  const ipVolIcon = document.getElementById('ipVolIcon');
+
+  function getMiniPlaying() {
+    const miniBtn = document.getElementById('miniPlayBtn');
+    return miniBtn && miniBtn.textContent === '\u23F8';
+  }
+
+  function getActiveNames() {
+    try {
+      const state = JSON.parse(localStorage.getItem('relajate_sounds') || '{}');
+      return Object.keys(state).filter(k => state[k] && state[k].active);
+    } catch(e) { return []; }
+  }
+
+  function syncUI() {
+    const playing = getMiniPlaying();
+    const names = getActiveNames();
+    ipPlayBtn.innerHTML = playing ? '&#9208;' : '&#9654;';
+    if (playing) {
+      ipPlayBtn.classList.add('playing');
+    } else {
+      ipPlayBtn.classList.remove('playing');
+    }
+    if (playing && names.length > 0) {
+      const tags = names.map(n => (SOUND_ICONS[n]||'') + ' ' + (SOUND_LABELS[n]||n)).join('  \u00b7  ');
+      ipStatus.textContent = '\u25B6 ' + tags;
+    } else if (names.length > 0) {
+      ipStatus.textContent = 'Pausado \u2014 pulsa play';
+    } else {
+      ipStatus.textContent = 'Pulsa play para escuchar';
+    }
+
+    // Sync volume slider with mini player
+    const miniVol = document.getElementById('miniVol');
+    if (miniVol && ipVol.dataset.userSet !== '1') {
+      ipVol.value = miniVol.value;
+    }
+  }
+
+  // Play / Pause - triggers the mini player button
+  ipPlayBtn.addEventListener('click', function() {
+    const miniBtn = document.getElementById('miniPlayBtn');
+    if (miniBtn) miniBtn.click();
+    setTimeout(syncUI, 100);
+  });
+
+  // Volume - syncs to mini player
+  ipVol.addEventListener('input', function() {
+    ipVol.dataset.userSet = '1';
+    const miniVol = document.getElementById('miniVol');
+    if (miniVol) {
+      miniVol.value = ipVol.value;
+      miniVol.dispatchEvent(new Event('input'));
+    }
+    // Update icon
+    const v = parseInt(ipVol.value);
+    ipVolIcon.innerHTML = v === 0 ? '&#128264;' : v < 40 ? '&#128265;' : '&#128266;';
+    setTimeout(function() { ipVol.dataset.userSet = ''; }, 500);
+  });
+
+  // Mute toggle
+  ipVolIcon.addEventListener('click', function() {
+    if (parseInt(ipVol.value) > 0) {
+      ipVol.dataset.prevVol = ipVol.value;
+      ipVol.value = 0;
+    } else {
+      ipVol.value = ipVol.dataset.prevVol || 60;
+    }
+    ipVol.dispatchEvent(new Event('input'));
+  });
+
+  // Keep in sync
+  syncUI();
+  setInterval(syncUI, 1000);
+})();
+</script>
 </body>
 </html>
