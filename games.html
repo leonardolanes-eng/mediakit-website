@@ -130,14 +130,14 @@
     }
     .sum-target span { font-size: 1.8rem; color: var(--lavender-dark); }
 
-    /* Memory Game */
+    /* Memory Game - Paises Hispanos */
     .mem-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-      max-width: 380px; margin: 1rem auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      max-width: 420px; margin: 1rem auto;
     }
     .mem-card {
-      aspect-ratio: 1; border-radius: var(--radius-md); cursor: pointer;
-      position: relative; perspective: 600px;
+      aspect-ratio: 0.75; border-radius: var(--radius-md); cursor: pointer;
+      position: relative; perspective: 600px; min-height: 80px;
     }
     .mem-card-inner {
       width: 100%; height: 100%; position: relative;
@@ -155,15 +155,25 @@
     .mem-card-front, .mem-card-back {
       position: absolute; inset: 0; border-radius: var(--radius-md);
       display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 2px; padding: 6px 4px;
       backface-visibility: hidden; border: 2px solid var(--border-color);
+      text-align: center;
     }
     .mem-card-front {
-      background: linear-gradient(135deg, var(--sage-light), var(--blue-light));
-      font-size: 1.5rem; color: white;
+      background: linear-gradient(135deg, var(--blue), var(--lavender));
+      font-size: 1.3rem; color: white;
     }
     .mem-card-back {
       background: var(--bg-card); transform: rotateY(180deg);
-      font-size: 2.2rem;
+    }
+    .mem-card-back .mem-emoji { font-size: 1.8rem; line-height: 1; }
+    .mem-card-back .mem-label {
+      font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);
+      line-height: 1.1; word-break: break-word;
+    }
+    .mem-card-back .mem-text {
+      font-size: 0.72rem; font-weight: 800; color: var(--text-primary);
+      line-height: 1.2;
     }
     .mem-card:hover .mem-card-inner { transform: rotateY(10deg); }
     .mem-card.flipped:hover .mem-card-inner, .mem-card.matched:hover .mem-card-inner { transform: rotateY(180deg); }
@@ -500,7 +510,7 @@
     <button class="game-tab" data-game="colors">&#127912; Flujo de Colores</button>
     <button class="game-tab" data-game="pattern">&#129504; Patr&oacute;n Zen</button>
     <button class="game-tab" data-game="sumzen">&#128290; Suma Zen</button>
-    <button class="game-tab" data-game="memory">&#127795; Memoria Natural</button>
+    <button class="game-tab" data-game="memory">&#127757; Memoria Hispana</button>
     <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
     <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
     <button class="game-tab" data-game="camino">&#128739; Camino al 100</button>
@@ -604,16 +614,16 @@
     </div>
   </div>
 
-  <!-- Game 5: Memoria Natural -->
+  <!-- Game 5: Memoria Hispana -->
   <div class="game-container" id="game-memory" style="display:none;">
     <div class="game-board">
       <div class="game-header">
-        <h3>Memoria Natural</h3>
+        <h3>Memoria Hispana</h3>
         <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="memTimer">0:00</span></div>
         <span class="game-score">Movimientos: <span id="memMoves">0</span></span>
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="memBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Encuentra los pares de elementos de la naturaleza</p>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Empareja cada pa&iacute;s con su bandera, capital o mapa</p>
       <div class="community-stats" id="statsMemory"></div>
       <div class="mem-grid" id="memGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -2073,13 +2083,28 @@ document.getElementById('shareSumBtn').addEventListener('click', () => {
 });
 
 // ==================== GAME 5: MEMORIA NATURAL ====================
-const MEM_NATURE_ICONS = [
-  ['🌺','🌸','🌻','🌷','🌹','🌼','💐','🌿'],
-  ['🌲','🌳','🌴','🍀','🍁','🍂','🍃','🌱'],
-  ['🦋','🐝','🐞','🐢','🦎','🐸','🐌','🦜'],
-  ['🌊','🏔️','🌅','🌈','⭐','🌙','☀️','🍄'],
-  ['🐬','🐠','🦈','🐙','🦀','🐚','🐋','🦑'],
-  ['🦅','🦉','🐦','🦢','🦚','🦩','🕊️','🦆']
+// Country data for Memoria Hispana
+const MEM_COUNTRIES = [
+  { id: 'mx', name: 'México', flag: '🇲🇽', capital: 'Ciudad de México', map: '🌮' },
+  { id: 'ar', name: 'Argentina', flag: '🇦🇷', capital: 'Buenos Aires', map: '🥩' },
+  { id: 'co', name: 'Colombia', flag: '🇨🇴', capital: 'Bogotá', map: '☕' },
+  { id: 'es', name: 'España', flag: '🇪🇸', capital: 'Madrid', map: '🏰' },
+  { id: 'pe', name: 'Perú', flag: '🇵🇪', capital: 'Lima', map: '🏔️' },
+  { id: 'cl', name: 'Chile', flag: '🇨🇱', capital: 'Santiago', map: '🍷' },
+  { id: 'cu', name: 'Cuba', flag: '🇨🇺', capital: 'La Habana', map: '🎺' },
+  { id: 've', name: 'Venezuela', flag: '🇻🇪', capital: 'Caracas', map: '⛰️' },
+  { id: 'ec', name: 'Ecuador', flag: '🇪🇨', capital: 'Quito', map: '🌋' },
+  { id: 'gt', name: 'Guatemala', flag: '🇬🇹', capital: 'Ciudad de Guatemala', map: '🌽' },
+  { id: 'bo', name: 'Bolivia', flag: '🇧🇴', capital: 'La Paz', map: '🦙' },
+  { id: 'uy', name: 'Uruguay', flag: '🇺🇾', capital: 'Montevideo', map: '🧉' },
+  { id: 'cr', name: 'Costa Rica', flag: '🇨🇷', capital: 'San José', map: '🦜' },
+  { id: 'pa', name: 'Panamá', flag: '🇵🇦', capital: 'Ciudad de Panamá', map: '🚢' },
+  { id: 'do', name: 'Rep. Dominicana', flag: '🇩🇴', capital: 'Santo Domingo', map: '🏖️' },
+  { id: 'hn', name: 'Honduras', flag: '🇭🇳', capital: 'Tegucigalpa', map: '🌴' },
+  { id: 'py', name: 'Paraguay', flag: '🇵🇾', capital: 'Asunción', map: '🎶' },
+  { id: 'sv', name: 'El Salvador', flag: '🇸🇻', capital: 'San Salvador', map: '🌊' },
+  { id: 'ni', name: 'Nicaragua', flag: '🇳🇮', capital: 'Managua', map: '🏝️' },
+  { id: 'pr', name: 'Puerto Rico', flag: '🇵🇷', capital: 'San Juan', map: '🎵' },
 ];
 
 let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memLocked = false;
@@ -2120,47 +2145,65 @@ function initMemoryGame() {
   const best = localStorage.getItem('relajate_mem_best');
   document.getElementById('memBest').textContent = best || '--';
 
-  // Pick 8 random icons from a daily set
   const rng = seededRandom(getDayIndex() + 900);
-  const setIdx = getDayIndex() % MEM_NATURE_ICONS.length;
-  const icons = [...MEM_NATURE_ICONS[setIdx]];
-  // Shuffle and take 8
-  const picked = shuffle(icons, rng).slice(0, 8);
-  // Create pairs and shuffle
-  memCards = shuffle([...picked, ...picked], rng);
+  // Pick 8 random countries
+  const picked = shuffle([...MEM_COUNTRIES], rng).slice(0, 8);
 
+  // For each country, pick a random pair type: flag, capital, or map
+  const pairTypes = ['flag', 'capital', 'map'];
+  memCards = [];
+  picked.forEach(country => {
+    const pairType = pairTypes[Math.floor(rng() * pairTypes.length)];
+    // Card A: country name
+    memCards.push({ countryId: country.id, type: 'name', display: country.name, emoji: '🌎', label: 'País' });
+    // Card B: the paired attribute
+    if (pairType === 'flag') {
+      memCards.push({ countryId: country.id, type: 'flag', display: country.flag, emoji: country.flag, label: 'Bandera' });
+    } else if (pairType === 'capital') {
+      memCards.push({ countryId: country.id, type: 'capital', display: country.capital, emoji: '🏛️', label: 'Capital' });
+    } else {
+      memCards.push({ countryId: country.id, type: 'map', display: country.map, emoji: country.map, label: country.name });
+    }
+  });
+
+  memCards = shuffle(memCards, rng);
   renderMemoryGame();
 }
 
 function renderMemoryGame() {
   const grid = document.getElementById('memGrid');
   grid.innerHTML = '';
-  memCards.forEach((icon, i) => {
-    const card = document.createElement('div');
-    card.className = 'mem-card';
-    if (memFlipped.includes(i)) card.classList.add('flipped');
-    card.dataset.idx = i;
-    card.innerHTML = `
-      <div class="mem-card-inner">
-        <div class="mem-card-front">🍃</div>
-        <div class="mem-card-back">${icon}</div>
-      </div>
-    `;
-    card.addEventListener('click', () => handleMemClick(i));
-    grid.appendChild(card);
-  });
-  // Re-apply matched state
-  document.querySelectorAll('.mem-card').forEach((card, i) => {
-    if (card.dataset.matched === 'true' || memCards[i] === null) {
-      // Already handled below
+  memCards.forEach((card, i) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'mem-card';
+    if (memFlipped.includes(i)) cardEl.classList.add('flipped');
+    cardEl.dataset.idx = i;
+
+    let backContent = '';
+    if (card.type === 'flag') {
+      backContent = '<span class="mem-emoji">' + card.display + '</span><span class="mem-label">' + card.label + '</span>';
+    } else if (card.type === 'name') {
+      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-text">' + card.display + '</span>';
+    } else if (card.type === 'capital') {
+      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-text">' + card.display + '</span><span class="mem-label">' + card.label + '</span>';
+    } else {
+      backContent = '<span class="mem-emoji">' + card.emoji + '</span><span class="mem-label">' + card.label + '</span>';
     }
+
+    cardEl.innerHTML =
+      '<div class="mem-card-inner">' +
+        '<div class="mem-card-front">🌎</div>' +
+        '<div class="mem-card-back">' + backContent + '</div>' +
+      '</div>';
+    cardEl.addEventListener('click', () => handleMemClick(i));
+    grid.appendChild(cardEl);
   });
 }
 
 function handleMemClick(idx) {
   if (memLocked || memGameDone) return;
   if (memFlipped.includes(idx)) return;
-  if (memCards[idx] === null) return; // already matched
+  if (!memCards[idx]) return;
 
   startMemTimer();
 
@@ -2174,8 +2217,12 @@ function handleMemClick(idx) {
     memLocked = true;
 
     const [a, b] = memFlipped;
-    if (memCards[a] === memCards[b]) {
-      // Match!
+    const cardA = memCards[a];
+    const cardB = memCards[b];
+    // Match if same country but different card types
+    const isMatch = cardA.countryId === cardB.countryId && cardA.type !== cardB.type;
+
+    if (isMatch) {
       setTimeout(() => {
         cards[a].classList.add('matched', 'just-matched');
         cards[b].classList.add('matched', 'just-matched');
@@ -2188,7 +2235,6 @@ function handleMemClick(idx) {
         memLocked = false;
 
         if (memMatched === memCards.length) {
-          // Game won!
           stopMemTimer();
           memGameDone = true;
           launchConfetti();
@@ -2204,13 +2250,12 @@ function handleMemClick(idx) {
         }
       }, 400);
     } else {
-      // No match - flip back
       setTimeout(() => {
         cards[a].classList.remove('flipped');
         cards[b].classList.remove('flipped');
         memFlipped = [];
         memLocked = false;
-      }, 900);
+      }, 1200);
     }
   }
 }
@@ -2221,7 +2266,7 @@ document.getElementById('resetMemBtn').addEventListener('click', () => {
 
 document.getElementById('shareMemBtn').addEventListener('click', () => {
   const best = localStorage.getItem('relajate_mem_best') || memMoves;
-  const text = 'Relajate.com - Memoria Natural\nMovimientos: ' + memMoves + '\n⏱ Tiempo: ' + formatMemTime(memSeconds) + '\nMejor: ' + best + '\n\n🌿 relajate.com';
+  const text = 'Relajate.com - Memoria Hispana 🌎\nMovimientos: ' + memMoves + '\n\u23f1 Tiempo: ' + formatMemTime(memSeconds) + '\nMejor: ' + best + '\n\nhttps://relajate.com/games.html';
   document.getElementById('memShareText').style.display = 'block';
   document.getElementById('memShareText').textContent = text;
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('\u00a1Copiado!'));
