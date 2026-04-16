@@ -1994,6 +1994,29 @@ function initEmojiGame() {
       .replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ');
   }
 
+  // Levenshtein distance for fuzzy matching
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const d = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) d[i][0] = i;
+    for (let j = 0; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      }
+    }
+    return d[m][n];
+  }
+
+  function fuzzyMatch(guess, target) {
+    const g = normalize(guess), t = normalize(target);
+    if (g === t) return true;
+    // Allow 1 typo for short words (<=5), 2 for longer
+    const maxDist = t.length <= 5 ? 1 : 2;
+    return levenshtein(g, t) <= maxDist;
+  }
+
   function updateNavButtons() {
     let solvedCount = 0;
     document.querySelectorAll('.emoji-pz-btn').forEach((btn, i) => {
@@ -2086,8 +2109,7 @@ function initEmojiGame() {
     if (!guess || state.solved || state.gaveUp) return;
     if (state.guesses.length >= maxGuesses) return;
 
-    const norm = normalize(guess);
-    const correct = norm === normalize(puzzle.answer) || puzzle.accepts.some(a => normalize(a) === norm);
+    const correct = fuzzyMatch(guess, puzzle.answer) || puzzle.accepts.some(a => fuzzyMatch(guess, a));
     state.guesses.push({ text: guess, correct });
 
     if (correct) {
