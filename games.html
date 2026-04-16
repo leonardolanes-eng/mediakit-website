@@ -2154,8 +2154,8 @@ function initMemoryGame() {
   memCards = [];
   picked.forEach(country => {
     const pairType = pairTypes[Math.floor(rng() * pairTypes.length)];
-    // Card A: country name
-    memCards.push({ countryId: country.id, type: 'name', display: country.name, emoji: '🌎', label: 'País' });
+    // Card A: country name with flag
+    memCards.push({ countryId: country.id, type: 'name', display: country.name, emoji: country.flag, label: 'País' });
     // Card B: the paired attribute
     if (pairType === 'flag') {
       memCards.push({ countryId: country.id, type: 'flag', display: country.flag, emoji: country.flag, label: 'Bandera' });
