@@ -2201,13 +2201,8 @@ function renderMemoryGame() {
     }
 
     if (card.type === 'flag') {
-      back.appendChild(makeFlagImg(card.flagCode, 56));
-      const lb = document.createElement('span');
-      lb.className = 'mem-label';
-      lb.textContent = 'Bandera';
-      back.appendChild(lb);
+      back.appendChild(makeFlagImg(card.flagCode, 60));
     } else if (card.type === 'name') {
-      back.appendChild(makeFlagImg(card.flagCode, 40));
       const tx = document.createElement('span');
       tx.className = 'mem-text';
       tx.textContent = card.text;
