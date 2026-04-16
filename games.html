@@ -199,6 +199,30 @@
       text-align: center; font-size: 0.8rem; color: var(--text-secondary);
       margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
     }
+    .emoji-puzzle-nav {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin: 0.75rem 0;
+    }
+    .emoji-pz-btn {
+      padding: 5px 14px; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: transparent;
+      font-weight: 700; font-size: 0.8rem; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.2s;
+    }
+    .emoji-pz-btn:hover { border-color: var(--blue-light); color: var(--blue-dark); }
+    .emoji-pz-btn.active {
+      background: var(--blue); color: white; border-color: var(--blue-dark);
+    }
+    .emoji-pz-btn.solved {
+      background: var(--sage); color: white; border-color: var(--sage-dark);
+    }
+    .emoji-pz-btn.failed {
+      background: var(--gray-300); color: var(--gray-500); border-color: var(--gray-400);
+    }
+    .emoji-progress {
+      font-size: 0.8rem; font-weight: 800; color: var(--sage-dark);
+      margin-left: 6px;
+    }
     .emoji-result-answer {
       text-align: center; font-size: 1.3rem; font-weight: 800; margin: 0.5rem 0;
       color: var(--blue-dark);
@@ -539,8 +563,14 @@
         <h3>Emoji Zen</h3>
         <span class="game-score">Intento: <span id="emojiAttempt">0</span>/5</span>
       </div>
-      <div class="game-instructions">Descifra qu&eacute; <strong>pel&iacute;cula, frase o concepto</strong> representan los emojis. Escribe tu respuesta y presiona <strong>&#10003; Enviar</strong>. Tienes <strong>5 intentos</strong> y puedes pedir una &#128161; pista.</div>
+      <div class="game-instructions">Descifra qu&eacute; <strong>pel&iacute;cula, frase o concepto</strong> representan los emojis. Escribe tu respuesta y presiona <strong>&#10003; Enviar</strong>. Tienes <strong>5 intentos</strong> por puzzle y puedes pedir una &#128161; pista. &iexcl;<strong>3 puzzles diarios</strong>!</div>
       <div class="community-stats" id="statsEmoji"></div>
+      <div class="emoji-puzzle-nav">
+        <button class="emoji-pz-btn active" data-pz="0">Puzzle 1</button>
+        <button class="emoji-pz-btn" data-pz="1">Puzzle 2</button>
+        <button class="emoji-pz-btn" data-pz="2">Puzzle 3</button>
+        <span class="emoji-progress" id="emojiProgress">0/3</span>
+      </div>
       <div class="emoji-category" id="emojiCategory"></div>
       <div class="emoji-display" id="emojiDisplay"></div>
       <div class="emoji-hint-box" id="emojiHint"></div>
@@ -1924,28 +1954,40 @@ const EMOJI_PUZZLES = [
 function initEmojiGame() {
   const dayIdx = getDayIndex();
   const rng = seededRandom(dayIdx + 7777);
-  const puzzleIdx = Math.floor(rng() * EMOJI_PUZZLES.length);
-  const puzzle = EMOJI_PUZZLES[puzzleIdx];
+  const PUZZLES_PER_DAY = 3;
 
-  const stateKey = 'relajate_emoji_' + dayIdx;
-  let state = JSON.parse(localStorage.getItem(stateKey) || 'null');
-  if (!state) {
-    state = { guesses: [], solved: false, hintsUsed: 0, gaveUp: false };
+  // Pick 3 unique puzzles for today
+  const usedIndices = [];
+  const dailyPuzzles = [];
+  for (let i = 0; i < PUZZLES_PER_DAY; i++) {
+    let idx = Math.floor(rng() * EMOJI_PUZZLES.length);
+    let tries = 0;
+    while (usedIndices.includes(idx) && tries < 100) {
+      idx = Math.floor(rng() * EMOJI_PUZZLES.length);
+      tries++;
+    }
+    usedIndices.push(idx);
+    dailyPuzzles.push(EMOJI_PUZZLES[idx]);
   }
 
-  const display = document.getElementById('emojiDisplay');
-  const input = document.getElementById('emojiInput');
-  const submitBtn = document.getElementById('submitEmojiBtn');
-  const guessesDiv = document.getElementById('emojiGuesses');
-  const hintBox = document.getElementById('emojiHint');
-  const hintBtn = document.getElementById('emojiHintBtn');
-  const giveUpBtn = document.getElementById('giveUpEmojiBtn');
-  const shareBtn = document.getElementById('shareEmojiBtn');
-  const shareText = document.getElementById('emojiShareText');
-  const attemptSpan = document.getElementById('emojiAttempt');
-  const categoryDiv = document.getElementById('emojiCategory');
+  let currentPz = 0;
 
   const maxGuesses = 5;
+
+  // Always query DOM fresh (elements may be cloned)
+  function el(id) { return document.getElementById(id); }
+
+  function stateKey(pzNum) { return 'relajate_emoji_' + dayIdx + '_p' + pzNum; }
+
+  function getState(pzNum) {
+    let s = JSON.parse(localStorage.getItem(stateKey(pzNum)) || 'null');
+    if (!s) s = { guesses: [], solved: false, hintsUsed: 0, gaveUp: false };
+    return s;
+  }
+
+  function saveState(pzNum, s) {
+    localStorage.setItem(stateKey(pzNum), JSON.stringify(s));
+  }
 
   function normalize(str) {
     return str.toLowerCase().trim()
@@ -1953,18 +1995,34 @@ function initEmojiGame() {
       .replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ');
   }
 
-  function checkAnswer(guess) {
-    const norm = normalize(guess);
-    if (norm === normalize(puzzle.answer)) return true;
-    return puzzle.accepts.some(a => normalize(a) === norm);
+  function updateNavButtons() {
+    let solvedCount = 0;
+    document.querySelectorAll('.emoji-pz-btn').forEach((btn, i) => {
+      const s = getState(i);
+      btn.classList.remove('active', 'solved', 'failed');
+      if (i === currentPz) btn.classList.add('active');
+      if (s.solved) { btn.classList.add('solved'); solvedCount++; }
+      else if (s.gaveUp) btn.classList.add('failed');
+    });
+    el('emojiProgress').textContent = solvedCount + '/' + PUZZLES_PER_DAY;
   }
 
-  function renderEmojis() {
-    const emojis = [...puzzle.emojis].filter(c => c.trim() && !/[\uFE00-\uFE0F\u200D]/.test(c));
-    // Split by grapheme clusters
+  function loadPuzzle(pzNum) {
+    currentPz = pzNum;
+    const puzzle = dailyPuzzles[pzNum];
+    const state = getState(pzNum);
+
+    const display = el('emojiDisplay');
+    const guessesDiv = el('emojiGuesses');
+    const hintBox = el('emojiHint');
+
+    // Remove any leftover answer div
+    const oldAnswer = document.querySelector('.emoji-result-answer');
+    if (oldAnswer) oldAnswer.remove();
+
+    // Render emojis
     const segments = [...new Intl.Segmenter('es', { granularity: 'grapheme' }).segment(puzzle.emojis)]
-      .map(s => s.segment)
-      .filter(s => s.trim());
+      .map(s => s.segment).filter(s => s.trim());
     display.innerHTML = '';
     segments.forEach((emoji, i) => {
       const span = document.createElement('span');
@@ -1972,91 +2030,146 @@ function initEmojiGame() {
       span.style.animationDelay = (i * 0.15) + 's';
       display.appendChild(span);
     });
-    categoryDiv.textContent = puzzle.category;
-  }
+    el('emojiCategory').textContent = puzzle.category;
 
-  function renderGuesses() {
+    // Render guesses
     guessesDiv.innerHTML = '';
     state.guesses.forEach(g => {
       const div = document.createElement('div');
       div.className = 'emoji-guess-item' + (g.correct ? ' correct' : '');
-      div.innerHTML = (g.correct ? '✅' : '❌') + ' ' + g.text;
+      div.innerHTML = (g.correct ? '\u2705' : '\u274C') + ' ' + g.text;
       guessesDiv.appendChild(div);
     });
-    attemptSpan.textContent = state.guesses.length;
-  }
+    el('emojiAttempt').textContent = state.guesses.length;
 
-  function showHint() {
-    if (state.solved || state.gaveUp) return;
-    state.hintsUsed++;
-    hintBox.textContent = '💡 Pista: ' + puzzle.hint;
-    saveState();
-  }
+    // Reset UI
+    hintBox.textContent = '';
+    hintBox.style.color = '';
+    hintBox.style.fontSize = '';
+    el('emojiInput').value = '';
+    el('emojiInput').disabled = false;
+    el('submitEmojiBtn').disabled = false;
+    el('emojiHintBtn').style.display = '';
+    el('giveUpEmojiBtn').style.display = '';
+    el('shareEmojiBtn').style.display = 'none';
+    el('emojiShareText').style.display = 'none';
 
-  function endGame(won) {
-    input.disabled = true;
-    submitBtn.disabled = true;
-    hintBtn.style.display = 'none';
-    giveUpBtn.style.display = 'none';
-    shareBtn.style.display = 'inline-flex';
-
-    if (won) {
-      hintBox.innerHTML = '🎉 ¡Correcto!';
-      hintBox.style.color = 'var(--sage-dark)';
-      hintBox.style.fontSize = '1.1rem';
-      launchConfetti();
-    } else {
-      hintBox.innerHTML = '';
+    if (state.hintsUsed > 0) {
+      hintBox.textContent = '\uD83D\uDCA1 Pista: ' + puzzle.hint;
     }
 
-    const answerDiv = document.createElement('div');
-    answerDiv.className = 'emoji-result-answer';
-    answerDiv.textContent = puzzle.emojis + ' = ' + puzzle.answer;
-    hintBox.parentNode.insertBefore(answerDiv, hintBox.nextSibling);
+    if (state.solved || state.gaveUp) {
+      el('emojiInput').disabled = true;
+      el('submitEmojiBtn').disabled = true;
+      el('emojiHintBtn').style.display = 'none';
+      el('giveUpEmojiBtn').style.display = 'none';
+      el('shareEmojiBtn').style.display = 'inline-flex';
+
+      if (state.solved) {
+        hintBox.innerHTML = '\uD83C\uDF89 \u00a1Correcto!';
+        hintBox.style.color = 'var(--sage-dark)';
+        hintBox.style.fontSize = '1.1rem';
+      }
+
+      const answerDiv = document.createElement('div');
+      answerDiv.className = 'emoji-result-answer';
+      answerDiv.textContent = puzzle.emojis + ' = ' + puzzle.answer;
+      hintBox.parentNode.insertBefore(answerDiv, hintBox.nextSibling);
+    }
+
+    updateNavButtons();
   }
 
   function submitGuess() {
-    const guess = input.value.trim();
+    const puzzle = dailyPuzzles[currentPz];
+    const state = getState(currentPz);
+    const guess = el('emojiInput').value.trim();
     if (!guess || state.solved || state.gaveUp) return;
     if (state.guesses.length >= maxGuesses) return;
 
-    const correct = checkAnswer(guess);
+    const norm = normalize(guess);
+    const correct = norm === normalize(puzzle.answer) || puzzle.accepts.some(a => normalize(a) === norm);
     state.guesses.push({ text: guess, correct });
 
     if (correct) {
       state.solved = true;
-      saveState();
-      renderGuesses();
-      endGame(true);
+      saveState(currentPz, state);
+      loadPuzzle(currentPz);
+      launchConfetti();
+      incrementGamesCompleted();
+      // Auto-advance to next unsolved puzzle after a moment
+      const nextUnsolved = findNextUnsolved();
+      if (nextUnsolved !== -1) {
+        setTimeout(() => { loadPuzzle(nextUnsolved); }, 1800);
+      }
       return;
     }
 
     if (state.guesses.length >= maxGuesses) {
       state.gaveUp = true;
-      saveState();
-      renderGuesses();
-      endGame(false);
+      saveState(currentPz, state);
+      loadPuzzle(currentPz);
+      const nextUnsolved = findNextUnsolved();
+      if (nextUnsolved !== -1) {
+        setTimeout(() => { loadPuzzle(nextUnsolved); }, 1800);
+      }
       return;
     }
 
-    saveState();
-    renderGuesses();
-    input.value = '';
-    input.focus();
+    saveState(currentPz, state);
+    // Re-render guesses
+    const gd = el('emojiGuesses');
+    gd.innerHTML = '';
+    state.guesses.forEach(g => {
+      const div = document.createElement('div');
+      div.className = 'emoji-guess-item' + (g.correct ? ' correct' : '');
+      div.innerHTML = (g.correct ? '\u2705' : '\u274C') + ' ' + g.text;
+      gd.appendChild(div);
+    });
+    el('emojiAttempt').textContent = state.guesses.length;
+    el('emojiInput').value = '';
+    el('emojiInput').focus();
+  }
+
+  function findNextUnsolved() {
+    for (let i = 0; i < PUZZLES_PER_DAY; i++) {
+      const s = getState(i);
+      if (!s.solved && !s.gaveUp) return i;
+    }
+    return -1;
+  }
+
+  function showHint() {
+    const puzzle = dailyPuzzles[currentPz];
+    const state = getState(currentPz);
+    if (state.solved || state.gaveUp) return;
+    state.hintsUsed++;
+    el('emojiHint').textContent = '\uD83D\uDCA1 Pista: ' + puzzle.hint;
+    saveState(currentPz, state);
   }
 
   function giveUp() {
+    const state = getState(currentPz);
     if (state.solved || state.gaveUp) return;
     state.gaveUp = true;
-    saveState();
-    endGame(false);
+    saveState(currentPz, state);
+    loadPuzzle(currentPz);
   }
 
   function shareResult() {
-    const emojis = puzzle.emojis;
-    const result = state.guesses.map(g => g.correct ? '🟩' : '🟥').join('');
-    const status = state.solved ? '✅' : '❌';
-    const text = `Emoji Zen - Relajate.com ${status}\n${emojis}\n${result} (${state.guesses.length}/${maxGuesses})\n${state.hintsUsed > 0 ? '💡 Con pista' : '💪 Sin pista'}\nhttps://relajate.com/games.html`;
+    let lines = ['Emoji Zen - Relajate.com (' + PUZZLES_PER_DAY + ' puzzles)\n'];
+    let totalSolved = 0;
+    for (let i = 0; i < PUZZLES_PER_DAY; i++) {
+      const p = dailyPuzzles[i];
+      const s = getState(i);
+      const result = s.guesses.map(g => g.correct ? '\uD83D\uDFE9' : '\uD83D\uDFE5').join('');
+      const status = s.solved ? '\u2705' : '\u274C';
+      lines.push(status + ' ' + p.emojis + ' ' + result + ' (' + s.guesses.length + '/' + maxGuesses + ')');
+      if (s.solved) totalSolved++;
+    }
+    lines.push('\n' + totalSolved + '/' + PUZZLES_PER_DAY + ' acertados');
+    lines.push('https://relajate.com/games.html');
+    const text = lines.join('\n');
 
     if (navigator.share) {
       navigator.share({ text }).catch(() => {});
@@ -2065,32 +2178,27 @@ function initEmojiGame() {
         showToast('Resultado copiado al portapapeles');
       });
     }
-    shareText.textContent = text;
-    shareText.style.display = 'block';
-  }
-
-  function saveState() {
-    localStorage.setItem(stateKey, JSON.stringify(state));
+    el('emojiShareText').textContent = text;
+    el('emojiShareText').style.display = 'block';
   }
 
   // Wire events
-  submitBtn.addEventListener('click', submitGuess);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
-  hintBtn.addEventListener('click', showHint);
-  giveUpBtn.addEventListener('click', giveUp);
-  shareBtn.addEventListener('click', shareResult);
+  el('submitEmojiBtn').addEventListener('click', submitGuess);
+  el('emojiInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
+  el('emojiHintBtn').addEventListener('click', showHint);
+  el('giveUpEmojiBtn').addEventListener('click', giveUp);
+  el('shareEmojiBtn').addEventListener('click', shareResult);
 
-  // Initial render
-  renderEmojis();
-  renderGuesses();
+  // Puzzle navigation
+  document.querySelectorAll('.emoji-pz-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      loadPuzzle(parseInt(btn.dataset.pz));
+    });
+  });
 
-  if (state.hintsUsed > 0) {
-    hintBox.textContent = '💡 Pista: ' + puzzle.hint;
-  }
-
-  if (state.solved || state.gaveUp) {
-    endGame(state.solved);
-  }
+  // Load first unsolved puzzle or first puzzle
+  const firstUnsolved = findNextUnsolved();
+  loadPuzzle(firstUnsolved !== -1 ? firstUnsolved : 0);
 }
 
 // ==================== GAME 9: ESCALERA ZEN (SCHULTE) ====================
