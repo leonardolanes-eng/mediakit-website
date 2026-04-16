@@ -339,6 +339,120 @@
       text-align: center; font-size: 0.85rem; color: var(--text-secondary);
       margin-top: 0.5rem; min-height: 1.2rem;
     }
+
+    /* Escalera Zen (Schulte Grid) */
+    .schulte-grid {
+      display: grid; gap: 6px; max-width: 340px; margin: 1rem auto;
+    }
+    .schulte-cell {
+      aspect-ratio: 1; border-radius: var(--radius-md); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.4rem; color: var(--text-primary);
+      background: var(--bg-card); border: 3px solid var(--border-color);
+      transition: all 0.15s ease; user-select: none;
+    }
+    .schulte-cell:hover { transform: scale(1.06); border-color: var(--blue-light); }
+    .schulte-cell.found {
+      background: var(--sage); color: white; border-color: var(--sage-dark);
+      transform: scale(0.92); pointer-events: none;
+      animation: schulteFound 0.4s ease;
+    }
+    .schulte-cell.wrong {
+      animation: schulteWrong 0.4s ease;
+      border-color: #e74c3c;
+    }
+    .schulte-cell.next-hint {
+      border-color: var(--blue); box-shadow: 0 0 12px rgba(107,155,210,0.4);
+      animation: schultePulse 1.5s ease infinite;
+    }
+    @keyframes schulteFound {
+      0% { transform: scale(1.2); }
+      100% { transform: scale(0.92); }
+    }
+    @keyframes schulteWrong {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    @keyframes schultePulse {
+      0%,100% { box-shadow: 0 0 8px rgba(107,155,210,0.3); }
+      50% { box-shadow: 0 0 18px rgba(107,155,210,0.6); }
+    }
+    .schulte-next {
+      text-align: center; font-size: 1.1rem; font-weight: 700;
+      color: var(--blue-dark); margin: 0.5rem 0;
+    }
+    .schulte-next span { font-size: 1.8rem; color: var(--lavender-dark); }
+    .schulte-yesterday {
+      text-align: center; font-size: 0.85rem; color: var(--text-secondary);
+      margin-top: 0.5rem; min-height: 1.2rem;
+    }
+    .schulte-size-selector {
+      display: flex; gap: 6px; justify-content: center; margin: 0.75rem 0;
+    }
+    .schulte-size-btn {
+      padding: 4px 14px; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: transparent;
+      font-weight: 700; font-size: 0.8rem; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.2s;
+    }
+    .schulte-size-btn.active, .schulte-size-btn:hover {
+      border-color: var(--blue); color: var(--blue-dark);
+      background: rgba(107,155,210,0.1);
+    }
+
+    /* Nonograma Mini */
+    .nono-container { max-width: 400px; margin: 1rem auto; }
+    .nono-board {
+      display: inline-grid; gap: 0; margin: 0 auto;
+      border: 2px solid var(--gray-500);
+    }
+    .nono-wrapper {
+      display: flex; justify-content: center; overflow-x: auto;
+    }
+    .nono-cell {
+      width: 36px; height: 36px; border: 1px solid var(--border-color);
+      cursor: pointer; transition: all 0.1s ease; user-select: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nono-cell:hover { background: rgba(107,155,210,0.15); }
+    .nono-cell.filled {
+      background: var(--blue-dark); border-color: var(--blue-dark);
+    }
+    .nono-cell.marked {
+      background: transparent; color: var(--gray-400); font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .nono-cell.correct-reveal {
+      background: var(--sage) !important; border-color: var(--sage-dark) !important;
+      animation: caminoBounce 0.3s ease;
+    }
+    .nono-cell.error {
+      background: rgba(231,76,60,0.3) !important;
+    }
+    .nono-clue-top {
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 2px 0 4px; font-size: 0.7rem; font-weight: 700; color: var(--text-secondary);
+      gap: 1px; min-height: 30px;
+    }
+    .nono-clue-left {
+      display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+      padding: 0 6px 0 0; font-size: 0.7rem; font-weight: 700; color: var(--text-secondary);
+      min-width: 25px;
+    }
+    .nono-clue-top.done, .nono-clue-left.done { color: var(--sage-dark); opacity: 0.5; }
+    .nono-mode-toggle {
+      display: flex; gap: 6px; justify-content: center; margin: 0.75rem 0;
+    }
+    .nono-mode-btn {
+      padding: 6px 16px; border-radius: var(--radius-full);
+      border: 2px solid var(--border-color); background: transparent;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.2s;
+    }
+    .nono-mode-btn.active {
+      border-color: var(--blue); color: white; background: var(--blue);
+    }
   </style>
 </head>
 <body>
@@ -371,6 +485,8 @@
     <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
     <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
     <button class="game-tab" data-game="camino">&#128739; Camino al 100</button>
+    <button class="game-tab" data-game="schulte">&#128290; Escalera Zen</button>
+    <button class="game-tab" data-game="nonogram">&#128919; Nonograma Mini</button>
   </div>
 
   <!-- Game 1: Conecta Palabras -->
@@ -554,6 +670,58 @@
         <button class="btn btn-solid btn-sm" id="shareCaminoBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="caminoShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 9: Escalera Zen -->
+  <div class="game-container" id="game-schulte" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Escalera Zen</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="schulteTimer">0:00</span></div>
+        <span class="game-score">&#127942; Mejor: <span id="schulteBest">--</span></span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca los n&uacute;meros en orden ascendente lo m&aacute;s r&aacute;pido posible</p>
+      <div class="schulte-size-selector">
+        <button class="schulte-size-btn active" data-size="4">4&times;4</button>
+        <button class="schulte-size-btn" data-size="5">5&times;5</button>
+        <button class="schulte-size-btn" data-size="6">6&times;6</button>
+      </div>
+      <div class="schulte-next">Siguiente: <span id="schulteNext">1</span></div>
+      <div class="schulte-grid" id="schulteGrid"></div>
+      <div class="schulte-yesterday" id="schulteYesterday"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="schulteResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-outline btn-sm" id="giveUpSchulteBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareSchulteBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="schulteShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 10: Nonograma Mini -->
+  <div class="game-container" id="game-nonogram" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>Nonograma Mini</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="nonoTimer">0:00</span></div>
+        <span class="game-score">&#127942; Mejor: <span id="nonoBest">--</span></span>
+      </div>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Colorea las celdas seg&uacute;n las pistas num&eacute;ricas. Un puzzle por d&iacute;a.</p>
+      <div class="nono-mode-toggle">
+        <button class="nono-mode-btn active" id="nonoFillBtn">&#9632; Pintar</button>
+        <button class="nono-mode-btn" id="nonoMarkBtn">&#10005; Marcar</button>
+      </div>
+      <div class="nono-wrapper">
+        <div class="nono-board" id="nonoBoard"></div>
+      </div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="nonoCheckBtn">&#9989; Verificar</button>
+        <button class="btn btn-outline btn-sm" id="nonoClearBtn">&#10060; Limpiar</button>
+        <button class="btn btn-outline btn-sm" id="giveUpNonoBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
+        <button class="btn btn-solid btn-sm" id="shareNonoBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="nonoShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -3025,6 +3193,497 @@ function initCaminoGame() {
   renderBoard();
 }
 
+// ==================== GAME 9: ESCALERA ZEN (SCHULTE) ====================
+function initSchulteGame() {
+  const grid = document.getElementById('schulteGrid');
+  const timerSpan = document.getElementById('schulteTimer');
+  const bestSpan = document.getElementById('schulteBest');
+  const nextSpan = document.getElementById('schulteNext');
+  const yesterdayDiv = document.getElementById('schulteYesterday');
+  const resetBtn = document.getElementById('schulteResetBtn');
+  const giveUpBtn = document.getElementById('giveUpSchulteBtn');
+  const shareBtn = document.getElementById('shareSchulteBtn');
+  const shareText = document.getElementById('schulteShareText');
+
+  let size = 4;
+  let total = size * size;
+  let nextNum = 1;
+  let cells = [];
+  let solved = false;
+  let timerStarted = false;
+  let timerStartTime = null;
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let boardOrder = [];
+
+  const dayIdx = getDayIndex();
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    return m + ':' + (s % 60).toString().padStart(2, '0');
+  }
+
+  function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    timerStartTime = Date.now();
+    timerInterval = setInterval(() => {
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+      timerSpan.textContent = fmt(timerSeconds);
+    }, 200);
+  }
+
+  function stopTimer() {
+    if (timerStartTime) {
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+      timerSpan.textContent = fmt(timerSeconds);
+    }
+    clearInterval(timerInterval);
+  }
+
+  function generateBoard() {
+    const rng = seededRandom(dayIdx + 3333 + size);
+    boardOrder = [];
+    for (let i = 1; i <= total; i++) boardOrder.push(i);
+    // Fisher-Yates shuffle
+    for (let i = boardOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [boardOrder[i], boardOrder[j]] = [boardOrder[j], boardOrder[i]];
+    }
+  }
+
+  function render() {
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
+    cells = [];
+    boardOrder.forEach((num, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'schulte-cell';
+      cell.textContent = num;
+      cell.dataset.num = num;
+      cell.addEventListener('click', () => handleClick(num, cell));
+      cells.push(cell);
+      grid.appendChild(cell);
+    });
+    nextSpan.textContent = nextNum;
+  }
+
+  function handleClick(num, cell) {
+    if (solved) return;
+    startTimer();
+    if (num === nextNum) {
+      cell.classList.add('found');
+      nextNum++;
+      nextSpan.textContent = nextNum <= total ? nextNum : '✓';
+      if (nextNum > total) {
+        // Win!
+        solved = true;
+        stopTimer();
+        launchConfetti();
+        showToast('🎉 ¡Completado en ' + fmt(timerSeconds) + '!');
+        giveUpBtn.style.display = 'none';
+        shareBtn.style.display = 'inline-flex';
+        // Save
+        const key = 'relajate_schulte_' + size + '_best';
+        const prev = parseInt(localStorage.getItem(key) || '9999');
+        if (timerSeconds < prev) {
+          localStorage.setItem(key, timerSeconds);
+          bestSpan.textContent = fmt(timerSeconds);
+        }
+        localStorage.setItem('relajate_schulte_' + size + '_' + dayIdx, timerSeconds);
+      }
+    } else {
+      cell.classList.add('wrong');
+      setTimeout(() => cell.classList.remove('wrong'), 400);
+    }
+  }
+
+  function reset() {
+    nextNum = 1;
+    solved = false;
+    timerStarted = false;
+    timerStartTime = null;
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    timerSpan.textContent = '0:00';
+    shareBtn.style.display = 'none';
+    giveUpBtn.style.display = 'inline-flex';
+    generateBoard();
+    render();
+  }
+
+  function giveUp() {
+    if (solved) return;
+    solved = true;
+    stopTimer();
+    // Reveal remaining in order
+    for (let n = nextNum; n <= total; n++) {
+      const cell = cells.find(c => parseInt(c.dataset.num) === n);
+      if (cell) cell.classList.add('found');
+    }
+    showToast('El orden era 1 → ' + total);
+    giveUpBtn.style.display = 'none';
+    shareBtn.style.display = 'inline-flex';
+  }
+
+  function share() {
+    const won = nextNum > total;
+    const text = 'Escalera Zen ' + size + '×' + size + ' - Relajate.com\n' +
+      (won ? '✅ Completado en ⏱ ' + fmt(timerSeconds) : '❌ Llegué al ' + (nextNum - 1) + '/' + total) +
+      '\nhttps://relajate.com/games.html';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showToast('Resultado copiado'));
+    }
+    shareText.textContent = text;
+    shareText.style.display = 'block';
+  }
+
+  // Size selector
+  document.querySelectorAll('.schulte-size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.schulte-size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      size = parseInt(btn.dataset.size);
+      total = size * size;
+      const key = 'relajate_schulte_' + size + '_best';
+      const prev = localStorage.getItem(key);
+      bestSpan.textContent = prev ? fmt(parseInt(prev)) : '--';
+      reset();
+      loadYesterday();
+    });
+  });
+
+  // Yesterday comparison
+  function loadYesterday() {
+    const yKey = 'relajate_schulte_' + size + '_' + (dayIdx - 1);
+    const y = localStorage.getItem(yKey);
+    if (y) {
+      yesterdayDiv.textContent = '📊 Ayer: ' + fmt(parseInt(y)) + ' — ¿puedes mejorar?';
+    } else {
+      yesterdayDiv.textContent = '';
+    }
+  }
+
+  resetBtn.addEventListener('click', reset);
+  giveUpBtn.addEventListener('click', giveUp);
+  shareBtn.addEventListener('click', share);
+
+  // Load best
+  const bestVal = localStorage.getItem('relajate_schulte_' + size + '_best');
+  if (bestVal) bestSpan.textContent = fmt(parseInt(bestVal));
+
+  loadYesterday();
+  generateBoard();
+  render();
+}
+
+// ==================== GAME 10: NONOGRAMA MINI ====================
+function initNonogramGame() {
+  const board = document.getElementById('nonoBoard');
+  const timerSpan = document.getElementById('nonoTimer');
+  const bestSpan = document.getElementById('nonoBest');
+  const fillBtn = document.getElementById('nonoFillBtn');
+  const markBtn = document.getElementById('nonoMarkBtn');
+  const checkBtn = document.getElementById('nonoCheckBtn');
+  const clearBtn = document.getElementById('nonoClearBtn');
+  const giveUpBtn = document.getElementById('giveUpNonoBtn');
+  const shareBtn = document.getElementById('shareNonoBtn');
+  const shareText = document.getElementById('nonoShareText');
+
+  const SIZE = 5;
+  let solution = [];
+  let playerGrid = [];
+  let mode = 'fill'; // 'fill' or 'mark'
+  let solved = false;
+  let timerStarted = false;
+  let timerStartTime = null;
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let rowClues = [];
+  let colClues = [];
+
+  const dayIdx = getDayIndex();
+  const rng = seededRandom(dayIdx + 8888);
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    return m + ':' + (s % 60).toString().padStart(2, '0');
+  }
+
+  function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    timerStartTime = Date.now();
+    timerInterval = setInterval(() => {
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+      timerSpan.textContent = fmt(timerSeconds);
+    }, 200);
+  }
+
+  function stopTimer() {
+    if (timerStartTime) {
+      timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+      timerSpan.textContent = fmt(timerSeconds);
+    }
+    clearInterval(timerInterval);
+  }
+
+  // Generate a solvable puzzle with interesting patterns
+  function generatePuzzle() {
+    // Create solution with 40-60% filled cells for good aesthetics
+    solution = [];
+    for (let r = 0; r < SIZE; r++) {
+      solution[r] = [];
+      for (let c = 0; c < SIZE; c++) {
+        solution[r][c] = rng() < 0.5 ? 1 : 0;
+      }
+    }
+    // Ensure no empty rows or columns
+    for (let r = 0; r < SIZE; r++) {
+      if (solution[r].every(v => v === 0)) {
+        solution[r][Math.floor(rng() * SIZE)] = 1;
+      }
+    }
+    for (let c = 0; c < SIZE; c++) {
+      if (solution.every(row => row[c] === 0)) {
+        solution[Math.floor(rng() * SIZE)][c] = 1;
+      }
+    }
+
+    // Calculate clues
+    rowClues = [];
+    for (let r = 0; r < SIZE; r++) {
+      const clue = [];
+      let count = 0;
+      for (let c = 0; c < SIZE; c++) {
+        if (solution[r][c]) { count++; }
+        else if (count > 0) { clue.push(count); count = 0; }
+      }
+      if (count > 0) clue.push(count);
+      rowClues.push(clue.length ? clue : [0]);
+    }
+
+    colClues = [];
+    for (let c = 0; c < SIZE; c++) {
+      const clue = [];
+      let count = 0;
+      for (let r = 0; r < SIZE; r++) {
+        if (solution[r][c]) { count++; }
+        else if (count > 0) { clue.push(count); count = 0; }
+      }
+      if (count > 0) clue.push(count);
+      colClues.push(clue.length ? clue : [0]);
+    }
+
+    // Init player grid
+    playerGrid = [];
+    for (let r = 0; r < SIZE; r++) {
+      playerGrid[r] = [];
+      for (let c = 0; c < SIZE; c++) {
+        playerGrid[r][c] = 0; // 0=empty, 1=filled, 2=marked(X)
+      }
+    }
+  }
+
+  function getLineClues(cells) {
+    const clue = [];
+    let count = 0;
+    cells.forEach(v => {
+      if (v === 1) { count++; }
+      else if (count > 0) { clue.push(count); count = 0; }
+    });
+    if (count > 0) clue.push(count);
+    return clue.length ? clue : [0];
+  }
+
+  function isClueMatched(expected, playerCells) {
+    const actual = getLineClues(playerCells);
+    return expected.length === actual.length && expected.every((v, i) => v === actual[i]);
+  }
+
+  function render() {
+    board.innerHTML = '';
+    const totalCols = SIZE + 1; // 1 for left clues
+    const totalRows = SIZE + 1; // 1 for top clues
+    board.style.gridTemplateColumns = 'auto ' + ('36px '.repeat(SIZE));
+    board.style.gridTemplateRows = 'auto ' + ('36px '.repeat(SIZE));
+
+    // Top-left empty corner
+    const corner = document.createElement('div');
+    corner.style.cssText = 'width:auto;height:auto;';
+    board.appendChild(corner);
+
+    // Column clues (top)
+    for (let c = 0; c < SIZE; c++) {
+      const clueDiv = document.createElement('div');
+      clueDiv.className = 'nono-clue-top';
+      const playerCol = playerGrid.map(row => row[c]);
+      if (isClueMatched(colClues[c], playerCol)) clueDiv.classList.add('done');
+      colClues[c].forEach(n => {
+        const s = document.createElement('span');
+        s.textContent = n;
+        clueDiv.appendChild(s);
+      });
+      board.appendChild(clueDiv);
+    }
+
+    // Rows
+    for (let r = 0; r < SIZE; r++) {
+      // Left clue
+      const clueDiv = document.createElement('div');
+      clueDiv.className = 'nono-clue-left';
+      if (isClueMatched(rowClues[r], playerGrid[r])) clueDiv.classList.add('done');
+      rowClues[r].forEach(n => {
+        const s = document.createElement('span');
+        s.textContent = n;
+        clueDiv.appendChild(s);
+      });
+      board.appendChild(clueDiv);
+
+      // Cells
+      for (let c = 0; c < SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'nono-cell';
+        if (playerGrid[r][c] === 1) cell.classList.add('filled');
+        else if (playerGrid[r][c] === 2) { cell.classList.add('marked'); cell.textContent = '✕'; }
+
+        cell.addEventListener('click', () => {
+          if (solved) return;
+          startTimer();
+          if (mode === 'fill') {
+            playerGrid[r][c] = playerGrid[r][c] === 1 ? 0 : 1;
+          } else {
+            playerGrid[r][c] = playerGrid[r][c] === 2 ? 0 : 2;
+          }
+          render();
+          checkAutoWin();
+        });
+        board.appendChild(cell);
+      }
+    }
+  }
+
+  function checkAutoWin() {
+    // Check if all filled cells match solution
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const playerFilled = playerGrid[r][c] === 1;
+        if (playerFilled !== (solution[r][c] === 1)) return;
+      }
+    }
+    // Win!
+    solved = true;
+    stopTimer();
+    launchConfetti();
+    showToast('🎉 ¡Nonograma completado en ' + fmt(timerSeconds) + '!');
+    giveUpBtn.style.display = 'none';
+    shareBtn.style.display = 'inline-flex';
+    // Save best
+    const key = 'relajate_nono_best';
+    const prev = parseInt(localStorage.getItem(key) || '9999');
+    if (timerSeconds < prev) {
+      localStorage.setItem(key, timerSeconds);
+      bestSpan.textContent = fmt(timerSeconds);
+    }
+    localStorage.setItem('relajate_nono_' + dayIdx, timerSeconds);
+  }
+
+  function checkManual() {
+    if (solved) return;
+    let errors = 0;
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const playerFilled = playerGrid[r][c] === 1;
+        const shouldBe = solution[r][c] === 1;
+        if (playerFilled !== shouldBe) errors++;
+      }
+    }
+    if (errors === 0) {
+      checkAutoWin();
+    } else {
+      showToast('❌ ' + errors + ' celda' + (errors > 1 ? 's' : '') + ' incorrecta' + (errors > 1 ? 's' : ''));
+    }
+  }
+
+  function clearGrid() {
+    if (solved) return;
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        playerGrid[r][c] = 0;
+    render();
+  }
+
+  function giveUp() {
+    if (solved) return;
+    solved = true;
+    stopTimer();
+    // Reveal solution
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        playerGrid[r][c] = solution[r][c];
+    render();
+    // Animate
+    const allCells = board.querySelectorAll('.nono-cell');
+    allCells.forEach((cell, i) => {
+      if (cell.classList.contains('filled')) {
+        setTimeout(() => cell.classList.add('correct-reveal'), i * 30);
+      }
+    });
+    showToast('Solución revelada');
+    giveUpBtn.style.display = 'none';
+    shareBtn.style.display = 'inline-flex';
+  }
+
+  function share() {
+    let visual = '';
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        visual += playerGrid[r][c] === 1 ? '⬛' : '⬜';
+      }
+      visual += '\n';
+    }
+    const won = !board.querySelector('.nono-cell.error') && solved && timerSeconds > 0;
+    const text = 'Nonograma Mini ' + SIZE + '×' + SIZE + ' - Relajate.com\n' + visual +
+      (timerSeconds > 0 ? '⏱ ' + fmt(timerSeconds) : '') +
+      '\nhttps://relajate.com/games.html';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showToast('Resultado copiado'));
+    }
+    shareText.textContent = text;
+    shareText.style.display = 'block';
+  }
+
+  // Mode toggles
+  fillBtn.addEventListener('click', () => {
+    mode = 'fill';
+    fillBtn.classList.add('active');
+    markBtn.classList.remove('active');
+  });
+  markBtn.addEventListener('click', () => {
+    mode = 'mark';
+    markBtn.classList.add('active');
+    fillBtn.classList.remove('active');
+  });
+
+  checkBtn.addEventListener('click', checkManual);
+  clearBtn.addEventListener('click', clearGrid);
+  giveUpBtn.addEventListener('click', giveUp);
+  shareBtn.addEventListener('click', share);
+
+  // Load best
+  const bestVal = localStorage.getItem('relajate_nono_best');
+  if (bestVal) bestSpan.textContent = fmt(parseInt(bestVal));
+
+  // Load today's state
+  const dayState = localStorage.getItem('relajate_nono_' + dayIdx);
+  if (dayState) {
+    // Already played today
+  }
+
+  generatePuzzle();
+  render();
+}
+
 // Init all games
 initWordGame();
 initColorGame();
@@ -3034,6 +3693,8 @@ initMemoryGame();
 initWordleGame();
 initEmojiGame();
 initCaminoGame();
+initSchulteGame();
+initNonogramGame();
 </script>
 <script src="mini-player.js"></script>
 </body>
