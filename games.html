@@ -2473,17 +2473,23 @@ initSchulteGame();
     }
   }
 
-  // Play / Pause - uses global audio API directly (works on mobile because
-  // this runs within the user's actual click/touch gesture, unlike programmatic .click())
-  ipPlayBtn.addEventListener('click', function() {
+  // Play / Pause - uses global audio API directly within user gesture
+  // touchstart fires instantly on mobile (no 300ms delay), click is fallback for desktop
+  var _ipTouchHandled = false;
+  function handlePlayPause() {
     if (window._relajateAudio) {
       window._relajateAudio.toggle();
-    } else {
-      // Fallback: direct mini button click (won't work on mobile but better than nothing)
-      var miniBtn = document.getElementById('miniPlayBtn');
-      if (miniBtn) miniBtn.click();
     }
     setTimeout(syncUI, 100);
+  }
+  ipPlayBtn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    _ipTouchHandled = true;
+    handlePlayPause();
+  }, {passive: false});
+  ipPlayBtn.addEventListener('click', function() {
+    if (_ipTouchHandled) { _ipTouchHandled = false; return; }
+    handlePlayPause();
   });
 
   // Volume - syncs to mini player via global API + UI slider

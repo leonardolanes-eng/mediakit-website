@@ -572,28 +572,43 @@ const soundConfigs = {
   synth: { active: false, volume: 0.5, nodes: [] }
 };
 
+function playUnlockBuffer() {
+  try {
+    var b = audioCtx.createBuffer(1, 1, 22050);
+    var s = audioCtx.createBufferSource();
+    s.buffer = b;
+    s.connect(audioCtx.destination);
+    s.start(0);
+  } catch(e) {}
+}
+
 function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.7;
     masterGain.connect(audioCtx.destination);
+    playUnlockBuffer();
   }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().catch(function() {});
+    playUnlockBuffer();
   }
 }
 
 // Mobile audio unlock on first gesture
-document.addEventListener('touchstart', function unlockSonidos() {
+var _sonidosUnlocked = false;
+function unlockSonidosAudio() {
+  if (_sonidosUnlocked) return;
+  _sonidosUnlocked = true;
   initAudio();
-  document.removeEventListener('touchstart', unlockSonidos, true);
-  document.removeEventListener('touchend', unlockSonidos, true);
-}, true);
-document.addEventListener('touchend', function unlockSonidos2() {
-  initAudio();
-  document.removeEventListener('touchend', unlockSonidos2, true);
-}, true);
+  document.removeEventListener('touchstart', unlockSonidosAudio, true);
+  document.removeEventListener('touchend', unlockSonidosAudio, true);
+  document.removeEventListener('click', unlockSonidosAudio, true);
+}
+document.addEventListener('touchstart', unlockSonidosAudio, true);
+document.addEventListener('touchend', unlockSonidosAudio, true);
+document.addEventListener('click', unlockSonidosAudio, true);
 
 // Resume audio when page becomes visible
 document.addEventListener('visibilitychange', function() {
@@ -1089,18 +1104,34 @@ function updateUI() {
   }
 }
 
-// Toggle buttons
+// Toggle buttons — touchstart for instant mobile response
 document.querySelectorAll('.sound-toggle').forEach(btn => {
-  btn.addEventListener('click', (e) => {
+  var _tHandled = false;
+  btn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
     e.stopPropagation();
+    _tHandled = true;
+    toggleSound(btn.dataset.sound);
+  }, {passive: false});
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (_tHandled) { _tHandled = false; return; }
     toggleSound(btn.dataset.sound);
   });
 });
 
-// Card click also toggles
+// Card click/touch also toggles
 document.querySelectorAll('.sound-card').forEach(card => {
-  card.addEventListener('click', (e) => {
+  var _tHandled = false;
+  card.addEventListener('touchstart', function(e) {
     if (e.target.closest('.sound-slider-row') || e.target.closest('.sound-toggle')) return;
+    e.preventDefault();
+    _tHandled = true;
+    toggleSound(card.dataset.sound);
+  }, {passive: false});
+  card.addEventListener('click', function(e) {
+    if (e.target.closest('.sound-slider-row') || e.target.closest('.sound-toggle')) return;
+    if (_tHandled) { _tHandled = false; return; }
     toggleSound(card.dataset.sound);
   });
 });

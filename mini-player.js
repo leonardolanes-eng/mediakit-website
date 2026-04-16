@@ -38,16 +38,29 @@
   let miniSounds = {}; // name -> { gain, nodes }
   let miniMasterVol = 0.6;
 
-  // Ensure AudioContext is created and resumed (mobile requires user gesture)
+  // Play a silent buffer to fully unlock AudioContext on iOS
+  function playUnlockBuffer() {
+    try {
+      var b = audioCtx.createBuffer(1, 1, 22050);
+      var s = audioCtx.createBufferSource();
+      s.buffer = b;
+      s.connect(audioCtx.destination);
+      s.start(0);
+    } catch(e) {}
+  }
+
+  // Ensure AudioContext is created and resumed (mobile requires user gesture + silent buffer)
   function ensureAudioCtx() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = audioCtx.createGain();
       masterGain.gain.value = miniMasterVol;
       masterGain.connect(audioCtx.destination);
+      playUnlockBuffer();
     }
     if (audioCtx.state === 'suspended') {
       audioCtx.resume().catch(function() {});
+      playUnlockBuffer();
     }
     return audioCtx;
   }
@@ -455,9 +468,9 @@
     // Add padding to body so content isn't hidden behind bar
     document.body.style.paddingBottom = '56px';
 
-    // Play/pause button
-    function toggleMiniPlay(e) {
-      e.preventDefault();
+    // Play/pause button — use touchstart for instant mobile response, click for desktop
+    var _miniTouchHandled = false;
+    function toggleMiniPlay() {
       ensureAudioCtx();
       if (miniPlaying) {
         stopAllMini();
@@ -465,7 +478,15 @@
         startAllFromState();
       }
     }
-    document.getElementById('miniPlayBtn').addEventListener('click', toggleMiniPlay);
+    document.getElementById('miniPlayBtn').addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      _miniTouchHandled = true;
+      toggleMiniPlay();
+    }, {passive: false});
+    document.getElementById('miniPlayBtn').addEventListener('click', function(e) {
+      if (_miniTouchHandled) { _miniTouchHandled = false; return; }
+      toggleMiniPlay();
+    });
 
     // Volume
     document.getElementById('miniVol').addEventListener('input', (e) => {
@@ -497,9 +518,12 @@
   createMiniPlayer();
   updateMiniUI();
 
-  // Mobile audio unlock: resume AudioContext on first user gesture
+  // Mobile audio unlock: create AudioContext + play silent buffer on first user gesture
+  var _audioUnlocked = false;
   function unlockAudio() {
-    ensureAudioCtx();
+    if (_audioUnlocked) return;
+    _audioUnlocked = true;
+    ensureAudioCtx(); // creates ctx + plays silent buffer
     document.removeEventListener('click', unlockAudio, true);
     document.removeEventListener('touchstart', unlockAudio, true);
     document.removeEventListener('touchend', unlockAudio, true);
