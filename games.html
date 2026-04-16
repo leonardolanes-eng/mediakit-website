@@ -2084,27 +2084,31 @@ document.getElementById('shareSumBtn').addEventListener('click', () => {
 
 // ==================== GAME 5: MEMORIA NATURAL ====================
 // Country data for Memoria Hispana
+// Flag images via flagcdn.com (Windows doesn't render flag emojis)
+function flagImg(code) {
+  return 'https://flagcdn.com/w80/' + code + '.png';
+}
 const MEM_COUNTRIES = [
-  { id: 'mx', name: 'México', flag: '🇲🇽', capital: 'Ciudad de México', map: '🌮' },
-  { id: 'ar', name: 'Argentina', flag: '🇦🇷', capital: 'Buenos Aires', map: '🥩' },
-  { id: 'co', name: 'Colombia', flag: '🇨🇴', capital: 'Bogotá', map: '☕' },
-  { id: 'es', name: 'España', flag: '🇪🇸', capital: 'Madrid', map: '🏰' },
-  { id: 'pe', name: 'Perú', flag: '🇵🇪', capital: 'Lima', map: '🏔️' },
-  { id: 'cl', name: 'Chile', flag: '🇨🇱', capital: 'Santiago', map: '🍷' },
-  { id: 'cu', name: 'Cuba', flag: '🇨🇺', capital: 'La Habana', map: '🎺' },
-  { id: 've', name: 'Venezuela', flag: '🇻🇪', capital: 'Caracas', map: '⛰️' },
-  { id: 'ec', name: 'Ecuador', flag: '🇪🇨', capital: 'Quito', map: '🌋' },
-  { id: 'gt', name: 'Guatemala', flag: '🇬🇹', capital: 'Ciudad de Guatemala', map: '🌽' },
-  { id: 'bo', name: 'Bolivia', flag: '🇧🇴', capital: 'La Paz', map: '🦙' },
-  { id: 'uy', name: 'Uruguay', flag: '🇺🇾', capital: 'Montevideo', map: '🧉' },
-  { id: 'cr', name: 'Costa Rica', flag: '🇨🇷', capital: 'San José', map: '🦜' },
-  { id: 'pa', name: 'Panamá', flag: '🇵🇦', capital: 'Ciudad de Panamá', map: '🚢' },
-  { id: 'do', name: 'Rep. Dominicana', flag: '🇩🇴', capital: 'Santo Domingo', map: '🏖️' },
-  { id: 'hn', name: 'Honduras', flag: '🇭🇳', capital: 'Tegucigalpa', map: '🌴' },
-  { id: 'py', name: 'Paraguay', flag: '🇵🇾', capital: 'Asunción', map: '🎶' },
-  { id: 'sv', name: 'El Salvador', flag: '🇸🇻', capital: 'San Salvador', map: '🌊' },
-  { id: 'ni', name: 'Nicaragua', flag: '🇳🇮', capital: 'Managua', map: '🏝️' },
-  { id: 'pr', name: 'Puerto Rico', flag: '🇵🇷', capital: 'San Juan', map: '🎵' },
+  { id: 'mx', code: 'mx', name: 'México', capital: 'Ciudad de México', icon: '🌮' },
+  { id: 'ar', code: 'ar', name: 'Argentina', capital: 'Buenos Aires', icon: '🥩' },
+  { id: 'co', code: 'co', name: 'Colombia', capital: 'Bogotá', icon: '☕' },
+  { id: 'es', code: 'es', name: 'España', capital: 'Madrid', icon: '🏰' },
+  { id: 'pe', code: 'pe', name: 'Perú', capital: 'Lima', icon: '🏔️' },
+  { id: 'cl', code: 'cl', name: 'Chile', capital: 'Santiago', icon: '🍷' },
+  { id: 'cu', code: 'cu', name: 'Cuba', capital: 'La Habana', icon: '🎺' },
+  { id: 've', code: 've', name: 'Venezuela', capital: 'Caracas', icon: '⛰️' },
+  { id: 'ec', code: 'ec', name: 'Ecuador', capital: 'Quito', icon: '🌋' },
+  { id: 'gt', code: 'gt', name: 'Guatemala', capital: 'Ciudad de Guatemala', icon: '🌽' },
+  { id: 'bo', code: 'bo', name: 'Bolivia', capital: 'La Paz', icon: '🦙' },
+  { id: 'uy', code: 'uy', name: 'Uruguay', capital: 'Montevideo', icon: '🧉' },
+  { id: 'cr', code: 'cr', name: 'Costa Rica', capital: 'San José', icon: '🦜' },
+  { id: 'pa', code: 'pa', name: 'Panamá', capital: 'Ciudad de Panamá', icon: '🚢' },
+  { id: 'do', code: 'do', name: 'Rep. Dominicana', capital: 'Santo Domingo', icon: '🏖️' },
+  { id: 'hn', code: 'hn', name: 'Honduras', capital: 'Tegucigalpa', icon: '🌴' },
+  { id: 'py', code: 'py', name: 'Paraguay', capital: 'Asunción', icon: '🎶' },
+  { id: 'sv', code: 'sv', name: 'El Salvador', capital: 'San Salvador', icon: '🌊' },
+  { id: 'ni', code: 'ni', name: 'Nicaragua', capital: 'Managua', icon: '🏝️' },
+  { id: 'pr', code: 'pr', name: 'Puerto Rico', capital: 'San Juan', icon: '🎵' },
 ];
 
 let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memLocked = false;
@@ -2149,20 +2153,20 @@ function initMemoryGame() {
   // Pick 8 random countries
   const picked = shuffle([...MEM_COUNTRIES], rng).slice(0, 8);
 
-  // For each country, pick a random pair type: flag, capital, or map
-  const pairTypes = ['flag', 'capital', 'map'];
+  // For each country, pick a random pair type: flag, capital, or icon
+  const pairTypes = ['flag', 'capital', 'icon'];
   memCards = [];
   picked.forEach(country => {
     const pairType = pairTypes[Math.floor(rng() * pairTypes.length)];
-    // Card A: country name with flag
-    memCards.push({ countryId: country.id, type: 'name', display: country.name, emoji: country.flag, label: 'País' });
+    // Card A: country name with flag image
+    memCards.push({ countryId: country.id, type: 'name', text: country.name, flagCode: country.code });
     // Card B: the paired attribute
     if (pairType === 'flag') {
-      memCards.push({ countryId: country.id, type: 'flag', display: country.flag, emoji: country.flag, label: 'Bandera' });
+      memCards.push({ countryId: country.id, type: 'flag', flagCode: country.code, label: 'Bandera' });
     } else if (pairType === 'capital') {
-      memCards.push({ countryId: country.id, type: 'capital', display: country.capital, emoji: '🏛️', label: 'Capital' });
+      memCards.push({ countryId: country.id, type: 'capital', text: country.capital, emoji: '🏛️', label: 'Capital' });
     } else {
-      memCards.push({ countryId: country.id, type: 'map', display: country.map, emoji: country.map, label: country.name });
+      memCards.push({ countryId: country.id, type: 'icon', emoji: country.icon, label: country.name });
     }
   });
 
@@ -2187,22 +2191,24 @@ function renderMemoryGame() {
     back.className = 'mem-card-back';
 
     if (card.type === 'flag') {
-      const em = document.createElement('span');
-      em.className = 'mem-emoji';
-      em.textContent = card.display;
+      const img = document.createElement('img');
+      img.src = flagImg(card.flagCode);
+      img.alt = card.label;
+      img.style.cssText = 'width:48px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,0.2);';
       const lb = document.createElement('span');
       lb.className = 'mem-label';
-      lb.textContent = card.label;
-      back.appendChild(em);
+      lb.textContent = 'Bandera';
+      back.appendChild(img);
       back.appendChild(lb);
     } else if (card.type === 'name') {
-      const em = document.createElement('span');
-      em.className = 'mem-emoji';
-      em.textContent = card.emoji;
+      const img = document.createElement('img');
+      img.src = flagImg(card.flagCode);
+      img.alt = card.text;
+      img.style.cssText = 'width:36px;height:auto;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.15);';
       const tx = document.createElement('span');
       tx.className = 'mem-text';
-      tx.textContent = card.display;
-      back.appendChild(em);
+      tx.textContent = card.text;
+      back.appendChild(img);
       back.appendChild(tx);
     } else if (card.type === 'capital') {
       const em = document.createElement('span');
@@ -2210,7 +2216,7 @@ function renderMemoryGame() {
       em.textContent = card.emoji;
       const tx = document.createElement('span');
       tx.className = 'mem-text';
-      tx.textContent = card.display;
+      tx.textContent = card.text;
       const lb = document.createElement('span');
       lb.className = 'mem-label';
       lb.textContent = card.label;
