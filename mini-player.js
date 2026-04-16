@@ -466,7 +466,6 @@
       }
     }
     document.getElementById('miniPlayBtn').addEventListener('click', toggleMiniPlay);
-    document.getElementById('miniPlayBtn').addEventListener('touchend', toggleMiniPlay);
 
     // Volume
     document.getElementById('miniVol').addEventListener('input', (e) => {
@@ -539,4 +538,14 @@
     // Just keep the UI in sync
     setInterval(() => { updateMiniUI(); }, 2000);
   }
+
+  // Expose audio API globally so inline players can control audio within user gesture context
+  window._relajateAudio = {
+    ensure: function() { return ensureAudioCtx(); },
+    play: function() { if (!miniPlaying) startAllFromState(); },
+    stop: function() { if (miniPlaying) stopAllMini(); },
+    toggle: function() { ensureAudioCtx(); if (miniPlaying) { stopAllMini(); } else { startAllFromState(); } },
+    isPlaying: function() { return miniPlaying; },
+    setVolume: function(v) { miniMasterVol = v; if (masterGain) masterGain.gain.value = v; }
+  };
 })();

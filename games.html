@@ -2473,23 +2473,33 @@ initSchulteGame();
     }
   }
 
-  // Play / Pause - triggers the mini player button
+  // Play / Pause - uses global audio API directly (works on mobile because
+  // this runs within the user's actual click/touch gesture, unlike programmatic .click())
   ipPlayBtn.addEventListener('click', function() {
-    const miniBtn = document.getElementById('miniPlayBtn');
-    if (miniBtn) miniBtn.click();
+    if (window._relajateAudio) {
+      window._relajateAudio.toggle();
+    } else {
+      // Fallback: direct mini button click (won't work on mobile but better than nothing)
+      var miniBtn = document.getElementById('miniPlayBtn');
+      if (miniBtn) miniBtn.click();
+    }
     setTimeout(syncUI, 100);
   });
 
-  // Volume - syncs to mini player
+  // Volume - syncs to mini player via global API + UI slider
   ipVol.addEventListener('input', function() {
     ipVol.dataset.userSet = '1';
-    const miniVol = document.getElementById('miniVol');
+    var v = parseInt(ipVol.value);
+    // Update audio directly via global API
+    if (window._relajateAudio) {
+      window._relajateAudio.setVolume(v / 100);
+    }
+    // Also sync the mini player slider UI
+    var miniVol = document.getElementById('miniVol');
     if (miniVol) {
       miniVol.value = ipVol.value;
-      miniVol.dispatchEvent(new Event('input'));
     }
     // Update icon
-    const v = parseInt(ipVol.value);
     ipVolIcon.innerHTML = v === 0 ? '&#128264;' : v < 40 ? '&#128265;' : '&#128266;';
     setTimeout(function() { ipVol.dataset.userSet = ''; }, 500);
   });
