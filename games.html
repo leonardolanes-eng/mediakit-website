@@ -482,6 +482,54 @@
     .community-stat .stat-best {
       font-weight: 800; color: var(--sage-dark);
     }
+
+    /* Game Instructions Box */
+    .game-instructions {
+      background: linear-gradient(135deg, rgba(107,155,210,0.08), rgba(155,142,196,0.08));
+      border: 1px solid rgba(107,155,210,0.18);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+    .game-instructions strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    .game-instructions .color-hint {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-weight: 700; font-size: 0.82rem;
+    }
+    .game-instructions .hint-green {
+      display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+      background: #6aaa64; vertical-align: middle;
+    }
+    .game-instructions .hint-yellow {
+      display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+      background: #c9b458; vertical-align: middle;
+    }
+    .game-instructions .hint-gray {
+      display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+      background: #787c7e; vertical-align: middle;
+    }
+
+    /* Green Submit/Check Button */
+    .btn-submit {
+      background: #27ae60 !important; color: white !important;
+      border-color: #219a52 !important;
+      font-weight: 800 !important; font-size: 0.95rem !important;
+      padding: 0.5rem 1.4rem !important;
+      box-shadow: 0 4px 12px rgba(39,174,96,0.35);
+      transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+      background: #219a52 !important;
+      box-shadow: 0 6px 16px rgba(39,174,96,0.45);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
@@ -526,14 +574,14 @@
         <div class="game-timer"><span class="timer-icon">⏱</span><span id="wordTimer">0:00</span></div>
         <span class="game-score">Juego del d&iacute;a</span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;">Encuentra los 4 grupos de 4 palabras relacionadas</p>
+      <div class="game-instructions">Encuentra <strong>4 grupos de 4 palabras</strong> que tengan algo en com&uacute;n. Selecciona 4 palabras y presiona <strong>&#9989; Comprobar</strong>. Tienes 4 intentos &mdash; &iexcl;elige con cuidado!</div>
       <div class="community-stats" id="statsWords"></div>
       <div id="solvedGroups"></div>
       <div class="word-grid" id="wordGrid"></div>
       <div class="attempts-display" id="attemptsDisplay"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="deselectBtn">Deseleccionar</button>
-        <button class="btn btn-solid btn-sm" id="submitWordsBtn">Comprobar</button>
+        <button class="btn btn-submit btn-sm" id="submitWordsBtn">&#9989; Comprobar</button>
         <button class="btn btn-outline btn-sm" id="giveUpWordsBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
       </div>
       <div id="wordResult" style="text-align:center;margin-top:1rem;font-weight:600;"></div>
@@ -553,7 +601,7 @@
         <span class="game-score">Puntos: <span id="colorScore">0</span></span>
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">🏆 Mejor: <span id="colorBest">0</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;">Toca grupos de 3+ colores iguales adyacentes para eliminarlos</p>
+      <div class="game-instructions">Toca un grupo de <strong>3 o m&aacute;s c&iacute;rculos del mismo color</strong> que est&eacute;n juntos para eliminarlos. Usa <strong>&#128256; Intercambiar</strong> para mover c&iacute;rculos estrat&eacute;gicamente. &iexcl;Acumula la mayor puntuaci&oacute;n!</div>
       <div class="community-stats" id="statsColors"></div>
       <div class="swap-controls">
         <button class="swap-btn" id="swapModeBtn" title="Intercambia dos círculos adyacentes">🔀 Intercambiar</button>
@@ -578,7 +626,7 @@
         <div class="game-timer"><span class="timer-icon">⏱</span><span id="patternTimer">0:00</span></div>
         <span class="level-display">Nivel: <span id="patternLevel">1</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;" id="patternInstruction">Observa el patr&oacute;n y rep&iacute;telo</p>
+      <div class="game-instructions" id="patternInstruction">Observa la secuencia de casillas que se iluminan y <strong>rep&iacute;tela en el mismo orden</strong> toc&aacute;ndolas. Cada nivel a&ntilde;ade una casilla m&aacute;s. Presiona <strong>&#9654; Comenzar</strong> para iniciar.</div>
       <div class="community-stats" id="statsPattern"></div>
       <div class="pattern-grid" id="patternGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -600,7 +648,7 @@
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="sumBest">0</span></span>
       </div>
       <div class="sum-target">Objetivo: <span id="sumTarget">10</span></div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca n&uacute;meros adyacentes que sumen el objetivo</p>
+      <div class="game-instructions">Toca n&uacute;meros <strong>adyacentes</strong> (horizontal, vertical o diagonal) que sumen exactamente el <strong>objetivo</strong>. Se eliminan al acertar y aparecen nuevos. &iexcl;Consigue la mayor puntuaci&oacute;n posible!</div>
       <div class="community-stats" id="statsSumzen"></div>
       <div class="sum-running-total" id="sumRunning">&nbsp;</div>
       <div class="sum-grid" id="sumGrid" style="grid-template-columns:repeat(5,1fr);"></div>
@@ -623,7 +671,7 @@
         <span class="game-score">Movimientos: <span id="memMoves">0</span></span>
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="memBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Empareja cada pa&iacute;s con su bandera, capital o mapa</p>
+      <div class="game-instructions">Voltea dos cartas por turno y encuentra los <strong>pares de cada pa&iacute;s</strong> (nombre + bandera, capital o &iacute;cono). Compl&eacute;talo en la <strong>menor cantidad de movimientos</strong>. &iexcl;Entrena tu memoria!</div>
       <div class="community-stats" id="statsMemory"></div>
       <div class="mem-grid" id="memGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -642,7 +690,11 @@
         <h3>Palabra del D&iacute;a</h3>
         <span class="game-score">Intento: <span id="wordleAttempt">0</span>/6</span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Adivina la palabra de 5 letras. Tienes 6 intentos.</p>
+      <div class="game-instructions">Adivina la <strong>palabra de 5 letras</strong> en 6 intentos. Escribe con el teclado y presiona <strong>ENVIAR</strong>.<br>
+        <span class="color-hint"><span class="hint-green"></span> Verde = letra correcta en su lugar</span> &nbsp;
+        <span class="color-hint"><span class="hint-yellow"></span> Amarillo = letra correcta, lugar incorrecto</span> &nbsp;
+        <span class="color-hint"><span class="hint-gray"></span> Gris = letra no est&aacute; en la palabra</span>
+      </div>
       <div class="community-stats" id="statsWordle"></div>
       <div class="wordle-msg" id="wordleMsg"></div>
       <div class="wordle-grid" id="wordleGrid"></div>
@@ -662,14 +714,14 @@
         <h3>Emoji Zen</h3>
         <span class="game-score">Intento: <span id="emojiAttempt">0</span>/5</span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">&iquest;Qu&eacute; representan estos emojis? Adivina la pel&iacute;cula, frase o concepto.</p>
+      <div class="game-instructions">Descifra qu&eacute; <strong>pel&iacute;cula, frase o concepto</strong> representan los emojis. Escribe tu respuesta y presiona <strong>&#10003; Enviar</strong>. Tienes <strong>5 intentos</strong> y puedes pedir una &#128161; pista.</div>
       <div class="community-stats" id="statsEmoji"></div>
       <div class="emoji-category" id="emojiCategory"></div>
       <div class="emoji-display" id="emojiDisplay"></div>
       <div class="emoji-hint-box" id="emojiHint"></div>
       <div class="emoji-input-area">
         <input type="text" class="emoji-input" id="emojiInput" placeholder="Escribe tu respuesta..." maxlength="50" autocomplete="off">
-        <button class="btn btn-solid btn-sm" id="submitEmojiBtn">&#10003;</button>
+        <button class="btn btn-submit btn-sm" id="submitEmojiBtn">&#10003; Enviar</button>
       </div>
       <div class="emoji-guesses" id="emojiGuesses"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -689,7 +741,7 @@
         <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="caminoTimer">0:00</span></div>
         <span class="game-score">&#127942; Mejor: <span id="caminoBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Traza un camino de n&uacute;meros adyacentes que sumen exactamente el objetivo en el menor tiempo posible.</p>
+      <div class="game-instructions">Arrastra o toca n&uacute;meros <strong>adyacentes</strong> (&#8596;&#8597;&#8599;) para trazar un camino que sume <strong>exactamente el objetivo</strong>. Completa en el <strong>menor tiempo posible</strong>. Usa &#8617; Deshacer o &#10060; Limpiar para corregir.</div>
       <div class="community-stats" id="statsCamino"></div>
       <div class="camino-target">Objetivo: <span id="caminoTarget">100</span></div>
       <div class="camino-sum" id="caminoSum">&nbsp;</div>
@@ -718,7 +770,7 @@
         <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="schulteTimer">0:00</span></div>
         <span class="game-score">&#127942; Mejor: <span id="schulteBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca los n&uacute;meros en orden ascendente lo m&aacute;s r&aacute;pido posible</p>
+      <div class="game-instructions">Toca los n&uacute;meros en <strong>orden ascendente</strong> (1, 2, 3...) lo m&aacute;s r&aacute;pido posible. Elige el tama&ntilde;o de cuadr&iacute;cula: 4&times;4, 5&times;5 o 6&times;6. &iexcl;Entrena tu <strong>concentraci&oacute;n y velocidad visual</strong>!</div>
       <div class="community-stats" id="statsSchulte"></div>
       <div class="schulte-size-selector">
         <button class="schulte-size-btn active" data-size="4">4&times;4</button>
@@ -745,7 +797,7 @@
         <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="nonoTimer">0:00</span></div>
         <span class="game-score">&#127942; Mejor: <span id="nonoBest">--</span></span>
       </div>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Colorea las celdas seg&uacute;n las pistas num&eacute;ricas. Un puzzle por d&iacute;a.</p>
+      <div class="game-instructions">Usa las <strong>pistas num&eacute;ricas</strong> para descubrir qu&eacute; celdas pintar. Los n&uacute;meros indican <strong>grupos consecutivos</strong> de celdas llenas en cada fila/columna. Usa <strong>&#10005; Marcar</strong> para descartar celdas. Presiona <strong>&#9989; Verificar</strong> cuando termines.</div>
       <div class="community-stats" id="statsNono"></div>
       <div class="nono-mode-toggle">
         <button class="nono-mode-btn active" id="nonoFillBtn">&#9632; Pintar</button>
@@ -755,7 +807,7 @@
         <div class="nono-board" id="nonoBoard"></div>
       </div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
-        <button class="btn btn-outline btn-sm" id="nonoCheckBtn">&#9989; Verificar</button>
+        <button class="btn btn-submit btn-sm" id="nonoCheckBtn">&#9989; Verificar</button>
         <button class="btn btn-outline btn-sm" id="nonoClearBtn">&#10060; Limpiar</button>
         <button class="btn btn-outline btn-sm" id="giveUpNonoBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
         <button class="btn btn-solid btn-sm" id="shareNonoBtn" style="display:none;">&#128228; Compartir</button>
@@ -2534,8 +2586,9 @@ function renderWordleKeyboard() {
       const btn = document.createElement('button');
       btn.className = 'wordle-key';
       if (key === 'ENTER' || key === '⌫') btn.classList.add('wide');
-      btn.textContent = key === 'ENTER' ? 'Enviar' : key;
+      btn.textContent = key === 'ENTER' ? 'ENVIAR' : key;
       btn.dataset.key = key;
+      if (key === 'ENTER') { btn.style.background = '#27ae60'; btn.style.color = 'white'; btn.style.fontWeight = '800'; btn.style.borderColor = '#219a52'; }
       if (keyStates[key]) btn.classList.add(keyStates[key]);
       btn.addEventListener('click', () => handleWordleKey(key));
       rowDiv.appendChild(btn);
