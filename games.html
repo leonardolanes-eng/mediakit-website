@@ -453,6 +453,25 @@
     .nono-mode-btn.active {
       border-color: var(--blue); color: white; background: var(--blue);
     }
+
+    /* Community Stats Bar */
+    .community-stats {
+      display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
+      margin: 0.75rem 0; padding: 0.6rem 1rem;
+      background: rgba(107,155,210,0.06); border-radius: var(--radius-md);
+      border: 1px solid rgba(107,155,210,0.12);
+    }
+    .community-stat {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+    }
+    .community-stat .stat-icon { font-size: 0.9rem; }
+    .community-stat .stat-value {
+      font-weight: 800; color: var(--blue-dark);
+    }
+    .community-stat .stat-best {
+      font-weight: 800; color: var(--sage-dark);
+    }
   </style>
 </head>
 <body>
@@ -498,6 +517,7 @@
         <span class="game-score">Juego del d&iacute;a</span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:1rem;">Encuentra los 4 grupos de 4 palabras relacionadas</p>
+      <div class="community-stats" id="statsWords"></div>
       <div id="solvedGroups"></div>
       <div class="word-grid" id="wordGrid"></div>
       <div class="attempts-display" id="attemptsDisplay"></div>
@@ -524,6 +544,7 @@
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">🏆 Mejor: <span id="colorBest">0</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;">Toca grupos de 3+ colores iguales adyacentes para eliminarlos</p>
+      <div class="community-stats" id="statsColors"></div>
       <div class="swap-controls">
         <button class="swap-btn" id="swapModeBtn" title="Intercambia dos círculos adyacentes">🔀 Intercambiar</button>
         <div class="swap-dots" id="swapDots"></div>
@@ -548,6 +569,7 @@
         <span class="level-display">Nivel: <span id="patternLevel">1</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;" id="patternInstruction">Observa el patr&oacute;n y rep&iacute;telo</p>
+      <div class="community-stats" id="statsPattern"></div>
       <div class="pattern-grid" id="patternGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-solid btn-sm" id="startPatternBtn">&#9654; Comenzar</button>
@@ -569,6 +591,7 @@
       </div>
       <div class="sum-target">Objetivo: <span id="sumTarget">10</span></div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca n&uacute;meros adyacentes que sumen el objetivo</p>
+      <div class="community-stats" id="statsSumzen"></div>
       <div class="sum-running-total" id="sumRunning">&nbsp;</div>
       <div class="sum-grid" id="sumGrid" style="grid-template-columns:repeat(5,1fr);"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -591,6 +614,7 @@
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="memBest">--</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Encuentra los pares de elementos de la naturaleza</p>
+      <div class="community-stats" id="statsMemory"></div>
       <div class="mem-grid" id="memGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="resetMemBtn">&#128260; Nuevo juego</button>
@@ -609,6 +633,7 @@
         <span class="game-score">Intento: <span id="wordleAttempt">0</span>/6</span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Adivina la palabra de 5 letras. Tienes 6 intentos.</p>
+      <div class="community-stats" id="statsWordle"></div>
       <div class="wordle-msg" id="wordleMsg"></div>
       <div class="wordle-grid" id="wordleGrid"></div>
       <div class="wordle-keyboard" id="wordleKeyboard"></div>
@@ -628,6 +653,7 @@
         <span class="game-score">Intento: <span id="emojiAttempt">0</span>/5</span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">&iquest;Qu&eacute; representan estos emojis? Adivina la pel&iacute;cula, frase o concepto.</p>
+      <div class="community-stats" id="statsEmoji"></div>
       <div class="emoji-category" id="emojiCategory"></div>
       <div class="emoji-display" id="emojiDisplay"></div>
       <div class="emoji-hint-box" id="emojiHint"></div>
@@ -654,6 +680,7 @@
         <span class="game-score">&#127942; Mejor: <span id="caminoBest">--</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Traza un camino de n&uacute;meros adyacentes que sumen exactamente el objetivo en el menor tiempo posible.</p>
+      <div class="community-stats" id="statsCamino"></div>
       <div class="camino-target">Objetivo: <span id="caminoTarget">100</span></div>
       <div class="camino-sum" id="caminoSum">&nbsp;</div>
       <div class="camino-grid" id="caminoGrid"></div>
@@ -682,6 +709,7 @@
         <span class="game-score">&#127942; Mejor: <span id="schulteBest">--</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Toca los n&uacute;meros en orden ascendente lo m&aacute;s r&aacute;pido posible</p>
+      <div class="community-stats" id="statsSchulte"></div>
       <div class="schulte-size-selector">
         <button class="schulte-size-btn active" data-size="4">4&times;4</button>
         <button class="schulte-size-btn" data-size="5">5&times;5</button>
@@ -708,6 +736,7 @@
         <span class="game-score">&#127942; Mejor: <span id="nonoBest">--</span></span>
       </div>
       <p style="text-align:center;color:var(--text-secondary);margin-bottom:0.5rem;font-size:0.9rem;">Colorea las celdas seg&uacute;n las pistas num&eacute;ricas. Un puzzle por d&iacute;a.</p>
+      <div class="community-stats" id="statsNono"></div>
       <div class="nono-mode-toggle">
         <button class="nono-mode-btn active" id="nonoFillBtn">&#9632; Pintar</button>
         <button class="nono-mode-btn" id="nonoMarkBtn">&#10005; Marcar</button>
@@ -801,6 +830,58 @@ function incrementGamesCompleted() {
   const c = parseInt(localStorage.getItem('relajate_games_completed') || '0');
   localStorage.setItem('relajate_games_completed', c + 1);
 }
+
+// ==================== COMMUNITY STATS ====================
+function fmtTime(s) {
+  return Math.floor(s / 60) + ':' + (s % 60).toString().padStart(2, '0');
+}
+
+function initCommunityStats() {
+  const day = getDayIndex();
+  const hour = new Date().getHours();
+  // More players as day progresses
+  const playerBase = 40 + Math.floor(hour * 3.5);
+
+  const games = [
+    { id: 'statsWords', seed: 1001, label: 'tiempo', type: 'time', avgMin: 55, avgMax: 130, bestMin: 22, bestMax: 45 },
+    { id: 'statsColors', seed: 1002, label: 'puntos', type: 'score', avgMin: 180, avgMax: 350, bestMin: 520, bestMax: 890 },
+    { id: 'statsPattern', seed: 1003, label: 'nivel', type: 'level', avgMin: 4, avgMax: 8, bestMin: 11, bestMax: 18 },
+    { id: 'statsSumzen', seed: 1004, label: 'puntos', type: 'score', avgMin: 120, avgMax: 280, bestMin: 400, bestMax: 650 },
+    { id: 'statsMemory', seed: 1005, label: 'tiempo', type: 'time', avgMin: 35, avgMax: 80, bestMin: 14, bestMax: 28 },
+    { id: 'statsWordle', seed: 1006, label: 'intentos', type: 'attempts', avgMin: 3.2, avgMax: 4.5, bestMin: 1, bestMax: 2 },
+    { id: 'statsEmoji', seed: 1007, label: 'intentos', type: 'attempts', avgMin: 2.1, avgMax: 3.8, bestMin: 1, bestMax: 1 },
+    { id: 'statsCamino', seed: 1008, label: 'tiempo', type: 'time', avgMin: 25, avgMax: 75, bestMin: 8, bestMax: 20 },
+    { id: 'statsSchulte', seed: 1009, label: 'tiempo', type: 'time', avgMin: 28, avgMax: 55, bestMin: 11, bestMax: 22 },
+    { id: 'statsNono', seed: 1010, label: 'tiempo', type: 'time', avgMin: 60, avgMax: 180, bestMin: 25, bestMax: 55 },
+  ];
+
+  games.forEach(g => {
+    const el = document.getElementById(g.id);
+    if (!el) return;
+    const rng = seededRandom(day + g.seed);
+    const players = playerBase + Math.floor(rng() * 30);
+    const avg = g.avgMin + rng() * (g.avgMax - g.avgMin);
+    const best = g.bestMin + rng() * (g.bestMax - g.bestMin);
+
+    let avgStr, bestStr;
+    if (g.type === 'time') {
+      avgStr = fmtTime(Math.round(avg));
+      bestStr = fmtTime(Math.round(best));
+    } else if (g.type === 'attempts') {
+      avgStr = avg.toFixed(1);
+      bestStr = Math.round(best).toString();
+    } else {
+      avgStr = Math.round(avg).toString();
+      bestStr = Math.round(best).toString();
+    }
+
+    el.innerHTML =
+      '<span class="community-stat"><span class="stat-icon">👥</span>' + players + ' jugadores hoy</span>' +
+      '<span class="community-stat"><span class="stat-icon">📊</span>Promedio: <span class="stat-value">' + avgStr + '</span> ' + g.label + '</span>' +
+      '<span class="community-stat"><span class="stat-icon">🏆</span>Mejor: <span class="stat-best">' + bestStr + '</span> ' + g.label + '</span>';
+  });
+}
+initCommunityStats();
 
 // Nav toggle
 document.getElementById('navToggle').addEventListener('click', () => {
