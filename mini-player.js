@@ -467,8 +467,7 @@
     // Add padding to body so content isn't hidden behind bar
     document.body.style.paddingBottom = '56px';
 
-    // Play/pause button — use touchstart for instant mobile response, click for desktop
-    var _miniTouchHandled = false;
+    // Play/pause — click only (iOS 26+ requires click for AudioContext unlock)
     function toggleMiniPlay() {
       ensureAudioCtx();
       if (miniPlaying) {
@@ -477,15 +476,7 @@
         startAllFromState();
       }
     }
-    document.getElementById('miniPlayBtn').addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      _miniTouchHandled = true;
-      toggleMiniPlay();
-    }, {passive: false});
-    document.getElementById('miniPlayBtn').addEventListener('click', function(e) {
-      if (_miniTouchHandled) { _miniTouchHandled = false; return; }
-      toggleMiniPlay();
-    });
+    document.getElementById('miniPlayBtn').addEventListener('click', toggleMiniPlay);
 
     // Volume
     document.getElementById('miniVol').addEventListener('input', (e) => {

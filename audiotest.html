@@ -64,7 +64,7 @@
     }
 
     // ---- TEST A: Start audio synchronously WITHOUT waiting for Promise ----
-    document.getElementById('btn1').addEventListener('touchstart', function(e) {
+    document.getElementById('btn1').addEventListener('click', function(e) {
       e.preventDefault();
       logMsg('=== TEST A ===');
       try {
@@ -115,7 +115,7 @@
     }, {passive: false});
 
     // ---- TEST B: Try starting AFTER resume resolves via polling ----
-    document.getElementById('btn2').addEventListener('touchstart', function(e) {
+    document.getElementById('btn2').addEventListener('click', function(e) {
       e.preventDefault();
       logMsg('=== TEST B ===');
       try {
@@ -165,7 +165,7 @@
     }, {passive: false});
 
     // ---- TEST C: HTML5 <audio> with data URI ----
-    document.getElementById('btn3').addEventListener('touchstart', function(e) {
+    document.getElementById('btn3').addEventListener('click', function(e) {
       e.preventDefault();
       logMsg('=== TEST C: HTML5 Audio ===');
       try {

@@ -595,19 +595,8 @@ function initAudio() {
   playUnlockBuffer();
 }
 
-// Mobile audio unlock on first gesture
-var _sonidosUnlocked = false;
-function unlockSonidosAudio() {
-  if (_sonidosUnlocked) return;
-  _sonidosUnlocked = true;
-  initAudio();
-  document.removeEventListener('touchstart', unlockSonidosAudio, true);
-  document.removeEventListener('touchend', unlockSonidosAudio, true);
-  document.removeEventListener('click', unlockSonidosAudio, true);
-}
-document.addEventListener('touchstart', unlockSonidosAudio, true);
-document.addEventListener('touchend', unlockSonidosAudio, true);
-document.addEventListener('click', unlockSonidosAudio, true);
+// No pre-unlock — AudioContext is created only when user taps a sound button (click event)
+// This ensures iOS 26+ audio policy is satisfied
 
 // Resume audio when page becomes visible
 document.addEventListener('visibilitychange', function() {
@@ -1103,34 +1092,18 @@ function updateUI() {
   }
 }
 
-// Toggle buttons — touchstart for instant mobile response
+// Toggle buttons — click only (iOS 26+ requires click for AudioContext unlock)
 document.querySelectorAll('.sound-toggle').forEach(btn => {
-  var _tHandled = false;
-  btn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    _tHandled = true;
-    toggleSound(btn.dataset.sound);
-  }, {passive: false});
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
-    if (_tHandled) { _tHandled = false; return; }
     toggleSound(btn.dataset.sound);
   });
 });
 
-// Card click/touch also toggles
+// Card click also toggles
 document.querySelectorAll('.sound-card').forEach(card => {
-  var _tHandled = false;
-  card.addEventListener('touchstart', function(e) {
-    if (e.target.closest('.sound-slider-row') || e.target.closest('.sound-toggle')) return;
-    e.preventDefault();
-    _tHandled = true;
-    toggleSound(card.dataset.sound);
-  }, {passive: false});
   card.addEventListener('click', function(e) {
     if (e.target.closest('.sound-slider-row') || e.target.closest('.sound-toggle')) return;
-    if (_tHandled) { _tHandled = false; return; }
     toggleSound(card.dataset.sound);
   });
 });

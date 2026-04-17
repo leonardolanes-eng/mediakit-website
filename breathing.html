@@ -816,19 +816,8 @@ function initAudio() {
   playUnlockBuffer();
 }
 
-// Mobile audio unlock on first gesture
-var _breathUnlocked = false;
-function unlockBreathAudio() {
-  if (_breathUnlocked) return;
-  _breathUnlocked = true;
-  initAudio();
-  document.removeEventListener('touchstart', unlockBreathAudio, true);
-  document.removeEventListener('touchend', unlockBreathAudio, true);
-  document.removeEventListener('click', unlockBreathAudio, true);
-}
-document.addEventListener('touchstart', unlockBreathAudio, true);
-document.addEventListener('touchend', unlockBreathAudio, true);
-document.addEventListener('click', unlockBreathAudio, true);
+// No pre-unlock — AudioContext is created only when user taps a button (click event)
+// This ensures iOS 26+ audio policy is satisfied
 
 function createNoise() {
   const bufferSize = audioCtx.sampleRate * 2; // smaller for mobile
@@ -1000,38 +989,14 @@ function stopMusic(keepCtx) {
   }
 }
 
-// Music toggle — touchstart for instant mobile response
-var _breathMusicTouchHandled = false;
-function handleMusicToggle() {
-  if (musicPlaying) {
-    stopMusic();
-  } else {
-    playTrack(currentTrack);
-  }
-}
-document.getElementById('musicToggle').addEventListener('touchstart', function(e) {
-  e.preventDefault();
-  _breathMusicTouchHandled = true;
-  handleMusicToggle();
-}, {passive: false});
+// Music toggle — click only (iOS 26+ requires click for AudioContext unlock)
 document.getElementById('musicToggle').addEventListener('click', function() {
-  if (_breathMusicTouchHandled) { _breathMusicTouchHandled = false; return; }
-  handleMusicToggle();
+  if (musicPlaying) { stopMusic(); } else { playTrack(currentTrack); }
 });
 
 // Track selection
 document.querySelectorAll('.track-btn').forEach(btn => {
-  var _tHandled = false;
-  btn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    _tHandled = true;
-    document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentTrack = btn.dataset.track;
-    if (musicPlaying) { playTrack(currentTrack); }
-  }, {passive: false});
   btn.addEventListener('click', function() {
-    if (_tHandled) { _tHandled = false; return; }
     document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentTrack = btn.dataset.track;

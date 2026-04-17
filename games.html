@@ -2473,23 +2473,12 @@ initSchulteGame();
     }
   }
 
-  // Play / Pause - uses global audio API directly within user gesture
-  // touchstart fires instantly on mobile (no 300ms delay), click is fallback for desktop
-  var _ipTouchHandled = false;
-  function handlePlayPause() {
+  // Play / Pause — click only (iOS 26+ requires click for AudioContext unlock)
+  ipPlayBtn.addEventListener('click', function() {
     if (window._relajateAudio) {
       window._relajateAudio.toggle();
     }
     setTimeout(syncUI, 100);
-  }
-  ipPlayBtn.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    _ipTouchHandled = true;
-    handlePlayPause();
-  }, {passive: false});
-  ipPlayBtn.addEventListener('click', function() {
-    if (_ipTouchHandled) { _ipTouchHandled = false; return; }
-    handlePlayPause();
   });
 
   // Volume - syncs to mini player via global API + UI slider
