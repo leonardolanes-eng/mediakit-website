@@ -588,12 +588,11 @@ function initAudio() {
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.7;
     masterGain.connect(audioCtx.destination);
-    playUnlockBuffer();
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(function() {});
-    playUnlockBuffer();
-  }
+  // ALWAYS resume + play unlock buffer regardless of reported state.
+  // iOS can internally mute a context that reports as 'running'.
+  audioCtx.resume().catch(function() {});
+  playUnlockBuffer();
 }
 
 // Mobile audio unlock on first gesture

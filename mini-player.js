@@ -56,12 +56,11 @@
       masterGain = audioCtx.createGain();
       masterGain.gain.value = miniMasterVol;
       masterGain.connect(audioCtx.destination);
-      playUnlockBuffer();
     }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(function() {});
-      playUnlockBuffer();
-    }
+    // ALWAYS resume + play unlock buffer regardless of reported state.
+    // iOS can internally mute a context that reports as 'running'.
+    audioCtx.resume().catch(function() {});
+    playUnlockBuffer();
     return audioCtx;
   }
 
@@ -518,43 +517,13 @@
   createMiniPlayer();
   updateMiniUI();
 
-  // Mobile audio unlock: create AudioContext + play silent buffer on first user gesture
-  var _audioUnlocked = false;
-  function unlockAudio() {
-    if (_audioUnlocked) return;
-    _audioUnlocked = true;
-    ensureAudioCtx(); // creates ctx + plays silent buffer
-    document.removeEventListener('click', unlockAudio, true);
-    document.removeEventListener('touchstart', unlockAudio, true);
-    document.removeEventListener('touchend', unlockAudio, true);
-  }
-  document.addEventListener('click', unlockAudio, true);
-  document.addEventListener('touchstart', unlockAudio, true);
-  document.addEventListener('touchend', unlockAudio, true);
-
   // Resume AudioContext when page becomes visible (after screen lock/tab switch)
   document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && audioCtx && audioCtx.state === 'suspended' && miniPlaying) {
+    if (!document.hidden && audioCtx && miniPlaying) {
       audioCtx.resume().catch(function() {});
+      playUnlockBuffer();
     }
   });
-
-  // If sounds are active, auto-start on first user interaction (browser requires gesture)
-  const active = getActiveSounds();
-  if (Object.keys(active).length > 0 && !isOnSonidos) {
-    function autoStart() {
-      ensureAudioCtx();
-      if (!miniPlaying) {
-        startAllFromState();
-      }
-      document.removeEventListener('click', autoStart);
-      document.removeEventListener('touchstart', autoStart);
-      document.removeEventListener('touchend', autoStart);
-    }
-    document.addEventListener('click', autoStart);
-    document.addEventListener('touchstart', autoStart);
-    document.addEventListener('touchend', autoStart);
-  }
 
   // On sonidos.html, listen for localStorage changes to stay in sync
   if (isOnSonidos) {
