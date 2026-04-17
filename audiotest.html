@@ -5,137 +5,191 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Audio Test</title>
   <style>
-    body { font-family: sans-serif; padding: 1rem; background: #1a1a2e; color: white; }
+    body { font-family: sans-serif; padding: 1rem; background: #1a1a2e; color: white; margin:0; }
     button {
-      display: block; width: 100%; padding: 1.5rem; font-size: 1.3rem;
-      border: none; border-radius: 1rem; margin: 0.75rem 0; cursor: pointer;
-      font-weight: bold;
+      display: block; width: 100%; padding: 1.5rem; font-size: 1.2rem;
+      border: none; border-radius: 1rem; margin: 0.6rem 0; cursor: pointer; font-weight: bold;
     }
     #btn1 { background: #4ade80; color: #000; }
-    #btn2 { background: #60a5fa; color: #000; }
-    #btn3 { background: #f59e0b; color: #000; }
+    #btn2 { background: #f59e0b; color: #000; }
+    #btn3 { background: #a78bfa; color: #000; }
     #log {
       background: #0f0f1a; border-radius: 0.5rem; padding: 1rem;
-      font-family: monospace; font-size: 0.85rem; min-height: 150px;
+      font-family: monospace; font-size: 0.8rem; min-height: 120px;
       white-space: pre-wrap; word-break: break-all; margin-top: 1rem;
-      border: 1px solid #333;
+      border: 1px solid #444; max-height: 300px; overflow-y: auto;
     }
     .ok { color: #4ade80; }
     .err { color: #f87171; }
     .info { color: #93c5fd; }
+    .warn { color: #fcd34d; }
   </style>
 </head>
 <body>
-  <h2>🔊 Audio Test - Relajate.com</h2>
+  <h2 style="margin:0 0 0.5rem">🔊 Audio Test</h2>
 
-  <button id="btn1">🟢 TEST 1: Beep Simple (440Hz)</button>
-  <button id="btn2">🔵 TEST 2: Rain Noise</button>
-  <button id="btn3">🟡 TEST 3: Mini Player Play</button>
+  <button id="btn1">🟢 TEST A: Beep (sin esperar Promise)</button>
+  <button id="btn2">🟡 TEST B: Beep + monitorear estado</button>
+  <button id="btn3">🟣 TEST C: HTML5 Audio (sin WebAudio)</button>
 
-  <div id="log">Toca un botón para empezar el diagnóstico...\n</div>
+  <div id="state" style="text-align:center;font-size:1rem;padding:0.5rem;background:#111;border-radius:0.5rem;margin:0.5rem 0">Estado ctx: —</div>
+  <div id="log">Toca un botón...\n</div>
 
   <script>
-    var log = document.getElementById('log');
+    var logEl = document.getElementById('log');
+    var stateEl = document.getElementById('state');
+
     function logMsg(msg, type) {
+      var t = new Date().toLocaleTimeString('es',{hour12:false});
+      var line = '[' + t + '] ' + msg + '\n';
       var span = document.createElement('span');
       span.className = type || 'info';
-      span.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
-      log.appendChild(span);
-      log.scrollTop = log.scrollHeight;
+      span.textContent = line;
+      logEl.appendChild(span);
+      logEl.scrollTop = logEl.scrollHeight;
     }
 
-    // Show device info on load
-    logMsg('Browser: ' + navigator.userAgent.slice(0,80));
-    logMsg('AudioContext available: ' + !!(window.AudioContext || window.webkitAudioContext));
+    // Device info
+    var ua = navigator.userAgent;
+    var ios = /iP(hone|od|ad)/.test(ua);
+    var chrome = /CriOS/.test(ua);
+    var safari = /Safari/.test(ua) && !chrome;
+    logMsg('iOS: ' + ios + ' | Chrome: ' + chrome + ' | Safari: ' + safari);
+    logMsg('UA: ' + ua.slice(0,100));
+    logMsg('AudioContext: ' + !!(window.AudioContext || window.webkitAudioContext));
 
-    // ---- TEST 1: Simple beep ----
-    var ctx1 = null;
+    function updateStateDisplay(ctx) {
+      stateEl.textContent = 'Estado ctx: ' + (ctx ? ctx.state : '—') +
+        ' | currentTime: ' + (ctx ? ctx.currentTime.toFixed(3) : '—');
+    }
+
+    // ---- TEST A: Start audio synchronously WITHOUT waiting for Promise ----
     document.getElementById('btn1').addEventListener('touchstart', function(e) {
       e.preventDefault();
-      logMsg('--- TEST 1 start ---');
+      logMsg('=== TEST A ===');
       try {
-        ctx1 = new (window.AudioContext || window.webkitAudioContext)();
-        logMsg('Context created. State: ' + ctx1.state);
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        logMsg('Ctx created. State: ' + ctx.state);
+        updateStateDisplay(ctx);
 
-        // Silent buffer unlock
-        var buf = ctx1.createBuffer(1, 1, 22050);
-        var src = ctx1.createBufferSource();
-        src.buffer = buf; src.connect(ctx1.destination); src.start(0);
-        logMsg('Silent buffer played');
+        // Monitor state changes
+        ctx.onstatechange = function() {
+          logMsg('STATE CHANGED → ' + ctx.state, 'warn');
+          updateStateDisplay(ctx);
+        };
 
-        ctx1.resume().then(function() {
-          logMsg('resume() resolved. State: ' + ctx1.state, 'ok');
+        // Call resume — don't wait for Promise
+        ctx.resume();
+        logMsg('resume() called (no await)');
 
-          // Play 440Hz tone
-          var osc = ctx1.createOscillator();
-          var gain = ctx1.createGain();
-          osc.frequency.value = 440;
-          gain.gain.setValueAtTime(0.5, ctx1.currentTime);
-          gain.gain.linearRampToValueAtTime(0, ctx1.currentTime + 1.5);
-          osc.connect(gain); gain.connect(ctx1.destination);
-          osc.start(); osc.stop(ctx1.currentTime + 1.5);
-          logMsg('Oscillator started at 440Hz, should hear beep now!', 'ok');
-        }).catch(function(err) {
-          logMsg('resume() FAILED: ' + err, 'err');
-        });
+        // Play silent unlock buffer SYNCHRONOUSLY
+        var b1 = ctx.createBuffer(1, 1, 22050);
+        var s1 = ctx.createBufferSource();
+        s1.buffer = b1; s1.connect(ctx.destination); s1.start(0);
+        logMsg('Silent buffer started');
+
+        // Play 440Hz beep SYNCHRONOUSLY (don't wait for resume)
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.frequency.value = 440;
+        gain.gain.value = 0.5;
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 2);
+        logMsg('Oscillator STARTED 440Hz — escuchas beep?', 'ok');
+
+        // Check state after 500ms
+        setTimeout(function() {
+          logMsg('Estado 500ms despues: ' + ctx.state);
+          updateStateDisplay(ctx);
+        }, 500);
+        setTimeout(function() {
+          logMsg('Estado 2s despues: ' + ctx.state);
+          updateStateDisplay(ctx);
+        }, 2000);
+
       } catch(err) {
         logMsg('ERROR: ' + err, 'err');
       }
     }, {passive: false});
 
-    // ---- TEST 2: Rain noise ----
-    var ctx2 = null;
+    // ---- TEST B: Try starting AFTER resume resolves via polling ----
     document.getElementById('btn2').addEventListener('touchstart', function(e) {
       e.preventDefault();
-      logMsg('--- TEST 2 start ---');
+      logMsg('=== TEST B ===');
       try {
-        ctx2 = new (window.AudioContext || window.webkitAudioContext)();
-        logMsg('Context created. State: ' + ctx2.state);
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        logMsg('Ctx created. State: ' + ctx.state);
 
-        var buf = ctx2.createBuffer(1, 1, 22050);
-        var src = ctx2.createBufferSource();
-        src.buffer = buf; src.connect(ctx2.destination); src.start(0);
+        ctx.onstatechange = function() {
+          logMsg('STATE → ' + ctx.state, 'warn');
+          updateStateDisplay(ctx);
+        };
 
-        ctx2.resume().then(function() {
-          logMsg('resume() resolved. State: ' + ctx2.state, 'ok');
-
-          // White noise
-          var bufSize = ctx2.sampleRate * 2;
-          var noiseBuf = ctx2.createBuffer(1, bufSize, ctx2.sampleRate);
-          var data = noiseBuf.getChannelData(0);
-          for (var i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-          var noise = ctx2.createBufferSource();
-          noise.buffer = noiseBuf; noise.loop = true;
-          var hp = ctx2.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1000;
-          var gain = ctx2.createGain(); gain.gain.value = 0.3;
-          noise.connect(hp); hp.connect(gain); gain.connect(ctx2.destination);
-          noise.start();
-          logMsg('Rain noise started! Should hear rain for 5 seconds...', 'ok');
-          setTimeout(function() { try { noise.stop(); logMsg('Rain stopped.'); } catch(e){} }, 5000);
+        // Resume and then poll for running state
+        var resumed = false;
+        ctx.resume().then(function() {
+          logMsg('resume() Promise RESOLVED. State: ' + ctx.state, 'ok');
+          resumed = true;
         }).catch(function(err) {
-          logMsg('resume() FAILED: ' + err, 'err');
+          logMsg('resume() REJECTED: ' + err, 'err');
         });
+
+        // Poll every 50ms to see if context becomes running
+        var attempts = 0;
+        var interval = setInterval(function() {
+          attempts++;
+          logMsg('Poll ' + attempts + ': state=' + ctx.state);
+          updateStateDisplay(ctx);
+          if (ctx.state === 'running' || attempts >= 20) {
+            clearInterval(interval);
+            if (ctx.state === 'running') {
+              logMsg('Context is running! Starting beep...', 'ok');
+              var osc = ctx.createOscillator();
+              var gain = ctx.createGain();
+              osc.frequency.value = 880;
+              gain.gain.value = 0.5;
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.start(); osc.stop(ctx.currentTime + 1.5);
+              logMsg('Beep 880Hz started — escuchas?', 'ok');
+            } else {
+              logMsg('Context NEVER became running after ' + attempts + ' polls', 'err');
+            }
+          }
+        }, 50);
+
       } catch(err) {
         logMsg('ERROR: ' + err, 'err');
       }
     }, {passive: false});
 
-    // ---- TEST 3: Mini player ----
+    // ---- TEST C: HTML5 <audio> with data URI ----
     document.getElementById('btn3').addEventListener('touchstart', function(e) {
       e.preventDefault();
-      logMsg('--- TEST 3: Mini Player ---');
-      if (window._relajateAudio) {
-        logMsg('_relajateAudio API found', 'ok');
-        logMsg('isPlaying before: ' + window._relajateAudio.isPlaying());
-        window._relajateAudio.toggle();
-        setTimeout(function() {
-          logMsg('isPlaying after: ' + window._relajateAudio.isPlaying(), 'ok');
-        }, 200);
-      } else {
-        logMsg('_relajateAudio not found (mini-player.js not loaded on this page)', 'err');
+      logMsg('=== TEST C: HTML5 Audio ===');
+      try {
+        // A tiny valid WAV file encoded as base64 (440Hz beep, 0.1s)
+        var audio = new Audio();
+        // Minimal 44-byte WAV header + 1 second 440Hz sine at 44100Hz
+        // Using a generated data URI with a simple tone
+        audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA' +
+          'EAAQAAgD4AAACAFAAACABAAABMSUQEAAAAAAAAAAAB' +
+          'kYXRhWAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+        audio.volume = 1.0;
+        var playResult = audio.play();
+        logMsg('HTML5 audio.play() called');
+        if (playResult !== undefined) {
+          playResult.then(function() {
+            logMsg('HTML5 audio playing!', 'ok');
+          }).catch(function(err) {
+            logMsg('HTML5 audio FAILED: ' + err, 'err');
+          });
+        }
+      } catch(err) {
+        logMsg('HTML5 ERROR: ' + err, 'err');
       }
     }, {passive: false});
   </script>
-  <script src="mini-player.js"></script>
 </body>
 </html>
