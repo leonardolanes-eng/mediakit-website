@@ -1952,22 +1952,18 @@ const EMOJI_PUZZLES = [
 
 function initEmojiGame() {
   const dayIdx = getDayIndex();
-  const rng = seededRandom(dayIdx + 7777);
+  // Multiply dayIdx by a large prime so consecutive days produce very different seeds
+  const rng = seededRandom(dayIdx * 48271 + 7777);
   const PUZZLES_PER_DAY = 3;
 
-  // Pick 3 unique puzzles for today
-  const usedIndices = [];
-  const dailyPuzzles = [];
-  for (let i = 0; i < PUZZLES_PER_DAY; i++) {
-    let idx = Math.floor(rng() * EMOJI_PUZZLES.length);
-    let tries = 0;
-    while (usedIndices.includes(idx) && tries < 100) {
-      idx = Math.floor(rng() * EMOJI_PUZZLES.length);
-      tries++;
-    }
-    usedIndices.push(idx);
-    dailyPuzzles.push(EMOJI_PUZZLES[idx]);
+  // Shuffle all puzzle indices with seeded RNG and take first 3 — guarantees
+  // unique puzzles and ensures every day produces a different combination
+  const allIndices = EMOJI_PUZZLES.map((_, i) => i);
+  for (let i = allIndices.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = allIndices[i]; allIndices[i] = allIndices[j]; allIndices[j] = tmp;
   }
+  const dailyPuzzles = allIndices.slice(0, PUZZLES_PER_DAY).map(i => EMOJI_PUZZLES[i]);
 
   let currentPz = 0;
 
