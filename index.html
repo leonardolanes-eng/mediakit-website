@@ -37,9 +37,9 @@
     <div class="floating-shapes" id="floatingShapes"></div>
     <div class="hero-content" style="display:flex;flex-direction:column;align-items:center;">
       <h1 style="display:inline-block;padding:0;margin:0;"><img src="images/logo.png" alt="Relajate.com" style="height:220px;width:auto;display:block;filter:brightness(0) invert(1) drop-shadow(0 4px 20px rgba(0,0,0,0.3));"></h1>
-      <div class="streak-badge" id="streakBadge" style="margin:1.5rem 0;">
-        <span class="fire">&#128293;</span>
-        <span id="streakCount">0</span> d&iacute;as de racha
+      <div class="garden-badge" id="gardenBadge" style="margin:1.5rem 0;">
+        <div class="garden-elements" id="gardenElements"></div>
+        <div class="garden-label"><span id="gardenCount">0</span> d&iacute;as visitados</div>
       </div>
       <div class="social-proof" style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);padding:0.4rem 1rem;border-radius:9999px;margin-bottom:1rem;font-size:0.85rem;color:rgba(255,255,255,0.9);font-weight:600;">
         <span style="width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block;animation:pulse 2s ease infinite;"></span>
@@ -128,32 +128,43 @@
       document.getElementById('liveUsers').textContent = total.toLocaleString();
     })();
 
-    // --- Streak logic ---
-    function updateStreak() {
+    // --- Garden logic (non-punitive: grows on each visit, never resets) ---
+    function updateGarden() {
+      const GARDEN_ELEMS = ['🌱','🌸','🌺','⭐','🌙','🌿','🦋','🌻','🪨','🍃','☁️','🌊','🌾','🍀','🌹','🌷'];
       const today = new Date().toISOString().split('T')[0];
-      let streak = JSON.parse(localStorage.getItem('relajate_streak') || '{"count":0,"lastDate":""}');
-      const lastDate = streak.lastDate;
 
-      if (lastDate === today) {
-        // Already visited today
-      } else {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-        if (lastDate === yesterdayStr) {
-          streak.count++;
-        } else {
-          streak.count = 1;
-        }
-        streak.lastDate = today;
-        localStorage.setItem('relajate_streak', JSON.stringify(streak));
+      let garden = JSON.parse(localStorage.getItem('relajate_garden') || 'null');
+      if (!garden) {
+        // Migrate from old streak if it exists
+        const old = JSON.parse(localStorage.getItem('relajate_streak') || 'null');
+        garden = (old && old.count > 0)
+          ? { total: old.count, lastDate: old.lastDate || '' }
+          : { total: 0, lastDate: '' };
       }
 
-      document.getElementById('streakCount').textContent = streak.count;
-      return streak.count;
+      let newToday = false;
+      if (garden.lastDate !== today) {
+        garden.total++;
+        garden.lastDate = today;
+        newToday = true;
+        localStorage.setItem('relajate_garden', JSON.stringify(garden));
+      }
+
+      // Show last 8 elements
+      const total = garden.total;
+      const show = Math.min(total, 8);
+      const start = total - show;
+      const el = document.getElementById('gardenElements');
+      el.textContent = '';
+      for (let i = start; i < total; i++) {
+        const span = document.createElement('span');
+        span.textContent = GARDEN_ELEMS[i % GARDEN_ELEMS.length];
+        if (newToday && i === total - 1) span.className = 'garden-new';
+        el.appendChild(span);
+      }
+      document.getElementById('gardenCount').textContent = total;
     }
-    updateStreak();
+    updateGarden();
 
     // --- Register SW ---
     if ('serviceWorker' in navigator) {

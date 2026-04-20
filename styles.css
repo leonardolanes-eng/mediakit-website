@@ -306,7 +306,7 @@ input, textarea, select { font-family: var(--font-body); }
   animation: fadeInUp 0.8s ease 0s both;
 }
 
-.hero .streak-badge {
+.hero .garden-badge {
   animation: fadeInUp 0.7s ease 0.15s both;
 }
 
@@ -511,21 +511,41 @@ input, textarea, select { font-family: var(--font-body); }
   font-size: 1.1rem;
 }
 
-/* ---- Streak Counter ---- */
-.streak-badge {
+/* ---- Garden Badge ---- */
+.garden-badge {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255,255,255,0.2);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
+  gap: 0.3rem;
+  background: rgba(255,255,255,0.15);
+  padding: 0.55rem 1.25rem;
+  border-radius: 1rem;
   color: white;
-  font-weight: 600;
-  font-size: 0.95rem;
   backdrop-filter: blur(8px);
 }
-
-.streak-badge .fire { font-size: 1.2rem; }
+.garden-elements {
+  display: flex;
+  gap: 2px;
+  font-size: 1.25rem;
+  min-height: 1.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 260px;
+}
+.garden-elements span { display: inline-block; }
+.garden-elements .garden-new {
+  animation: gardenPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes gardenPop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+.garden-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.02em;
+}
 
 /* ---- Page Header (inner pages) ---- */
 .page-header {
