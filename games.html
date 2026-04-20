@@ -1630,7 +1630,7 @@ let wordleState = {
 };
 
 function getWordleAnswer() {
-  const rng = seededRandom(getDayIndex() + 9999);
+  const rng = seededRandom(getDayIndex() * 48271 + 9999);
   return WORDLE_VALID[Math.floor(rng() * WORDLE_VALID.length)];
 }
 
