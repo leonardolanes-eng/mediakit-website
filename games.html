@@ -419,6 +419,67 @@
       box-shadow: 0 6px 16px rgba(39,174,96,0.45);
       transform: translateY(-1px);
     }
+
+    /* ---- Imagen Zen ---- */
+    .imagen-wrapper {
+      position: relative; max-width: 340px; width: 100%;
+      aspect-ratio: 4 / 3; margin: 0.75rem auto;
+      border-radius: var(--radius-lg); overflow: hidden;
+      background: #f0f0f0; box-shadow: var(--shadow-md);
+    }
+    .imagen-img {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+    .imagen-overlay {
+      position: absolute; inset: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 3px; padding: 3px;
+      pointer-events: none;
+    }
+    .imagen-tile {
+      background: linear-gradient(145deg, #6B9BD2 0%, #9B8EC4 100%);
+      border-radius: 4px;
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .imagen-tile.revealed {
+      opacity: 0; transform: scale(0.8);
+    }
+    .imagen-tile.revealed-instant {
+      opacity: 0; transform: scale(0.8); transition: none;
+    }
+    .imagen-reveal-dots {
+      display: flex; gap: 6px; justify-content: center; margin: 0.5rem 0 0.25rem;
+    }
+    .imagen-reveal-dot {
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--gray-200); transition: background 0.3s;
+    }
+    .imagen-reveal-dot.used { background: var(--lavender); }
+    .imagen-reveal-dot.used.hot { background: #e74c3c; }
+    .imagen-category {
+      text-align: center; font-size: 0.78rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.25rem;
+    }
+    .imagen-hint-box {
+      background: rgba(107,155,210,0.1); border: 1px solid rgba(107,155,210,0.3);
+      border-radius: var(--radius-md); padding: 0.6rem 1rem;
+      font-size: 0.9rem; color: var(--blue-dark); margin: 0.5rem 0;
+      text-align: center;
+    }
+    .imagen-score-box {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); padding: 0.75rem 1rem;
+      text-align: center; margin: 0.5rem 0; animation: fadeInUp 0.3s ease;
+    }
+    .imagen-stars { font-size: 1.4rem; letter-spacing: 3px; margin-top: 0.2rem; }
+    .imagen-day-score {
+      background: linear-gradient(135deg, var(--blue), var(--lavender));
+      border-radius: var(--radius-lg); padding: 1.5rem;
+      color: white; text-align: center; margin: 0.5rem 0;
+    }
   </style>
 </head>
 <body>
@@ -449,6 +510,7 @@
     <button class="game-tab" data-game="wordle">&#128221; Palabra del D&iacute;a</button>
     <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
     <button class="game-tab" data-game="schulte">&#128290; Escalera Zen</button>
+    <button class="game-tab" data-game="imagen">&#128444;&#65039; Imagen Zen</button>
   </div>
 
   <!-- In-page Music Player -->
@@ -617,6 +679,49 @@
         <button class="btn btn-solid btn-sm" id="shareSchulteBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="schulteShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 8: Imagen Zen -->
+  <div class="game-container" id="game-imagen" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#128444;&#65039; Imagen Zen</h3>
+        <span class="game-score">Revelas: <span id="imagenReveals">0</span>/6</span>
+      </div>
+      <div class="game-instructions">Adivina la imagen en la menor cantidad de revelaciones. Presiona <strong>Revelar m&aacute;s</strong> para descubrir una parte — o escribe tu respuesta directamente.</div>
+
+      <div class="imagen-category" id="imagenCategory"></div>
+      <div class="imagen-wrapper">
+        <img id="imagenImg" class="imagen-img" alt="Imagen Zen" src="">
+        <div class="imagen-overlay" id="imagenOverlay"></div>
+      </div>
+      <div class="imagen-reveal-dots" id="imagenRevealDots"></div>
+
+      <div class="imagen-hint-box" id="imagenHint" style="display:none;"></div>
+      <div class="imagen-score-box" id="imagenScoreBox" style="display:none;"></div>
+
+      <div id="imagenInputArea">
+        <div class="wordle-msg" id="imagenMsg" style="min-height:1.4rem;text-align:center;font-size:1rem;"></div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
+          <input type="text" id="imagenInput" placeholder="&iquest;Qu&eacute; es esta imagen?"
+            style="flex:1;padding:0.75rem 1rem;border:2px solid var(--border-color);border-radius:var(--radius-md);
+                   font-size:1rem;background:var(--bg-card);color:var(--text-primary);outline:none;">
+          <button class="btn btn-solid" id="imagenGuessBtn">Adivinar</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:0.75rem;">
+        <button class="btn btn-outline btn-sm" id="imagenRevealBtn">&#128065;&#65039; Revelar m&aacute;s</button>
+        <button class="btn btn-outline btn-sm" id="imagenHintBtn">&#128161; Pista</button>
+        <button class="btn btn-outline btn-sm" id="imagenGiveUpBtn" style="display:none;background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Me rindo</button>
+        <button class="btn btn-solid btn-sm" id="imagenNextBtn" style="display:none;">Siguiente &#8594;</button>
+      </div>
+
+      <div id="imagenShareSection" style="display:none;margin-top:1rem;text-align:center;">
+        <button class="btn btn-solid btn-sm" id="imagenShareBtn">&#128228; Compartir resultado</button>
+        <div id="imagenShareText" class="share-result" style="display:none;margin-top:0.5rem;"></div>
+      </div>
     </div>
   </div>
 
@@ -2543,6 +2648,343 @@ function initSchulteGame() {
   render();
 }
 
+// ==================== GAME 8: IMAGEN ZEN ====================
+const IMAGEN_DATA = [
+  // --- BANDERAS ---
+  { url:'https://flagcdn.com/w320/mx.png', answer:'México', accepts:['mexico','méxico','mex'], category:'Bandera 🚩', hint:'País azteca con tacos, mariachis y pirámides' },
+  { url:'https://flagcdn.com/w320/br.png', answer:'Brasil', accepts:['brasil','brazil'], category:'Bandera 🚩', hint:'El país más grande de América del Sur' },
+  { url:'https://flagcdn.com/w320/ar.png', answer:'Argentina', accepts:['argentina'], category:'Bandera 🚩', hint:'País del tango, el mate y Messi' },
+  { url:'https://flagcdn.com/w320/co.png', answer:'Colombia', accepts:['colombia'], category:'Bandera 🚩', hint:'Café, orquídeas, cumbia y Gabriel García Márquez' },
+  { url:'https://flagcdn.com/w320/jp.png', answer:'Japón', accepts:['japon','japón','japan'], category:'Bandera 🚩', hint:'El sol naciente, el sushi y los samurais' },
+  { url:'https://flagcdn.com/w320/fr.png', answer:'Francia', accepts:['francia','france'], category:'Bandera 🚩', hint:'País de la Torre Eiffel, el baguette y el vino' },
+  { url:'https://flagcdn.com/w320/de.png', answer:'Alemania', accepts:['alemania','germany','deutschland'], category:'Bandera 🚩', hint:'País del Oktoberfest, los autos y Beethoven' },
+  { url:'https://flagcdn.com/w320/it.png', answer:'Italia', accepts:['italia','italy'], category:'Bandera 🚩', hint:'La bota con el Coliseo, la pasta y la pizza' },
+  { url:'https://flagcdn.com/w320/es.png', answer:'España', accepts:['espana','españa','spain'], category:'Bandera 🚩', hint:'País del flamenco, la paella y el Real Madrid' },
+  { url:'https://flagcdn.com/w320/us.png', answer:'Estados Unidos', accepts:['estados unidos','usa','eeuu','united states','america','norteamerica','norteamérica'], category:'Bandera 🚩', hint:'Las estrellas y las barras — 50 estados' },
+  { url:'https://flagcdn.com/w320/gb.png', answer:'Reino Unido', accepts:['reino unido','uk','united kingdom','gran bretana','gran bretaña','england','inglaterra','britain'], category:'Bandera 🚩', hint:'La Union Jack — la bandera más reconocida del mundo' },
+  { url:'https://flagcdn.com/w320/ca.png', answer:'Canadá', accepts:['canada','canadá'], category:'Bandera 🚩', hint:'La hoja de arce roja entre dos franjas rojas' },
+  { url:'https://flagcdn.com/w320/au.png', answer:'Australia', accepts:['australia'], category:'Bandera 🚩', hint:'El continente-isla con canguros y koalas' },
+  { url:'https://flagcdn.com/w320/kr.png', answer:'Corea del Sur', accepts:['corea del sur','corea','korea','south korea'], category:'Bandera 🚩', hint:'K-pop, Samsung, kimchi y el círculo yin yang' },
+  { url:'https://flagcdn.com/w320/cn.png', answer:'China', accepts:['china'], category:'Bandera 🚩', hint:'La Gran Muralla, los pandas y la estrella grande' },
+  { url:'https://flagcdn.com/w320/in.png', answer:'India', accepts:['india'], category:'Bandera 🚩', hint:'El Taj Mahal, el curry y el río Ganges' },
+  { url:'https://flagcdn.com/w320/pt.png', answer:'Portugal', accepts:['portugal'], category:'Bandera 🚩', hint:'Fado, bacalao, Lisboa y las playas del Algarve' },
+  { url:'https://flagcdn.com/w320/cl.png', answer:'Chile', accepts:['chile'], category:'Bandera 🚩', hint:'El país más largo del mundo, de norte a sur' },
+  { url:'https://flagcdn.com/w320/gr.png', answer:'Grecia', accepts:['grecia','greece'], category:'Bandera 🚩', hint:'El Partenón, los dioses olímpicos y la filosofía' },
+  { url:'https://flagcdn.com/w320/nl.png', answer:'Países Bajos', accepts:['paises bajos','países bajos','holanda','netherlands','holland'], category:'Bandera 🚩', hint:'Tulipanes, molinos de viento y queso Gouda' },
+  { url:'https://flagcdn.com/w320/se.png', answer:'Suecia', accepts:['suecia','sweden'], category:'Bandera 🚩', hint:'IKEA, ABBA, Volvo y auroras boreales' },
+  { url:'https://flagcdn.com/w320/ch.png', answer:'Suiza', accepts:['suiza','switzerland'], category:'Bandera 🚩', hint:'Relojes, chocolate, los Alpes y la Cruz Roja' },
+  { url:'https://flagcdn.com/w320/cu.png', answer:'Cuba', accepts:['cuba'], category:'Bandera 🚩', hint:'Salsa, mojitos, la Habana Vieja y el Che Guevara' },
+  { url:'https://flagcdn.com/w320/tr.png', answer:'Turquía', accepts:['turquia','turquía','turkey'], category:'Bandera 🚩', hint:'Entre Europa y Asia, famosa por la media luna y estrella' },
+  { url:'https://flagcdn.com/w320/za.png', answer:'Sudáfrica', accepts:['sudafrica','sudáfrica','south africa'], category:'Bandera 🚩', hint:'La Nación Arcoíris de Nelson Mandela y los leones' },
+  { url:'https://flagcdn.com/w320/no.png', answer:'Noruega', accepts:['noruega','norway'], category:'Bandera 🚩', hint:'Fiordos, auroras boreales y los vikingos' },
+  { url:'https://flagcdn.com/w320/ru.png', answer:'Rusia', accepts:['rusia','russia'], category:'Bandera 🚩', hint:'El país más grande del mundo, el Kremlin y la matryoshka' },
+  { url:'https://flagcdn.com/w320/eg.png', answer:'Egipto', accepts:['egipto','egypt'], category:'Bandera 🚩', hint:'Las pirámides de Guiza, el Nilo y las momias' },
+  { url:'https://flagcdn.com/w320/ng.png', answer:'Nigeria', accepts:['nigeria'], category:'Bandera 🚩', hint:'El país más poblado de África, hogar de Nollywood' },
+  { url:'https://flagcdn.com/w320/pe.png', answer:'Perú', accepts:['peru','perú'], category:'Bandera 🚩', hint:'Machu Picchu, el ceviche y los Incas' },
+  // --- MARCAS ---
+  { url:'https://logo.clearbit.com/apple.com', answer:'Apple', accepts:['apple','apple inc'], category:'Marca 🏷️', hint:'La manzana mordida de Cupertino, California' },
+  { url:'https://logo.clearbit.com/google.com', answer:'Google', accepts:['google'], category:'Marca 🏷️', hint:'El buscador más usado del mundo, con logo multicolor' },
+  { url:'https://logo.clearbit.com/nike.com', answer:'Nike', accepts:['nike'], category:'Marca 🏷️', hint:'"Just Do It" — el swoosh más famoso del deporte' },
+  { url:'https://logo.clearbit.com/amazon.com', answer:'Amazon', accepts:['amazon'], category:'Marca 🏷️', hint:'La flecha de la A a la Z — la tienda online más grande' },
+  { url:'https://logo.clearbit.com/netflix.com', answer:'Netflix', accepts:['netflix'], category:'Marca 🏷️', hint:'La N roja del streaming más popular del mundo' },
+  { url:'https://logo.clearbit.com/spotify.com', answer:'Spotify', accepts:['spotify'], category:'Marca 🏷️', hint:'Tres ondas verdes para escuchar toda la música del mundo' },
+  { url:'https://logo.clearbit.com/youtube.com', answer:'YouTube', accepts:['youtube','you tube'], category:'Marca 🏷️', hint:'El botón de play rojo más visto del internet' },
+  { url:'https://logo.clearbit.com/instagram.com', answer:'Instagram', accepts:['instagram','ig'], category:'Marca 🏷️', hint:'La cámara de colores para compartir fotos y videos' },
+  { url:'https://logo.clearbit.com/tesla.com', answer:'Tesla', accepts:['tesla'], category:'Marca 🏷️', hint:'Los autos eléctricos del futuro de Elon Musk' },
+  { url:'https://logo.clearbit.com/starbucks.com', answer:'Starbucks', accepts:['starbucks'], category:'Marca 🏷️', hint:'La sirena del café verde — en cada esquina del mundo' },
+  { url:'https://logo.clearbit.com/ikea.com', answer:'IKEA', accepts:['ikea'], category:'Marca 🏷️', hint:'Muebles suecos en azul y amarillo para armar tú mismo' },
+  { url:'https://logo.clearbit.com/lego.com', answer:'LEGO', accepts:['lego'], category:'Marca 🏷️', hint:'Los bloques de colores más famosos del mundo' },
+  { url:'https://logo.clearbit.com/disney.com', answer:'Disney', accepts:['disney','walt disney'], category:'Marca 🏷️', hint:'El ratón mágico de Mickey — donde los sueños se hacen realidad' },
+  { url:'https://logo.clearbit.com/mcdonalds.com', answer:"McDonald's", accepts:["mcdonalds","mcdonald's","mc donalds","macdonalds"], category:'Marca 🏷️', hint:'Los arcos dorados del Big Mac — la M más famosa del mundo' },
+  { url:'https://logo.clearbit.com/adidas.com', answer:'Adidas', accepts:['adidas'], category:'Marca 🏷️', hint:'Las tres rayas imposibles del deporte alemán' },
+  { url:'https://logo.clearbit.com/microsoft.com', answer:'Microsoft', accepts:['microsoft'], category:'Marca 🏷️', hint:'El cuadrado de cuatro colores de Windows' },
+  { url:'https://logo.clearbit.com/samsung.com', answer:'Samsung', accepts:['samsung'], category:'Marca 🏷️', hint:'El gigante tecnológico coreano en azul' },
+  { url:'https://logo.clearbit.com/tiktok.com', answer:'TikTok', accepts:['tiktok','tik tok'], category:'Marca 🏷️', hint:'La nota musical de los videos cortos más virales' },
+  { url:'https://logo.clearbit.com/airbnb.com', answer:'Airbnb', accepts:['airbnb','air bnb'], category:'Marca 🏷️', hint:'La cabeza rosa de "Belong Anywhere"' },
+  { url:'https://logo.clearbit.com/uber.com', answer:'Uber', accepts:['uber'], category:'Marca 🏷️', hint:'El auto más pedido desde el teléfono en 70 países' },
+];
+
+function initImagenGame() {
+  const PUZZLES_PER_DAY = 3;
+  const MAX_REVEALS = 6;
+  const GRID_COLS = 4, GRID_ROWS = 3, TOTAL_TILES = GRID_COLS * GRID_ROWS; // 12
+  const TILES_PER_REVEAL = 2; // 2×6 = 12
+
+  const dayIdx = getDayIndex();
+
+  // Select today's 3 puzzles with seeded RNG + Fisher-Yates
+  function selectDailyPuzzles() {
+    const rng = seededRandom(dayIdx * 31337 + 4444);
+    const all = IMAGEN_DATA.map((_, i) => i);
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    return all.slice(0, PUZZLES_PER_DAY).map(i => IMAGEN_DATA[i]);
+  }
+
+  const dailyPuzzles = selectDailyPuzzles();
+  let currentIdx = 0;
+  let currentReveals = 0;
+  let tileOrder = [];
+  let tileEls = [];
+  let isDone = false;
+
+  // DOM refs
+  const imgEl        = document.getElementById('imagenImg');
+  const overlayEl    = document.getElementById('imagenOverlay');
+  const revealDotsEl = document.getElementById('imagenRevealDots');
+  const categoryEl   = document.getElementById('imagenCategory');
+  const msgEl        = document.getElementById('imagenMsg');
+  const inputEl      = document.getElementById('imagenInput');
+  const hintEl       = document.getElementById('imagenHint');
+  const scoreBoxEl   = document.getElementById('imagenScoreBox');
+  const inputAreaEl  = document.getElementById('imagenInputArea');
+  const revealBtn    = document.getElementById('imagenRevealBtn');
+  const hintBtn      = document.getElementById('imagenHintBtn');
+  const giveUpBtn    = document.getElementById('imagenGiveUpBtn');
+  const nextBtn      = document.getElementById('imagenNextBtn');
+  const shareSection = document.getElementById('imagenShareSection');
+  const shareBtn     = document.getElementById('imagenShareBtn');
+  const shareText    = document.getElementById('imagenShareText');
+  const revealsSpan  = document.getElementById('imagenReveals');
+
+  function stateKey(n) { return 'relajate_imagen_' + dayIdx + '_p' + n; }
+
+  function normalize(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  }
+
+  function buildGrid() {
+    overlayEl.innerHTML = '';
+    tileEls = [];
+    // Deterministic tile reveal order per puzzle
+    const rng = seededRandom(dayIdx * 999 + currentIdx * 37 + 1);
+    tileOrder = Array.from({length: TOTAL_TILES}, (_, i) => i);
+    for (let i = tileOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [tileOrder[i], tileOrder[j]] = [tileOrder[j], tileOrder[i]];
+    }
+    for (let i = 0; i < TOTAL_TILES; i++) {
+      const tile = document.createElement('div');
+      tile.className = 'imagen-tile';
+      overlayEl.appendChild(tile);
+      tileEls.push(tile);
+    }
+  }
+
+  function applyReveals(count, instant) {
+    const cls = instant ? 'revealed-instant' : 'revealed';
+    for (let r = 0; r < count; r++) {
+      const start = r * TILES_PER_REVEAL;
+      for (let t = start; t < Math.min(start + TILES_PER_REVEAL, TOTAL_TILES); t++) {
+        if (tileEls[tileOrder[t]]) tileEls[tileOrder[t]].classList.add(cls);
+      }
+    }
+    if (count >= MAX_REVEALS) tileEls.forEach(el => el.classList.add(cls));
+  }
+
+  function updateDots() {
+    const dots = revealDotsEl.querySelectorAll('.imagen-reveal-dot');
+    dots.forEach((d, i) => {
+      d.classList.toggle('used', i < currentReveals);
+      d.classList.toggle('hot', i >= 4 && i < currentReveals);
+    });
+    revealsSpan.textContent = currentReveals;
+  }
+
+  function updateButtons() {
+    const full = currentReveals >= MAX_REVEALS;
+    revealBtn.disabled = full || isDone;
+    revealBtn.textContent = full ? '✓ Imagen revelada' : ('👁️ Revelar más (' + (MAX_REVEALS - currentReveals) + ')');
+    giveUpBtn.style.display = (currentReveals >= 2 && !isDone) ? 'inline-flex' : 'none';
+  }
+
+  function starsFor(reveals, won) {
+    if (!won) return 0;
+    if (reveals === 0) return 6;
+    return Math.max(1, 6 - reveals);
+  }
+
+  function showResult(stars, won) {
+    const puzzle = dailyPuzzles[currentIdx];
+    msgEl.textContent = won ? '✅ ¡Correcto!' : ('💡 Era: ' + puzzle.answer);
+    msgEl.style.color = won ? '#27ae60' : '#e74c3c';
+
+    const filled = '⭐'.repeat(stars);
+    const empty  = '○'.repeat(Math.max(0, 6 - stars));
+    const sub = won
+      ? (currentReveals === 0 ? '¡A ciegas! 🎯 Perfecto.' : 'Con ' + currentReveals + ' revelaci' + (currentReveals===1?'ón':'ones'))
+      : 'Sigue practicando 💪';
+
+    scoreBoxEl.style.display = '';
+    scoreBoxEl.innerHTML =
+      '<div style="font-weight:700;color:var(--text-primary);">' + sub + '</div>' +
+      '<div class="imagen-stars">' + filled + empty + '</div>';
+
+    revealBtn.style.display = 'none';
+    hintBtn.style.display = 'none';
+    giveUpBtn.style.display = 'none';
+    inputAreaEl.style.display = 'none';
+
+    // All tiles gone
+    tileEls.forEach(el => {
+      el.classList.add('revealed');
+    });
+
+    const hasMore = currentIdx < PUZZLES_PER_DAY - 1;
+    nextBtn.style.display = hasMore ? 'inline-flex' : 'none';
+    if (!hasMore) {
+      setTimeout(showDayComplete, 1200);
+    }
+  }
+
+  function saveState(stars, won) {
+    localStorage.setItem(stateKey(currentIdx), JSON.stringify({
+      reveals: currentReveals, done: isDone, stars: stars||0, won: won||false
+    }));
+  }
+
+  function showDayComplete() {
+    let total = 0, maxPossible = PUZZLES_PER_DAY * 6;
+    for (let i = 0; i < PUZZLES_PER_DAY; i++) {
+      const s = localStorage.getItem(stateKey(i));
+      if (s) total += (JSON.parse(s).stars || 0);
+    }
+    scoreBoxEl.style.display = '';
+    scoreBoxEl.innerHTML =
+      '<div class="imagen-day-score">' +
+      '<div style="font-size:1.4rem;font-weight:800;margin-bottom:0.4rem;">🎉 ¡Día completado!</div>' +
+      '<div style="font-size:2rem;letter-spacing:3px;">' + '⭐'.repeat(total) + '○'.repeat(Math.max(0,maxPossible-total)) + '</div>' +
+      '<div style="font-size:0.9rem;opacity:0.9;margin-top:0.4rem;">' + total + ' / ' + maxPossible + ' estrellas</div>' +
+      '</div>';
+    shareSection.style.display = 'block';
+    launchConfetti();
+  }
+
+  function loadPuzzle(idx) {
+    currentIdx = idx;
+    currentReveals = 0;
+    isDone = false;
+
+    const puzzle = dailyPuzzles[idx];
+    categoryEl.textContent = puzzle.category + '  ·  Imagen ' + (idx+1) + ' de ' + PUZZLES_PER_DAY;
+
+    // Reset UI
+    imgEl.src = puzzle.url;
+    msgEl.textContent = '';
+    msgEl.style.color = '';
+    inputEl.value = '';
+    hintEl.style.display = 'none';
+    scoreBoxEl.style.display = 'none';
+    inputAreaEl.style.display = '';
+    revealBtn.style.display = '';
+    hintBtn.style.display = '';
+    nextBtn.style.display = 'none';
+    shareSection.style.display = 'none';
+
+    buildGrid();
+
+    // Restore saved state
+    const saved = localStorage.getItem(stateKey(idx));
+    if (saved) {
+      const data = JSON.parse(saved);
+      currentReveals = data.reveals || 0;
+      isDone = data.done || false;
+      applyReveals(currentReveals, true);
+      if (isDone) {
+        showResult(data.stars, data.won);
+      }
+    }
+
+    updateDots();
+    updateButtons();
+  }
+
+  // ---- Event: Reveal ----
+  revealBtn.addEventListener('click', () => {
+    if (currentReveals >= MAX_REVEALS || isDone) return;
+    const start = currentReveals * TILES_PER_REVEAL;
+    for (let t = start; t < Math.min(start + TILES_PER_REVEAL, TOTAL_TILES); t++) {
+      const tileIdx = tileOrder[t];
+      setTimeout(() => { if(tileEls[tileIdx]) tileEls[tileIdx].classList.add('revealed'); }, (t - start) * 180);
+    }
+    currentReveals++;
+    if (currentReveals === 3 && hintEl.style.display === 'none') {
+      hintEl.style.display = '';
+      hintEl.textContent = '💡 ' + dailyPuzzles[currentIdx].hint;
+    }
+    if (currentReveals >= MAX_REVEALS) {
+      tileEls.forEach(el => el.classList.add('revealed'));
+    }
+    haptic(30);
+    updateDots();
+    updateButtons();
+    saveState(0, false);
+  });
+
+  // ---- Event: Hint ----
+  hintBtn.addEventListener('click', () => {
+    hintEl.style.display = hintEl.style.display === 'none' ? '' : 'none';
+    hintEl.textContent = '💡 ' + dailyPuzzles[currentIdx].hint;
+  });
+
+  // ---- Event: Give up ----
+  giveUpBtn.addEventListener('click', () => {
+    isDone = true;
+    saveState(0, false);
+    showResult(0, false);
+  });
+
+  // ---- Event: Guess ----
+  function checkGuess() {
+    if (isDone) return;
+    const guess = normalize(inputEl.value);
+    if (!guess) return;
+    const puzzle = dailyPuzzles[currentIdx];
+    const valid = puzzle.accepts.map(normalize);
+    if (valid.includes(guess)) {
+      isDone = true;
+      const stars = starsFor(currentReveals, true);
+      haptic([50,30,100]);
+      saveState(stars, true);
+      showResult(stars, true);
+    } else {
+      haptic(80);
+      msgEl.textContent = '❌ No es correcto, intenta de nuevo';
+      msgEl.style.color = '#e74c3c';
+      inputEl.value = '';
+      setTimeout(() => { msgEl.textContent = ''; msgEl.style.color = ''; }, 1800);
+    }
+  }
+  document.getElementById('imagenGuessBtn').addEventListener('click', checkGuess);
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') checkGuess(); });
+
+  // ---- Event: Next puzzle ----
+  nextBtn.addEventListener('click', () => {
+    if (currentIdx < PUZZLES_PER_DAY - 1) loadPuzzle(currentIdx + 1);
+  });
+
+  // ---- Event: Share ----
+  shareBtn.addEventListener('click', () => {
+    const starsRow = Array.from({length: PUZZLES_PER_DAY}, (_, i) => {
+      const s = localStorage.getItem(stateKey(i));
+      const stars = s ? (JSON.parse(s).stars || 0) : 0;
+      return '⭐'.repeat(stars) + '○'.repeat(Math.max(0,6-stars));
+    }).join('\n');
+    const text = 'Relajate.com — Imagen Zen\nDía ' + dayIdx + '\n\n' + starsRow + '\n\nrelajate.com/games.html';
+    shareText.textContent = text;
+    shareText.style.display = '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('¡Copiado!'));
+  });
+
+  // Build dots
+  revealDotsEl.innerHTML = Array(MAX_REVEALS).fill('<div class="imagen-reveal-dot"></div>').join('');
+
+  // Start
+  loadPuzzle(0);
+}
+
 // Init all games
 initWordGame();
 initPatternGame();
@@ -2550,6 +2992,7 @@ initMemoryGame();
 initWordleGame();
 initEmojiGame();
 initSchulteGame();
+initImagenGame();
 </script>
 <script src="mini-player.js"></script>
 <script>
