@@ -537,7 +537,10 @@
     <div class="game-board">
       <div class="game-header">
         <h3>Palabra del D&iacute;a</h3>
-        <span class="game-score">Intento: <span id="wordleAttempt">0</span>/6</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <button id="wordleStatsBtn" class="btn btn-outline btn-sm" style="padding:0.25rem 0.6rem;font-size:0.8rem;" title="Ver estad&iacute;sticas">&#128202;</button>
+          <span class="game-score">Intento: <span id="wordleAttempt">0</span>/6</span>
+        </div>
       </div>
       <div class="game-instructions">Adivina la <strong>palabra de 5 letras</strong> en 6 intentos. Escribe con el teclado y presiona <strong>ENVIAR</strong>.<br>
         <span class="color-hint"><span class="hint-green"></span> Verde = letra correcta en su lugar</span> &nbsp;
@@ -553,6 +556,7 @@
         <button class="btn btn-solid btn-sm" id="shareWordleBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="wordleShareText" class="share-result" style="display:none;"></div>
+      <div id="wordleStatsCard" class="wordle-stats-card" style="display:none;"></div>
     </div>
   </div>
 
@@ -606,6 +610,7 @@
       <div class="schulte-next">Siguiente: <span id="schulteNext">1</span></div>
       <div class="schulte-grid" id="schulteGrid"></div>
       <div class="schulte-yesterday" id="schulteYesterday"></div>
+      <div class="schulte-trend" id="schulteTrend"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
         <button class="btn btn-outline btn-sm" id="schulteResetBtn">&#128260; Reiniciar</button>
         <button class="btn btn-outline btn-sm" id="giveUpSchulteBtn" style="background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Rendirse</button>
@@ -1817,7 +1822,9 @@ function submitWordleGuess() {
       document.getElementById('shareWordleBtn').style.display = '';
       document.getElementById('giveUpWordleBtn').style.display = 'none';
       launchConfetti();
+      haptic([50, 30, 100]);
       incrementGamesCompleted();
+      recordWordleResult(true, wordleState.guesses.length);
       // Bounce winning row
       for (let i = 0; i < 5; i++) {
         const cell = document.getElementById('wc-' + (row) + '-' + i);
@@ -1828,6 +1835,7 @@ function submitWordleGuess() {
       document.getElementById('wordleMsg').textContent = 'La palabra era: ' + wordleState.answer;
       document.getElementById('shareWordleBtn').style.display = '';
       document.getElementById('giveUpWordleBtn').style.display = 'none';
+      recordWordleResult(false, 6);
     }
 
     renderWordleKeyboard();
@@ -1858,6 +1866,61 @@ function saveWordleState() {
   }));
 }
 
+// ---- Wordle stats ----
+function getWordleStats() {
+  return JSON.parse(localStorage.getItem('relajate_wordle_stats') || '{"played":0,"wins":0,"currentStreak":0,"bestStreak":0,"distribution":[0,0,0,0,0,0],"lastDay":-1,"lastWon":false}');
+}
+function recordWordleResult(won, guesses) {
+  const day = getDayIndex();
+  const s = getWordleStats();
+  if (s.lastDay === day) return; // already recorded today
+  s.played++;
+  s.lastDay = day;
+  s.lastWon = won;
+  if (won) {
+    s.wins++;
+    s.distribution[guesses - 1] = (s.distribution[guesses - 1] || 0) + 1;
+    if (s.lastDay === day - 1 || s.currentStreak === 0) { /* continuing */ }
+    s.currentStreak++;
+    if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak;
+  } else {
+    s.currentStreak = 0;
+  }
+  localStorage.setItem('relajate_wordle_stats', JSON.stringify(s));
+  renderWordleStats(true);
+}
+function renderWordleStats(autoShow) {
+  const s = getWordleStats();
+  const card = document.getElementById('wordleStatsCard');
+  const pct = s.played > 0 ? Math.round(s.wins / s.played * 100) : 0;
+  const total = s.wins || 1;
+  const current = wordleState.gameOver && wordleState.won ? wordleState.guesses.length : -1;
+  card.innerHTML = `
+    <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Estadísticas</div>
+    <div class="wordle-stats-grid">
+      <div class="wordle-stat-box"><div class="ws-num">${s.played}</div><div class="ws-label">Jugadas</div></div>
+      <div class="wordle-stat-box"><div class="ws-num">${pct}%</div><div class="ws-label">Victorias</div></div>
+      <div class="wordle-stat-box"><div class="ws-num">${s.currentStreak}</div><div class="ws-label">Racha</div></div>
+      <div class="wordle-stat-box"><div class="ws-num">${s.bestStreak}</div><div class="ws-label">Mejor</div></div>
+    </div>
+    <div class="wordle-dist-title">Distribución de intentos</div>
+    ${[1,2,3,4,5,6].map(n => {
+      const count = s.distribution[n-1] || 0;
+      const w = total > 0 ? Math.max(8, Math.round(count / total * 100)) : 8;
+      const isCurrent = (n === current);
+      return `<div class="wordle-dist-row">
+        <span class="wdr-num">${n}</span>
+        <div class="wdr-bar-wrap"><div class="wdr-bar${isCurrent?' current':''}" style="width:${w}%">${count > 0 ? count : ''}</div></div>
+      </div>`;
+    }).join('')}`;
+  if (autoShow) card.style.display = '';
+}
+document.getElementById('wordleStatsBtn').addEventListener('click', () => {
+  const card = document.getElementById('wordleStatsCard');
+  renderWordleStats(false);
+  card.style.display = card.style.display === 'none' ? '' : 'none';
+});
+
 // Physical keyboard input for Wordle
 document.addEventListener('keydown', (e) => {
   // Only handle if Wordle tab is active
@@ -1886,6 +1949,7 @@ document.getElementById('giveUpWordleBtn').addEventListener('click', () => {
   document.getElementById('wordleMsg').textContent = 'La palabra era: ' + wordleState.answer;
   document.getElementById('shareWordleBtn').style.display = '';
   document.getElementById('giveUpWordleBtn').style.display = 'none';
+  recordWordleResult(false, wordleState.row);
   saveWordleState();
 });
 
@@ -1907,6 +1971,11 @@ document.getElementById('shareWordleBtn').addEventListener('click', () => {
 });
 
 // ==================== GAME 7: EMOJI ZEN ====================
+// ---- Helper: haptic feedback ----
+function haptic(pattern) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern || 50); } catch(e) {}
+}
+
 const EMOJI_PUZZLES = [
   { emojis: '🌊🧘‍♂️🌅', answer: 'meditación en la playa', category: 'Concepto', hint: 'Relajación junto al mar', accepts: ['meditacion en la playa','meditacion playa','meditar en la playa','yoga en la playa','playa zen','beach meditation','meditation on the beach'] },
   { emojis: '🦁👑🌍', answer: 'el rey león', category: 'Película', hint: 'Clásico animado de Disney', accepts: ['rey leon','el rey leon','lion king','the lion king'] },
@@ -1948,6 +2017,47 @@ const EMOJI_PUZZLES = [
   { emojis: '🐧❄️🌊', answer: 'antártida', category: 'Lugar', hint: 'El continente más frío', accepts: ['antartida','antártida','polo sur','antarctica','pingüinos','pinguinos','south pole','antartic'] },
   { emojis: '🧛🏰🌙', answer: 'drácula', category: 'Personaje', hint: 'El conde de Transilvania', accepts: ['dracula','drácula','vampiro','vampiros','conde dracula','count dracula','vampire'] },
   { emojis: '🎨🖌️🌻', answer: 'van gogh', category: 'Artista', hint: 'Los girasoles más famosos del mundo', accepts: ['van gogh','vincent van gogh','girasoles','los girasoles','pintura','sunflowers'] },
+  // --- Batch 2: 40 nuevos puzzles ---
+  { emojis: '🧙‍♂️⚡👓', answer: 'harry potter', category: 'Película', hint: 'El niño que sobrevivió', accepts: ['harry potter','hp','hogwarts','el niño que sobrevivio'] },
+  { emojis: '🤖❤️🌍', answer: 'wall-e', category: 'Película', hint: 'Un robot enamorado en la Tierra vacía', accepts: ['wall-e','walle','wall e','pixar robot'] },
+  { emojis: '🎈👴✈️', answer: 'up', category: 'Película', hint: 'Una casa que vuela con globos', accepts: ['up','arriba','pixar up','casa con globos'] },
+  { emojis: '🕷️🏙️🦸', answer: 'spider-man', category: 'Película', hint: 'El hombre araña', accepts: ['spider-man','spiderman','spider man','el hombre araña','hombre araña'] },
+  { emojis: '🧜‍♀️🐚🌊', answer: 'la sirenita', category: 'Película', hint: 'Ariel quiere ser humana', accepts: ['la sirenita','sirenita','the little mermaid','ariel','little mermaid'] },
+  { emojis: '🍕👨‍🍳🔵', answer: 'breaking bad', category: 'Serie', hint: 'Un químico que se vuelve villano', accepts: ['breaking bad','breaking bad serie','walter white'] },
+  { emojis: '🧟‍♂️🏠🔫', answer: 'the walking dead', category: 'Serie', hint: 'Sobrevivientes en un mundo zombie', accepts: ['the walking dead','walking dead','los muertos vivientes','muertos vivientes','zombies'] },
+  { emojis: '🌅☕🐦', answer: 'mañana tranquila', category: 'Momento', hint: 'El mejor comienzo del día', accepts: ['manana tranquila','mañana tranquila','manana en calma','buenos dias','peaceful morning','morning calm'] },
+  { emojis: '🕯️🛁🌹', answer: 'baño relajante', category: 'Momento', hint: 'Agua caliente y aromas', accepts: ['baño relajante','bano relajante','bano de tina','baño de tina','relaxing bath','bath time'] },
+  { emojis: '🌌🔭⭐', answer: 'astronomía', category: 'Ciencia', hint: 'Estudiar las estrellas', accepts: ['astronomia','astronomía','estrellas','observar estrellas','astronomy','stargazing'] },
+  { emojis: '🎺🌃🎷', answer: 'jazz nocturno', category: 'Música', hint: 'Música de la ciudad de noche', accepts: ['jazz nocturno','jazz','nocturno','musica jazz','night jazz'] },
+  { emojis: '💐🎂🕯️', answer: 'cumpleaños', category: 'Celebración', hint: 'Un año más de vida', accepts: ['cumpleanos','cumpleaños','happy birthday','feliz cumpleanos','birthday'] },
+  { emojis: '💍💒❤️', answer: 'boda', category: 'Celebración', hint: 'El día más especial', accepts: ['boda','casamiento','matrimonio','wedding','la boda'] },
+  { emojis: '🎓📜🎉', answer: 'graduación', category: 'Celebración', hint: 'El final de una etapa', accepts: ['graduacion','graduación','grado','diploma','graduation'] },
+  { emojis: '🥂🎆🌙', answer: 'año nuevo', category: 'Celebración', hint: '¡Feliz año nuevo!', accepts: ['año nuevo','ano nuevo','noche vieja','new year','feliz año nuevo','nochevieja'] },
+  { emojis: '🌹💝📝', answer: 'san valentín', category: 'Celebración', hint: 'El día del amor', accepts: ['san valentin','san valentín','valentines','valentins day','dia del amor','dia de los enamorados'] },
+  { emojis: '🗼🥐🎨', answer: 'paris', category: 'Lugar', hint: 'La ciudad del amor', accepts: ['paris','parís','ciudad del amor','france','eiffel','la ciudad luz'] },
+  { emojis: '🌺🏝️🌊', answer: 'hawaii', category: 'Lugar', hint: 'Paraíso volcánico en el Pacífico', accepts: ['hawaii','hawai','hawaii','paraiso tropical','tropical paradise'] },
+  { emojis: '🏔️🧀🍫', answer: 'suiza', category: 'Lugar', hint: 'Montañas, relojes y chocolate', accepts: ['suiza','switzerland','suisse','reloj suizo'] },
+  { emojis: '🎭🛶🌊', answer: 'venecia', category: 'Lugar', hint: 'La ciudad flotante', accepts: ['venecia','venice','venezia','ciudad flotante'] },
+  { emojis: '🌴🌅🎶', answer: 'cuba', category: 'Lugar', hint: 'Salsa, cigarros y playas', accepts: ['cuba','la habana','havana','salsa cubana'] },
+  { emojis: '🦁🌿🌍', answer: 'safari', category: 'Aventura', hint: 'Leones y elefantes en su hábitat', accepts: ['safari','safari africano','africa','savana'] },
+  { emojis: '🐢🌊🏖️', answer: 'tortuga marina', category: 'Naturaleza', hint: 'Nada lento y vive cien años', accepts: ['tortuga marina','tortuga','sea turtle','marine turtle'] },
+  { emojis: '🦋🌸🌿', answer: 'jardín de mariposas', category: 'Naturaleza', hint: 'Un lugar lleno de color y vuelo', accepts: ['jardin de mariposas','jardín de mariposas','mariposas','butterfly garden','mariposa'] },
+  { emojis: '🌿💧🍃', answer: 'bosque lluvioso', category: 'Naturaleza', hint: 'El pulmón del planeta', accepts: ['bosque lluvioso','selva tropical','bosque tropical','rainforest','jungle','selva'] },
+  { emojis: '🎋🐼🌿', answer: 'panda', category: 'Animal', hint: 'El oso blanco y negro de China', accepts: ['panda','oso panda','panda gigante','giant panda','bamboo bear'] },
+  { emojis: '🦢🌊🌾', answer: 'serenidad', category: 'Concepto', hint: 'Paz profunda y tranquilidad', accepts: ['serenidad','tranquilidad','calma','paz interior','serenity','inner peace'] },
+  { emojis: '🏔️🌄🦅', answer: 'amanecer en la montaña', category: 'Momento', hint: 'El sol saliendo sobre los picos', accepts: ['amanecer en la montana','amanecer en la montaña','amanecer','sunrise mountain','mountain sunrise'] },
+  { emojis: '🌙✨💤', answer: 'sueño profundo', category: 'Concepto', hint: 'El mejor descanso nocturno', accepts: ['sueno profundo','sueño profundo','dormir bien','deep sleep','descanso nocturno'] },
+  { emojis: '🍓🥛✨', answer: 'desayuno saludable', category: 'Momento', hint: 'La primera comida del día', accepts: ['desayuno saludable','desayuno','breakfast','healthy breakfast','primera comida'] },
+  { emojis: '🌧️🏡🔥', answer: 'noche en casa', category: 'Momento', hint: 'Lluvia afuera, calidez adentro', accepts: ['noche en casa','noche de lluvia','noche lluvia','cozy night','rainy night home','noche acogedora'] },
+  { emojis: '🎵🎧🚶‍♀️', answer: 'caminar escuchando música', category: 'Actividad', hint: 'Ritmo en los pies y en los oídos', accepts: ['caminar escuchando musica','caminar con musica','music walk','walking with music','paseo con musica'] },
+  { emojis: '🥘🍅🧅', answer: 'paella', category: 'Comida', hint: 'El plato más famoso de España', accepts: ['paella','paella valenciana','arroz con mariscos','spanish paella'] },
+  { emojis: '🥁🔥💃', answer: 'flamenco', category: 'Arte', hint: 'Baile apasionado del sur de España', accepts: ['flamenco','baile flamenco','danza flamenca','flamenco dance'] },
+  { emojis: '🐂🔴🌂', answer: 'españa', category: 'Lugar', hint: 'Toros, sol y siesta', accepts: ['espana','españa','spain','hispania','iberia'] },
+  { emojis: '🧠💡✨', answer: 'inspiración', category: 'Concepto', hint: 'Cuando la idea llega sola', accepts: ['inspiracion','inspiración','idea','creativity','creatividad','inspiration'] },
+  { emojis: '🌈🌦️☀️', answer: 'después de la lluvia', category: 'Momento', hint: 'El arcoíris siempre llega', accepts: ['despues de la lluvia','después de la lluvia','arcoiris','after the rain','rainbow','after rain'] },
+  { emojis: '🚀🌌🌟', answer: 'viaje al espacio', category: 'Aventura', hint: 'Más allá de las estrellas', accepts: ['viaje al espacio','espacio','space travel','outer space','space voyage','cosmos'] },
+  { emojis: '🍵🌿🤫', answer: 'té verde', category: 'Bebida', hint: 'La infusión de la serenidad', accepts: ['te verde','té verde','green tea','matcha','infusion verde'] },
+  { emojis: '🦚🌺🎨', answer: 'arte natural', category: 'Arte', hint: 'La naturaleza como lienzo', accepts: ['arte natural','naturaleza arte','nature art','land art','arte de la naturaleza'] },
 ];
 
 function initEmojiGame() {
@@ -2219,6 +2329,26 @@ function initEmojiGame() {
 }
 
 // ==================== GAME 9: ESCALERA ZEN (SCHULTE) ====================
+function renderSchulteTrend(size, hist) {
+  const el = document.getElementById('schulteTrend');
+  if (!el || hist.length < 2) { if (el) el.innerHTML = ''; return; }
+  const bestKey = 'relajate_schulte_' + size + '_best';
+  const pb = parseInt(localStorage.getItem(bestKey) || '9999');
+  const maxT = Math.max(...hist.map(h => h.t));
+  const minT = Math.min(...hist.map(h => h.t));
+  const range = maxT - minT || 1;
+  el.innerHTML = '<div class="schulte-trend-title">Últimas ' + hist.length + ' partidas</div>' +
+    '<div class="schulte-trend-bars">' +
+    hist.map(h => {
+      const barH = Math.round(8 + ((maxT - h.t) / range) * 42);
+      const isPB = h.t === pb;
+      return '<div class="schulte-trend-col">' +
+        '<div class="schulte-trend-bar' + (isPB ? ' pb' : '') + '" style="height:' + barH + 'px"></div>' +
+        '<div class="schulte-trend-time">' + Math.floor(h.t/60) + ':' + (h.t%60).toString().padStart(2,'0') + '</div>' +
+        '</div>';
+    }).join('') + '</div>';
+}
+
 function initSchulteGame() {
   const grid = document.getElementById('schulteGrid');
   const timerSpan = document.getElementById('schulteTimer');
@@ -2308,7 +2438,7 @@ function initSchulteGame() {
         showToast('🎉 ¡Completado en ' + fmt(timerSeconds) + '!');
         giveUpBtn.style.display = 'none';
         shareBtn.style.display = 'inline-flex';
-        // Save
+        // Save best
         const key = 'relajate_schulte_' + size + '_best';
         const prev = parseInt(localStorage.getItem(key) || '9999');
         if (timerSeconds < prev) {
@@ -2316,6 +2446,14 @@ function initSchulteGame() {
           bestSpan.textContent = fmt(timerSeconds);
         }
         localStorage.setItem('relajate_schulte_' + size + '_' + dayIdx, timerSeconds);
+        // Save history for trend
+        const histKey = 'relajate_schulte_' + size + '_history';
+        const hist = JSON.parse(localStorage.getItem(histKey) || '[]');
+        hist.push({ day: dayIdx, t: timerSeconds });
+        if (hist.length > 7) hist.splice(0, hist.length - 7);
+        localStorage.setItem(histKey, JSON.stringify(hist));
+        renderSchulteTrend(size, hist);
+        haptic([50, 30, 100]);
       }
     } else {
       cell.classList.add('wrong');
@@ -2387,6 +2525,9 @@ function initSchulteGame() {
     } else {
       yesterdayDiv.textContent = '';
     }
+    // Load trend
+    const hist = JSON.parse(localStorage.getItem('relajate_schulte_' + size + '_history') || '[]');
+    renderSchulteTrend(size, hist);
   }
 
   resetBtn.addEventListener('click', reset);

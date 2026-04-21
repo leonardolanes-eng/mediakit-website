@@ -144,7 +144,7 @@
       </div>
       <div>
         <div style="font-weight:600;color:var(--text-primary);">D&iacute;as escribiendo</div>
-        <div class="streak-label">Mant&eacute;n tu racha escribiendo cada d&iacute;a</div>
+        <div class="streak-label">D&iacute;as escribiendo seguidos</div>
       </div>
     </div>
 
@@ -293,6 +293,14 @@ const moodEmojis = {
   angry: '\ud83d\ude24',
   tired: '\ud83d\ude34',
   loved: '\ud83e\udd70'
+};
+const moodColors = {
+  happy: '#f59e0b',
+  neutral: '#6b9bd2',
+  sad: '#9b8ec4',
+  angry: '#ef4444',
+  tired: '#94a3b8',
+  loved: '#ec4899'
 };
 
 const gratitudes = [
@@ -516,6 +524,7 @@ function renderCalendar() {
     cell.textContent = d;
 
     if (hasEntry) {
+      cell.style.setProperty('--mood-dot', moodColors[hasEntry.mood] || '#87AE73');
       cell.title = `${moodEmojis[hasEntry.mood]} ${hasEntry.text.substring(0, 30)}...`;
       cell.addEventListener('click', () => showEntryDetail(hasEntry));
     }

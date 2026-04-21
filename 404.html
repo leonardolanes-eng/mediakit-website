@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P&aacute;gina no encontrada &middot; Relajate.com</title>
+  <meta name="theme-color" content="#6B9BD2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <style>
+    .error-page {
+      min-height: 80vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 3rem 1.5rem;
+    }
+    .breathe-circle {
+      width: 140px; height: 140px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(107,155,210,0.45) 0%, rgba(107,155,210,0.08) 70%);
+      margin: 0 auto 2rem;
+      animation: breathe404 5s ease-in-out infinite;
+    }
+    @keyframes breathe404 {
+      0%, 100% { transform: scale(1);    box-shadow: 0 0 0  0  rgba(107,155,210,0.4); }
+      50%       { transform: scale(1.28); box-shadow: 0 0 0 24px rgba(107,155,210,0); }
+    }
+    .error-number {
+      font-size: clamp(4rem, 15vw, 7rem); font-weight: 900;
+      color: var(--blue); line-height: 1; margin-bottom: 0.5rem;
+      animation: fadeInUp 0.6s ease both;
+    }
+    .error-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 0.75rem; animation: fadeInUp 0.6s ease 0.1s both;
+    }
+    .error-body {
+      color: var(--text-secondary); max-width: 340px; margin: 0 auto 2rem;
+      line-height: 1.7; font-size: 1rem; animation: fadeInUp 0.6s ease 0.2s both;
+    }
+    .error-actions { animation: fadeInUp 0.6s ease 0.3s both; }
+    .breathe-label {
+      font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      animation: fadeInUp 0.6s ease 0.05s both;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo"><img src="images/logo.png" alt="Relajate.com" class="navbar-logo-img"></a>
+      <div class="navbar-links">
+        <a href="index.html">Inicio</a>
+        <a href="games.html">Juegos</a>
+        <a href="breathing.html">Respiraci&oacute;n</a>
+        <a href="sonidos.html">Sonidos</a>
+        <a href="journal.html">Diario</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="error-page">
+    <div class="breathe-circle"></div>
+    <p class="breathe-label">inhala &mdash; exhala</p>
+    <div class="error-number">404</div>
+    <h1 class="error-title">Esta p&aacute;gina no existe</h1>
+    <p class="error-body">
+      Respira. A veces nos perdemos &mdash; y est&aacute; bien.<br>
+      Vuelve a tu espacio de calma cuando est&eacute;s listo.
+    </p>
+    <div class="error-actions" style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      <a href="index.html" class="btn btn-primary btn-lg">&#127968; Volver al inicio</a>
+      <a href="breathing.html" class="btn btn-secondary btn-lg">&#129496; Respirar</a>
+    </div>
+  </div>
+
+  <script src="mini-player.js"></script>
+</body>
+</html>

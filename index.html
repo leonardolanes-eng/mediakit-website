@@ -51,8 +51,37 @@
         <a href="breathing.html" class="btn btn-secondary btn-lg">Respirar</a>
         <a href="sonidos.html" class="btn btn-secondary btn-lg">&#127925; Sonidos</a>
       </div>
+      <div class="daily-quote" id="dailyQuote">
+        <div class="quote-text" id="quoteText"></div>
+        <div class="quote-author" id="quoteAuthor"></div>
+      </div>
+      <button class="notify-btn" id="notifyBtn">&#128276; Recordarme</button>
     </div>
   </section>
+
+  <!-- Onboarding overlay (first-time visitors) -->
+  <div class="onboarding-overlay" id="onboardingOverlay" style="display:none;">
+    <div class="onboarding-card">
+      <span class="onboarding-emoji" id="obEmoji"></span>
+      <div class="onboarding-title" id="obTitle"></div>
+      <div class="onboarding-body" id="obBody"></div>
+      <div class="onboarding-dots" id="obDots"></div>
+      <button class="btn btn-primary" id="obNextBtn" style="width:100%;"></button>
+    </div>
+  </div>
+
+  <!-- Add-to-home-screen / notify banner -->
+  <div class="a2hs-banner" id="a2hsBanner" style="display:none;">
+    <span class="a2hs-icon">&#127968;</span>
+    <div class="a2hs-text">
+      <strong>A&ntilde;ade Relajate a tu inicio</strong>
+      <small>Accede con un toque y recibe recordatorios</small>
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+      <button class="btn btn-solid btn-sm" id="a2hsInstallBtn">Instalar</button>
+      <button class="btn btn-outline btn-sm" id="a2hsDismissBtn">&times;</button>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="footer">
@@ -128,14 +157,23 @@
       document.getElementById('liveUsers').textContent = total.toLocaleString();
     })();
 
+    // --- Haptic helper ---
+    function haptic(p) { try { if (navigator.vibrate) navigator.vibrate(p || 50); } catch(e) {} }
+
     // --- Garden logic (non-punitive: grows on each visit, never resets) ---
+    const GARDEN_ELEMS = ['🌱','🌸','🌺','⭐','🌙','🌿','🦋','🌻','🪨','🍃','☁️','🌊','🌾','🍀','🌹','🌷'];
+    const MILESTONES = [
+      { at: 7,   emoji: '🌳', label: 'Jardín establecido' },
+      { at: 30,  emoji: '🌺', label: 'Jardín en plena flor' },
+      { at: 100, emoji: '✨', label: 'Jardín legendario' },
+    ];
+    let gardenTotal = 0;
+
     function updateGarden() {
-      const GARDEN_ELEMS = ['🌱','🌸','🌺','⭐','🌙','🌿','🦋','🌻','🪨','🍃','☁️','🌊','🌾','🍀','🌹','🌷'];
       const today = new Date().toISOString().split('T')[0];
 
       let garden = JSON.parse(localStorage.getItem('relajate_garden') || 'null');
       if (!garden) {
-        // Migrate from old streak if it exists
         const old = JSON.parse(localStorage.getItem('relajate_streak') || 'null');
         garden = (old && old.count > 0)
           ? { total: old.count, lastDate: old.lastDate || '' }
@@ -148,23 +186,170 @@
         garden.lastDate = today;
         newToday = true;
         localStorage.setItem('relajate_garden', JSON.stringify(garden));
+        if (newToday) haptic(50);
       }
 
-      // Show last 8 elements
-      const total = garden.total;
+      gardenTotal = garden.total;
+      const total = gardenTotal;
+
+      // Check milestone — override the last element on milestone days
+      const milestone = MILESTONES.slice().reverse().find(m => total === m.at);
+
+      // Show last 8 elements (milestone replaces last one)
       const show = Math.min(total, 8);
       const start = total - show;
       const el = document.getElementById('gardenElements');
       el.textContent = '';
       for (let i = start; i < total; i++) {
         const span = document.createElement('span');
-        span.textContent = GARDEN_ELEMS[i % GARDEN_ELEMS.length];
+        const isMilestoneDay = (milestone && i === total - 1);
+        span.textContent = isMilestoneDay ? milestone.emoji : GARDEN_ELEMS[i % GARDEN_ELEMS.length];
         if (newToday && i === total - 1) span.className = 'garden-new';
         el.appendChild(span);
       }
       document.getElementById('gardenCount').textContent = total;
+
+      // Milestone badge
+      const badgeEl = document.getElementById('gardenBadge');
+      let mBadge = badgeEl.querySelector('.garden-milestone');
+      if (milestone) {
+        if (!mBadge) {
+          mBadge = document.createElement('div');
+          mBadge.className = 'garden-milestone';
+          badgeEl.appendChild(mBadge);
+        }
+        mBadge.textContent = milestone.emoji + ' ' + milestone.label;
+      } else {
+        if (mBadge) mBadge.remove();
+      }
     }
     updateGarden();
+
+    // --- Daily quote ---
+    const QUOTES = [
+      { text: '"La paz viene de adentro. No la busques afuera."', author: '— Buda' },
+      { text: '"Respira hondo. Estás exactamente donde debes estar."', author: '— Relajate.com' },
+      { text: '"Cada momento es un nuevo comienzo."', author: '— T.S. Eliot' },
+      { text: '"La calma es tu estado natural. Vuelve a ella siempre."', author: '— Relajate.com' },
+      { text: '"Cuida tu mente como cuidas tu cuerpo."', author: '— Relajate.com' },
+      { text: '"No tienes que controlar tus pensamientos. Solo deja de dejar que te controlen."', author: '— Dan Millman' },
+      { text: '"La felicidad es un camino, no un destino."', author: '— Wayne Dyer' },
+      { text: '"En la quietud está la respuesta."', author: '— Relajate.com' },
+      { text: '"Haz espacio para la calma en tu día."', author: '— Relajate.com' },
+      { text: '"Tu mente es un jardín. Elige bien lo que plantas."', author: '— Proverbio' },
+      { text: '"Casi todo se puede ver mejor con una buena noche de sueño."', author: '— Relajate.com' },
+      { text: '"La naturaleza no se apresura, sin embargo todo se logra."', author: '— Lao Tzu' },
+      { text: '"Pequeños pasos cada día llevan lejos."', author: '— Relajate.com' },
+      { text: '"El bienestar es la mayor riqueza."', author: '— Virgilio' },
+      { text: '"Date permiso de descansar. El descanso es productivo."', author: '— Relajate.com' },
+      { text: '"Sonríe al espejo cada mañana. Es el mejor comienzo."', author: '— Relajate.com' },
+      { text: '"La serenidad no es la ausencia de tormenta, sino la paz dentro de ella."', author: '— Proverbio' },
+      { text: '"Un momento de paciencia evita cien momentos de arrepentimiento."', author: '— Proverbio persa' },
+      { text: '"Donde va tu atención, va tu energía."', author: '— Relajate.com' },
+      { text: '"Vive plenamente el presente. Es todo lo que tienes."', author: '— Relajate.com' },
+      { text: '"La gratitud transforma lo que tenemos en suficiente."', author: '— Melody Beattie' },
+      { text: '"No busques la perfección. Busca el progreso."', author: '— Relajate.com' },
+      { text: '"El silencio es el lenguaje de la paz."', author: '— Rumi' },
+      { text: '"Cada día es una segunda oportunidad."', author: '— Relajate.com' },
+      { text: '"Eres más fuerte de lo que crees."', author: '— Relajate.com' },
+      { text: '"La simplicidad es la sofisticación máxima."', author: '— Leonardo da Vinci' },
+      { text: '"Hoy es un buen día para tener un buen día."', author: '— Relajate.com' },
+      { text: '"La alegría está en el camino, no solo en la llegada."', author: '— Relajate.com' },
+      { text: '"Confía en el proceso. Todo llega en su momento."', author: '— Relajate.com' },
+      { text: '"El mejor regalo que puedes darte es tiempo para ti mismo."', author: '— Relajate.com' },
+    ];
+    (function showDailyQuote() {
+      const start = new Date(2024, 0, 1);
+      const idx = Math.floor((new Date() - start) / 86400000) % QUOTES.length;
+      const q = QUOTES[idx];
+      document.getElementById('quoteText').textContent = q.text;
+      document.getElementById('quoteAuthor').textContent = q.author;
+    })();
+
+    // --- Onboarding (first-time visitors) ---
+    const OB_SLIDES = [
+      { emoji: '🌿', title: 'Bienvenido a Relajate.com', body: 'Tu espacio digital de calma. Aquí encuentras todo lo que necesitas para desconectar, respirar y cuidarte.' },
+      { emoji: '🌱', title: 'Tu jardín personal', body: 'Cada día que visitas, tu jardín crece con un nuevo elemento. Si fallas un día, tu jardín te espera — nunca se pierde nada.' },
+      { emoji: '🎮', title: '¿Qué puedes hacer?', body: '🎯 Juegos diarios que cambian cada día\n🧘 Ejercicios de respiración guiados\n📖 Micro diario personal\n🎵 Sonidos relajantes' },
+    ];
+    let obSlide = 0;
+    function showOnboarding() {
+      if (localStorage.getItem('relajate_onboarded')) return;
+      document.getElementById('onboardingOverlay').style.display = 'flex';
+      renderObSlide();
+    }
+    function renderObSlide() {
+      const s = OB_SLIDES[obSlide];
+      document.getElementById('obEmoji').textContent = s.emoji;
+      document.getElementById('obTitle').textContent = s.title;
+      document.getElementById('obBody').style.whiteSpace = 'pre-line';
+      document.getElementById('obBody').textContent = s.body;
+      const dots = document.getElementById('obDots');
+      dots.innerHTML = OB_SLIDES.map((_, i) =>
+        `<div class="onboarding-dot${i === obSlide ? ' active' : ''}"></div>`).join('');
+      const btn = document.getElementById('obNextBtn');
+      btn.textContent = obSlide < OB_SLIDES.length - 1 ? 'Siguiente →' : '¡Comenzar!';
+    }
+    document.getElementById('obNextBtn').addEventListener('click', () => {
+      if (obSlide < OB_SLIDES.length - 1) {
+        obSlide++;
+        renderObSlide();
+      } else {
+        localStorage.setItem('relajate_onboarded', '1');
+        document.getElementById('onboardingOverlay').style.display = 'none';
+      }
+    });
+    showOnboarding();
+
+    // --- A2HS + Notify ---
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show banner after 3rd visit
+      if (gardenTotal >= 3 && !localStorage.getItem('relajate_a2hs_dismissed')) {
+        document.getElementById('a2hsBanner').style.display = 'flex';
+      }
+    });
+    document.getElementById('a2hsInstallBtn').addEventListener('click', () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          document.getElementById('a2hsBanner').style.display = 'none';
+          localStorage.setItem('relajate_a2hs_dismissed', '1');
+        });
+      }
+    });
+    document.getElementById('a2hsDismissBtn').addEventListener('click', () => {
+      document.getElementById('a2hsBanner').style.display = 'none';
+      localStorage.setItem('relajate_a2hs_dismissed', '1');
+    });
+
+    // --- Notify / remind me ---
+    document.getElementById('notifyBtn').addEventListener('click', async () => {
+      if (!('Notification' in window)) {
+        alert('Tu navegador no soporta notificaciones.');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        localStorage.setItem('relajate_notify', '1');
+        document.getElementById('notifyBtn').textContent = '✓ Notificaciones activadas';
+        document.getElementById('notifyBtn').style.opacity = '0.6';
+        new Notification('🌱 Relajate.com', {
+          body: '¡Listo! Te recordaremos cuando pase el día sin visitar tu jardín.',
+          icon: 'images/logo.png'
+        });
+      } else {
+        alert('Activa los permisos de notificación en tu navegador para esta función.');
+      }
+    });
+    // Update button if already granted
+    if (Notification && Notification.permission === 'granted' && localStorage.getItem('relajate_notify')) {
+      document.getElementById('notifyBtn').textContent = '✓ Notificaciones activadas';
+      document.getElementById('notifyBtn').style.opacity = '0.6';
+    }
 
     // --- Register SW ---
     if ('serviceWorker' in navigator) {
