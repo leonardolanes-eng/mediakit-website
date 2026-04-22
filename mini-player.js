@@ -406,6 +406,7 @@
   // Create mini player DOM
   function createMiniPlayer() {
     const style = document.createElement('style');
+    style.setAttribute('data-mini-player', '1'); // protect from SPA style-swap
     style.textContent = `
       #miniPlayerBar {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
@@ -537,8 +538,9 @@
   // This is what allows music to continue playing while the user navigates the site.
   (function () {
 
-    // Mark initial page's inline <style> blocks so they get swapped on navigation
-    document.querySelectorAll('head style').forEach(function(s) { s.setAttribute('data-spa', '1'); });
+    // Mark initial page's inline <style> blocks so they get swapped on navigation.
+    // Exclude the mini-player's own style (data-mini-player) — it must survive forever.
+    document.querySelectorAll('head style:not([data-mini-player])').forEach(function(s) { s.setAttribute('data-spa', '1'); });
 
     // Thin progress bar shown during page fetch
     var _pbar = null;
@@ -586,8 +588,8 @@
         // 1. Update page title
         document.title = doc.title;
 
-        // 2. Swap page-specific <style> blocks in <head>
-        document.querySelectorAll('style[data-spa]').forEach(function(s) { s.remove(); });
+        // 2. Swap page-specific <style> blocks in <head> (never touch data-mini-player)
+        document.querySelectorAll('style[data-spa]:not([data-mini-player])').forEach(function(s) { s.remove(); });
         doc.querySelectorAll('head style').forEach(function(s) {
           var ns = document.createElement('style');
           ns.textContent = s.textContent;
