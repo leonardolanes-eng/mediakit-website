@@ -517,11 +517,10 @@
   });
 
   // On sonidos.html, listen for localStorage changes to stay in sync
-  if (isOnSonidos) {
-    // Don't auto-play on sonidos - the page has its own audio engine
-    // Just keep the UI in sync
-    setInterval(() => { updateMiniUI(); }, 2000);
-  }
+  var _sonidosSyncId = null;
+  function startSonidosSync() { if (!_sonidosSyncId) _sonidosSyncId = setInterval(function() { updateMiniUI(); }, 2000); }
+  function stopSonidosSync() { if (_sonidosSyncId) { clearInterval(_sonidosSyncId); _sonidosSyncId = null; } }
+  if (isOnSonidos) startSonidosSync();
 
   // Expose audio API globally so inline players can control audio within user gesture context
   window._relajateAudio = {
@@ -532,4 +531,178 @@
     isPlaying: function() { return miniPlaying; },
     setVolume: function(v) { miniMasterVol = v; if (masterGain) masterGain.gain.value = v; }
   };
+
+  // ==================== SPA ROUTER ====================
+  // Intercepts internal link clicks, swaps page content via fetch(), keeps AudioContext alive.
+  // This is what allows music to continue playing while the user navigates the site.
+  (function () {
+
+    // Mark initial page's inline <style> blocks so they get swapped on navigation
+    document.querySelectorAll('head style').forEach(function(s) { s.setAttribute('data-spa', '1'); });
+
+    // Thin progress bar shown during page fetch
+    var _pbar = null;
+    function setProgress(on) {
+      if (!_pbar) {
+        _pbar = document.createElement('div');
+        _pbar.id = 'spaBar';
+        _pbar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;z-index:100000;' +
+          'background:linear-gradient(90deg,#9B8EC4,#6B9BD2);transform:scaleX(0);' +
+          'transform-origin:left;transition:transform .35s ease;pointer-events:none;';
+        document.body.appendChild(_pbar);
+      }
+      if (on) {
+        _pbar.style.transition = 'transform .35s ease';
+        _pbar.style.transform = 'scaleX(0.7)';
+      } else {
+        _pbar.style.transform = 'scaleX(1)';
+        setTimeout(function() { if (_pbar) _pbar.style.transform = 'scaleX(0)'; }, 300);
+      }
+    }
+
+    function isInternal(href) {
+      if (!href) return false;
+      var c = href[0];
+      if (c === '#' || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return false;
+      try { return new URL(href, window.location.href).origin === window.location.origin; }
+      catch(e) { return false; }
+    }
+
+    // Execute a script string in an isolated function scope so let/const re-declarations
+    // across navigations don't throw SyntaxError in the shared global scope.
+    function runScript(code) {
+      try { (new Function(code))(); } catch(e) { console.warn('[SPA] script error:', e.message); }
+    }
+
+    async function go(url, push) {
+      setProgress(true);
+      try {
+        var abs = new URL(url, window.location.href).href;
+        var res = await fetch(abs, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var html = await res.text();
+        var doc = (new DOMParser()).parseFromString(html, 'text/html');
+
+        // 1. Update page title
+        document.title = doc.title;
+
+        // 2. Swap page-specific <style> blocks in <head>
+        document.querySelectorAll('style[data-spa]').forEach(function(s) { s.remove(); });
+        doc.querySelectorAll('head style').forEach(function(s) {
+          var ns = document.createElement('style');
+          ns.textContent = s.textContent;
+          ns.setAttribute('data-spa', '1');
+          document.head.appendChild(ns);
+        });
+
+        // 3. Collect content nodes + scripts from fetched body
+        var nodes = [], scripts = [];
+        doc.body.childNodes.forEach(function(n) {
+          if (n.nodeType !== 1) return; // skip text / comment nodes
+          var t = n.tagName.toUpperCase();
+          if (t === 'NAV') return; // keep our persistent nav
+          if (t === 'SCRIPT') {
+            var src = n.getAttribute('src') || '';
+            if (!src.includes('mini-player')) { // skip mini-player.js (already running)
+              scripts.push({ src: src, code: n.textContent });
+            }
+            return;
+          }
+          nodes.push(n.cloneNode(true));
+        });
+
+        // 4. Remove current page content (keep: nav, globalBubbles, miniPlayerBar, spaBar, scripts)
+        var rm = [];
+        document.body.childNodes.forEach(function(n) {
+          if (n.nodeType !== 1) return;
+          var t = n.tagName.toUpperCase(), id = n.id || '';
+          if (t === 'NAV' || t === 'SCRIPT' ||
+              id === 'miniPlayerBar' || id === 'globalBubbles' || id === 'spaBar') return;
+          rm.push(n);
+        });
+        rm.forEach(function(n) { n.remove(); });
+
+        // 5. Insert new content before the mini-player bar
+        var miniBar = document.getElementById('miniPlayerBar');
+        nodes.forEach(function(n) { document.body.insertBefore(n, miniBar); });
+
+        // 6. Reset navToggle event listeners (it lives in the persistent nav).
+        //    Cloning the element removes all previously-attached addEventListener handlers
+        //    so the new page script can attach exactly one fresh handler.
+        var nt = document.getElementById('navToggle');
+        if (nt && nt.parentElement) {
+          var ntc = nt.cloneNode(true);
+          nt.parentElement.replaceChild(ntc, nt);
+        }
+        // Close the mobile nav menu if it was open
+        var nl = document.getElementById('navLinks');
+        if (nl) nl.classList.remove('open');
+
+        // 7. Execute scripts from the fetched page
+        for (var i = 0; i < scripts.length; i++) {
+          var s = scripts[i];
+          if (s.src) {
+            // External script — load it via a real <script> element
+            await new Promise(function(res2) {
+              var el = document.createElement('script');
+              el.src = s.src;
+              el.onload = el.onerror = res2;
+              document.body.appendChild(el);
+            });
+          } else if (s.code.trim()) {
+            // Inline script — run in isolated scope
+            runScript(s.code);
+            // Tiny yield so synchronous DOM mutations settle before next script
+            await new Promise(function(r) { setTimeout(r, 10); });
+          }
+        }
+
+        // 8. Update "active" highlight in nav
+        var curPath = new URL(abs).pathname;
+        document.querySelectorAll('.navbar-links a').forEach(function(a) {
+          try {
+            var aPath = new URL(a.getAttribute('href') || '', abs).pathname;
+            var active = aPath === curPath ||
+              (curPath.match(/\/$|\/index\.html$/) && aPath.match(/\/index\.html$/));
+            a.classList.toggle('active', !!active);
+          } catch(e) {}
+        });
+
+        // 9. Sonidos page: pause mini-player to avoid audio doubling with its own engine
+        var onSonidosNow = new URL(abs).pathname.includes('sonidos');
+        if (onSonidosNow) {
+          if (miniPlaying) stopAllMini();
+          startSonidosSync();
+        } else {
+          stopSonidosSync();
+        }
+
+        // 10. Push URL + scroll to top
+        if (push) history.pushState({ url: abs }, document.title, url);
+        window.scrollTo(0, 0);
+
+      } catch(err) {
+        // On any failure, fall back to a full page load (audio will stop, but page works)
+        console.warn('[SPA] Falling back to hard navigation:', err.message);
+        window.location.href = url;
+      }
+      setProgress(false);
+    }
+
+    // Intercept all internal <a> clicks — use capture so we fire before other handlers
+    document.addEventListener('click', function(e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      var el = e.target;
+      while (el && el.tagName !== 'A') el = el.parentElement;
+      if (!el) return;
+      var href = el.getAttribute('href');
+      if (!isInternal(href)) return;
+      e.preventDefault();
+      go(href, true);
+    }, true);
+
+    // Handle browser Back / Forward buttons
+    window.addEventListener('popstate', function() { go(window.location.href, false); });
+
+  })();
 })();
