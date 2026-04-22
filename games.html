@@ -480,6 +480,29 @@
       border-radius: var(--radius-lg); padding: 1.5rem;
       color: white; text-align: center; margin: 0.5rem 0;
     }
+    /* Prominent "Revelar más" button */
+    .btn-imagen-reveal {
+      background: linear-gradient(135deg, #6B9BD2, #9B8EC4);
+      color: white; border: none; padding: 0.65rem 1.6rem;
+      border-radius: var(--radius-full); font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(107,155,210,0.45);
+      letter-spacing: 0.02em;
+    }
+    .btn-imagen-reveal:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(107,155,210,0.55); }
+    .btn-imagen-reveal:active:not(:disabled) { transform: translateY(0); }
+    .btn-imagen-reveal:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+    /* Mistake indicator */
+    .imagen-mistake-indicator {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin: 0.15rem 0 0.35rem;
+    }
+    .imagen-mistake-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gray-200); border: 2px solid var(--gray-300); transition: all 0.3s;
+    }
+    .imagen-mistake-dot.used { background: #e74c3c; border-color: #e74c3c; }
   </style>
 </head>
 <body>
@@ -711,8 +734,12 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:0.75rem;">
-        <button class="btn btn-outline btn-sm" id="imagenRevealBtn">&#128065;&#65039; Revelar m&aacute;s</button>
+      <div class="imagen-mistake-indicator" id="imagenMistakeBar">
+        <span>Intentos:</span>
+        <div class="imagen-mistake-dot" id="imagenMistakeDot0"></div>
+      </div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:0.5rem;">
+        <button class="btn-imagen-reveal" id="imagenRevealBtn">&#128065;&#65039; Revelar m&aacute;s</button>
         <button class="btn btn-outline btn-sm" id="imagenHintBtn">&#128161; Pista</button>
         <button class="btn btn-outline btn-sm" id="imagenGiveUpBtn" style="display:none;background:rgba(231,76,60,0.08);border-color:#e74c3c;color:#e74c3c;">&#9873; Me rindo</button>
         <button class="btn btn-solid btn-sm" id="imagenNextBtn" style="display:none;">Siguiente &#8594;</button>
@@ -2707,6 +2734,8 @@ const IMAGEN_DATA = [
 function initImagenGame() {
   const PUZZLES_PER_DAY = 3;
   const MAX_REVEALS = 6;
+  const INITIAL_REVEALS = 1;  // 2 tiles shown at start (free peek)
+  const MAX_MISTAKES = 1;     // only 1 wrong guess allowed
   const GRID_COLS = 4, GRID_ROWS = 3, TOTAL_TILES = GRID_COLS * GRID_ROWS; // 12
   const TILES_PER_REVEAL = 2; // 2×6 = 12
 
@@ -2725,7 +2754,8 @@ function initImagenGame() {
 
   const dailyPuzzles = selectDailyPuzzles();
   let currentIdx = 0;
-  let currentReveals = 0;
+  let currentReveals = INITIAL_REVEALS;
+  let mistakes = 0;
   let tileOrder = [];
   let tileEls = [];
   let isDone = false;
@@ -2797,13 +2827,16 @@ function initImagenGame() {
     const full = currentReveals >= MAX_REVEALS;
     revealBtn.disabled = full || isDone;
     revealBtn.textContent = full ? '✓ Imagen revelada' : ('👁️ Revelar más (' + (MAX_REVEALS - currentReveals) + ')');
-    giveUpBtn.style.display = (currentReveals >= 2 && !isDone) ? 'inline-flex' : 'none';
+    giveUpBtn.style.display = isDone ? 'none' : 'inline-flex';
+    // Update mistake dot indicators
+    const dot0 = document.getElementById('imagenMistakeDot0');
+    if (dot0) dot0.classList.toggle('used', mistakes >= 1);
   }
 
   function starsFor(reveals, won) {
     if (!won) return 0;
-    if (reveals === 0) return 6;
-    return Math.max(1, 6 - reveals);
+    // Guessing at the initial free reveal → 6 stars; each extra reveal costs 1 star
+    return Math.max(1, 6 - Math.max(0, reveals - INITIAL_REVEALS));
   }
 
   function showResult(stars, won) {
@@ -2813,9 +2846,10 @@ function initImagenGame() {
 
     const filled = '⭐'.repeat(stars);
     const empty  = '○'.repeat(Math.max(0, 6 - stars));
+    const extra = currentReveals - INITIAL_REVEALS;
     const sub = won
-      ? (currentReveals === 0 ? '¡A ciegas! 🎯 Perfecto.' : 'Con ' + currentReveals + ' revelaci' + (currentReveals===1?'ón':'ones'))
-      : 'Sigue practicando 💪';
+      ? (extra === 0 ? '¡Con la primera pista! 🎯' : 'Con ' + extra + ' revelaci' + (extra===1?'ón':'ones') + ' extra')
+      : 'Sigue intentando 💪';
 
     scoreBoxEl.style.display = '';
     scoreBoxEl.innerHTML =
@@ -2826,6 +2860,8 @@ function initImagenGame() {
     hintBtn.style.display = 'none';
     giveUpBtn.style.display = 'none';
     inputAreaEl.style.display = 'none';
+    const mBar = document.getElementById('imagenMistakeBar');
+    if (mBar) mBar.style.display = 'none';
 
     // All tiles gone
     tileEls.forEach(el => {
@@ -2841,7 +2877,7 @@ function initImagenGame() {
 
   function saveState(stars, won) {
     localStorage.setItem(stateKey(currentIdx), JSON.stringify({
-      reveals: currentReveals, done: isDone, stars: stars||0, won: won||false
+      reveals: currentReveals, done: isDone, stars: stars||0, won: won||false, mistakes: mistakes
     }));
   }
 
@@ -2864,7 +2900,8 @@ function initImagenGame() {
 
   function loadPuzzle(idx) {
     currentIdx = idx;
-    currentReveals = 0;
+    currentReveals = INITIAL_REVEALS;
+    mistakes = 0;
     isDone = false;
 
     const puzzle = dailyPuzzles[idx];
@@ -2882,20 +2919,33 @@ function initImagenGame() {
     hintBtn.style.display = '';
     nextBtn.style.display = 'none';
     shareSection.style.display = 'none';
+    const mBar2 = document.getElementById('imagenMistakeBar');
+    if (mBar2) mBar2.style.display = '';
 
     buildGrid();
 
-    // Restore saved state
+    // Restore saved state (if any); otherwise use initial reveals
+    let savedStars = 0, savedWon = false;
     const saved = localStorage.getItem(stateKey(idx));
     if (saved) {
       const data = JSON.parse(saved);
-      currentReveals = data.reveals || 0;
+      currentReveals = Math.max(INITIAL_REVEALS, data.reveals || 0);
+      mistakes = data.mistakes || 0;
       isDone = data.done || false;
-      applyReveals(currentReveals, true);
-      if (isDone) {
-        showResult(data.stars, data.won);
-      }
+      savedStars = data.stars || 0;
+      savedWon = data.won || false;
     }
+
+    // Apply all reveals at once (instant = no animation on restore)
+    applyReveals(currentReveals, true);
+
+    // Restore hint if enough reveals have happened
+    if (currentReveals >= 3) {
+      hintEl.style.display = '';
+      hintEl.textContent = '💡 ' + puzzle.hint;
+    }
+
+    if (isDone) showResult(savedStars, savedWon);
 
     updateDots();
     updateButtons();
@@ -2910,7 +2960,8 @@ function initImagenGame() {
       setTimeout(() => { if(tileEls[tileIdx]) tileEls[tileIdx].classList.add('revealed'); }, (t - start) * 180);
     }
     currentReveals++;
-    if (currentReveals === 3 && hintEl.style.display === 'none') {
+    // Show hint after 2 manual reveals (INITIAL_REVEALS + 2 = 3)
+    if (currentReveals === INITIAL_REVEALS + 2 && hintEl.style.display === 'none') {
       hintEl.style.display = '';
       hintEl.textContent = '💡 ' + dailyPuzzles[currentIdx].hint;
     }
@@ -2950,11 +3001,30 @@ function initImagenGame() {
       saveState(stars, true);
       showResult(stars, true);
     } else {
+      mistakes++;
       haptic(80);
-      msgEl.textContent = '❌ No es correcto, intenta de nuevo';
-      msgEl.style.color = '#e74c3c';
       inputEl.value = '';
-      setTimeout(() => { msgEl.textContent = ''; msgEl.style.color = ''; }, 1800);
+      if (mistakes > MAX_MISTAKES) {
+        // Exceeded the 1-mistake limit → game over
+        isDone = true;
+        saveState(0, false);
+        showResult(0, false);
+      } else {
+        // First and only allowed mistake — warn strongly, game continues
+        msgEl.textContent = '❌ Incorrecto — ¡último intento!';
+        msgEl.style.color = '#e74c3c';
+        saveState(0, false);
+        updateButtons(); // refresh mistake dot to red
+        setTimeout(() => {
+          if (!isDone) {
+            msgEl.textContent = '⚠️ Un error más y pierdes esta imagen';
+            msgEl.style.color = 'var(--text-secondary)';
+          }
+        }, 1800);
+        setTimeout(() => {
+          if (!isDone) { msgEl.textContent = ''; msgEl.style.color = ''; }
+        }, 5000);
+      }
     }
   }
   document.getElementById('imagenGuessBtn').addEventListener('click', checkGuess);
