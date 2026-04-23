@@ -163,14 +163,16 @@
 
     /* Visualizer */
     .visualizer {
-      max-width: 800px; margin: 0 auto; height: 60px; display: flex;
+      max-width: 800px; margin: 0 auto; height: 70px; display: flex;
       align-items: flex-end; justify-content: center; gap: 3px;
-      padding: 0 1rem; opacity: 0; transition: opacity 0.5s;
+      padding: 0.5rem 1.5rem 0.25rem; opacity: 0; transition: opacity 0.5s;
+      background: rgba(255,255,255,0.08); border-radius: 16px;
     }
     .visualizer.active { opacity: 1; }
     .viz-bar {
-      width: 4px; border-radius: 2px;
-      background: linear-gradient(to top, var(--lavender), var(--blue));
+      width: 5px; border-radius: 3px;
+      background: linear-gradient(to top, rgba(255,255,255,0.5), #ffffff);
+      box-shadow: 0 0 8px rgba(255,255,255,0.55);
       transition: height 0.15s ease;
     }
 
