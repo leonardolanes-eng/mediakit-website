@@ -509,6 +509,21 @@
   createMiniPlayer();
   updateMiniUI();
 
+  // Persist playing state so it survives a hard page refresh
+  window.addEventListener('beforeunload', function() {
+    try { localStorage.setItem('relajate_was_playing', miniPlaying ? '1' : '0'); } catch(e) {}
+  });
+
+  // Auto-resume after a refresh if music was playing before
+  // Browsers allow autoplay on a site the user has previously interacted with
+  (function() {
+    if (localStorage.getItem('relajate_was_playing') !== '1') return;
+    setTimeout(function() {
+      if (miniPlaying) return;
+      try { ensureAudioCtx(); startAllFromState(); } catch(e) {}
+    }, 300);
+  })();
+
   // Resume AudioContext when page becomes visible (after screen lock/tab switch)
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden && audioCtx && miniPlaying) {
@@ -670,10 +685,9 @@
           } catch(e) {}
         });
 
-        // 9. Sonidos page: pause mini-player to avoid audio doubling with its own engine
+        // 9. Sonidos page: keep mini-player playing, just sync the UI bar
         var onSonidosNow = new URL(abs).pathname.includes('sonidos');
         if (onSonidosNow) {
-          if (miniPlaying) stopAllMini();
           startSonidosSync();
         } else {
           stopSonidosSync();
