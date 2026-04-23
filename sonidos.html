@@ -9,24 +9,14 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css?v=8">
   <style>
-    /* ===== DJ MIXER BOARD — full dark redesign ===== */
-
-    /* Override page background */
-    body { background: #0c0f1a; }
-
-    /* Dark page header */
-    .page-header {
-      background: linear-gradient(135deg,#0c0f1a 0%,#1a1535 45%,#162038 80%,#0c0f1a 100%) !important;
-      padding-bottom: 0.5rem !important;
-      border-bottom: 1px solid #1e253a;
-    }
-    .page-header h1 { color: #f0f2f8 !important; }
-    .page-header p  { color: #7b85a0 !important; }
+    /* ===== DJ MIXER BOARD — light theme matching site ===== */
 
     /* ── Sticky control panel ── */
     .dj-controls {
-      background: #111827;
-      border-bottom: 1px solid #1e2a40;
+      background: rgba(255, 248, 240, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
       padding: 0.7rem 1rem 0.5rem;
       position: sticky; top: 64px; z-index: 90;
     }
@@ -36,14 +26,14 @@
     .presets-grid { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center; }
     .preset-btn {
       padding: 0.3rem 0.85rem; border-radius: 20px;
-      border: 1px solid #2a3550; background: #1a2235;
-      color: #8090b0; font-size: 0.76rem; font-weight: 600;
+      border: 1.5px solid var(--gray-200); background: var(--white);
+      color: var(--text-secondary); font-size: 0.76rem; font-weight: 600;
       cursor: pointer; transition: all 0.2s;
     }
     .preset-btn:hover, .preset-btn.active {
-      border-color: #9B8EC4; color: #c4b5f4;
-      background: rgba(155,142,196,0.14);
-      box-shadow: 0 0 10px rgba(155,142,196,0.22);
+      border-color: var(--blue); color: var(--blue-dark);
+      background: rgba(107,155,210,0.1);
+      box-shadow: 0 0 8px rgba(107,155,210,0.2);
     }
 
     /* Master strip */
@@ -55,44 +45,44 @@
     .master-play {
       width: 46px; height: 46px; border-radius: 50%;
       background: linear-gradient(135deg, #9B8EC4, #6B9BD2);
-      border: 2px solid rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.6);
       color: white; font-size: 1.1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.3s; box-shadow: 0 4px 15px rgba(155,142,196,0.35);
       flex-shrink: 0;
     }
-    .master-play:hover { transform: scale(1.08); }
+    .master-play:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(155,142,196,0.5); }
     .master-play.playing { animation: masterPulse 2s ease infinite; }
     @keyframes masterPulse {
-      0%,100% { box-shadow: 0 4px 15px rgba(155,142,196,0.3); }
-      50%      { box-shadow: 0 4px 28px rgba(155,142,196,0.7), 0 0 0 4px rgba(155,142,196,0.12); }
+      0%,100% { box-shadow: 0 4px 15px rgba(155,142,196,0.35); }
+      50%      { box-shadow: 0 4px 28px rgba(155,142,196,0.6), 0 0 0 4px rgba(155,142,196,0.15); }
     }
     .master-vol { display: flex; align-items: center; gap: 0.45rem; }
-    .master-vol span { font-size: 0.85rem; color: #5a6680; }
+    .master-vol span { font-size: 0.85rem; color: var(--text-secondary); }
     .master-slider {
       width: 90px; height: 4px; -webkit-appearance: none; appearance: none;
-      background: rgba(255,255,255,0.1); border-radius: 2px; outline: none;
+      background: var(--gray-200); border-radius: 2px; outline: none;
     }
     .master-slider::-webkit-slider-thumb {
       -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-      background: #9B8EC4; cursor: pointer;
-      box-shadow: 0 0 6px rgba(155,142,196,0.5);
+      background: var(--lavender); cursor: pointer;
+      box-shadow: 0 0 6px rgba(155,142,196,0.4);
     }
     .sleep-timer { display: flex; align-items: center; gap: 0.45rem; }
-    .sleep-timer span { font-size: 0.85rem; color: #5a6680; }
+    .sleep-timer span { font-size: 0.85rem; color: var(--text-secondary); }
     .timer-select {
       padding: 0.28rem 0.7rem; border-radius: 20px;
-      border: 1px solid #2a3550; background: #1a2235;
-      font-size: 0.76rem; font-weight: 600; color: #8090b0; cursor: pointer;
+      border: 1.5px solid var(--gray-200); background: var(--white);
+      font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); cursor: pointer;
     }
-    .timer-display { font-size: 0.76rem; font-weight: 700; color: #c4b5f4; min-width: 44px; }
+    .timer-display { font-size: 0.76rem; font-weight: 700; color: var(--lavender-dark); min-width: 44px; }
 
     /* Active count + visualizer */
     .active-count {
-      text-align: center; font-size: 0.74rem; color: #505870;
+      text-align: center; font-size: 0.74rem; color: var(--text-muted);
       font-weight: 600; padding: 0.35rem 0 0;
     }
-    .active-count span { color: #c4b5f4; }
+    .active-count span { color: var(--lavender-dark); }
     .visualizer {
       max-width: 680px; margin: 0.4rem auto 0; height: 46px;
       display: flex; align-items: flex-end; justify-content: center;
@@ -101,14 +91,13 @@
     .visualizer.active { opacity: 1; }
     .viz-bar {
       width: 4px; border-radius: 2px;
-      background: linear-gradient(to top, rgba(155,142,196,0.5), rgba(107,155,210,0.9));
-      box-shadow: 0 0 5px rgba(155,142,196,0.35);
+      background: linear-gradient(to top, var(--lavender), var(--blue));
+      box-shadow: 0 0 4px rgba(155,142,196,0.3);
       transition: height 0.15s ease;
     }
 
     /* ── Mixer board wrapper ── */
     .dj-board-wrap {
-      background: #0c0f1a;
       padding: 1.5rem 1rem 6rem;
       min-height: 60vh;
     }
@@ -120,30 +109,32 @@
       display: flex; align-items: center; gap: 0.7rem;
       margin-bottom: 1rem; padding-bottom: 0.5rem;
     }
-    .board-section-line { flex: 1; height: 1px; background: #1e2a40; }
+    .board-section-line { flex: 1; height: 1px; background: rgba(255,255,255,0.45); }
     .board-section-title {
       font-size: 0.65rem; letter-spacing: 0.18em;
-      color: #3a4560; text-transform: uppercase; font-weight: 700;
-      white-space: nowrap;
+      color: rgba(255,255,255,0.8); text-transform: uppercase; font-weight: 700;
+      white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
     /* Channel row */
     .board-channels {
       display: flex; gap: 6px;
       overflow-x: auto; padding-bottom: 4px;
-      scrollbar-width: thin; scrollbar-color: #2a3550 transparent;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.4) transparent;
       justify-content: center; flex-wrap: wrap;
     }
     @media(max-width: 640px) {
       .board-channels { justify-content: flex-start; flex-wrap: nowrap; }
     }
     .board-channels::-webkit-scrollbar { height: 3px; }
-    .board-channels::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 2px; }
+    .board-channels::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 2px; }
 
     /* ── Channel strip (sound-card) ── */
     .sound-card {
-      background: #141c2e;
-      border: 1px solid #1e2840;
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.65);
       border-radius: 14px;
       width: 82px; min-width: 78px;
       padding: 10px 6px 10px;
@@ -151,62 +142,66 @@
       align-items: center; gap: 7px;
       cursor: pointer; transition: all 0.25s ease;
       flex-shrink: 0; position: relative; overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     /* colour accent line at top of active channel */
     .sound-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: var(--cc, #555); border-radius: 14px 14px 0 0;
+      background: var(--cc, var(--lavender)); border-radius: 14px 14px 0 0;
       opacity: 0; transition: opacity 0.3s;
     }
     .sound-card.active::before { opacity: 1; }
-    .sound-card:hover { background: #1a2338; border-color: #283550; }
+    .sound-card:hover {
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+      transform: translateY(-2px);
+    }
     .sound-card.active {
-      border-color: var(--cc, #9B8EC4);
-      background: var(--cb, rgba(155,142,196,0.07));
-      box-shadow: 0 0 18px var(--cg, rgba(155,142,196,0.18));
+      border-color: var(--cc, var(--lavender));
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 4px 20px var(--cg, rgba(155,142,196,0.35));
     }
 
     /* Per-sound colour variables */
-    .sound-card.rain      { --cc:#5BC4F5; --cb:rgba(91,196,245,0.07);  --cg:rgba(91,196,245,0.18);  }
-.sound-card.ocean     { --cc:#3AB8F0; --cb:rgba(58,184,240,0.07);  --cg:rgba(58,184,240,0.18);  }
-    .sound-card.fire      { --cc:#FF7055; --cb:rgba(255,112,85,0.07);  --cg:rgba(255,112,85,0.18);  }
-    .sound-card.wind      { --cc:#7BC97A; --cb:rgba(123,201,122,0.07); --cg:rgba(123,201,122,0.18); }
-    .sound-card.birds     { --cc:#FFD044; --cb:rgba(255,208,68,0.07);  --cg:rgba(255,208,68,0.18);  }
-    .sound-card.thunder   { --cc:#90AAC2; --cb:rgba(144,170,194,0.07); --cg:rgba(144,170,194,0.18); }
-    .sound-card.night     { --cc:#7090B8; --cb:rgba(112,144,184,0.07); --cg:rgba(112,144,184,0.18); }
-    .sound-card.river     { --cc:#2DD4C0; --cb:rgba(45,212,192,0.07);  --cg:rgba(45,212,192,0.18);  }
-    .sound-card.piano     { --cc:#C4A8F0; --cb:rgba(196,168,240,0.07); --cg:rgba(196,168,240,0.18); }
-    .sound-card.guitar    { --cc:#E88A44; --cb:rgba(232,138,68,0.07);  --cg:rgba(232,138,68,0.18);  }
-    .sound-card.flute     { --cc:#C070E8; --cb:rgba(192,112,232,0.07); --cg:rgba(192,112,232,0.18); }
-    .sound-card.harp      { --cc:#E8D050; --cb:rgba(232,208,80,0.07);  --cg:rgba(232,208,80,0.18);  }
-    .sound-card.cello     { --cc:#C08060; --cb:rgba(192,128,96,0.07);  --cg:rgba(192,128,96,0.18);  }
-    .sound-card.xylophone { --cc:#44D888; --cb:rgba(68,216,136,0.07);  --cg:rgba(68,216,136,0.18);  }
-    .sound-card.synth     { --cc:#5090F8; --cb:rgba(80,144,248,0.07);  --cg:rgba(80,144,248,0.18);  }
+    .sound-card.rain      { --cc:#4AB8EE; --cb:rgba(74,184,238,0.08);  --cg:rgba(74,184,238,0.3);   }
+    .sound-card.ocean     { --cc:#2AAEE4; --cb:rgba(42,174,228,0.08);  --cg:rgba(42,174,228,0.3);   }
+    .sound-card.fire      { --cc:#F05A3A; --cb:rgba(240,90,58,0.08);   --cg:rgba(240,90,58,0.3);    }
+    .sound-card.wind      { --cc:#5BAD5A; --cb:rgba(91,173,90,0.08);   --cg:rgba(91,173,90,0.3);    }
+    .sound-card.birds     { --cc:#C89800; --cb:rgba(200,152,0,0.08);   --cg:rgba(200,152,0,0.28);   }
+    .sound-card.thunder   { --cc:#7A96B2; --cb:rgba(122,150,178,0.08); --cg:rgba(122,150,178,0.3);  }
+    .sound-card.night     { --cc:#5A80A8; --cb:rgba(90,128,168,0.08);  --cg:rgba(90,128,168,0.3);   }
+    .sound-card.river     { --cc:#18C4B0; --cb:rgba(24,196,176,0.08);  --cg:rgba(24,196,176,0.3);   }
+    .sound-card.piano     { --cc:#8B78C4; --cb:rgba(139,120,196,0.08); --cg:rgba(139,120,196,0.3);  }
+    .sound-card.guitar    { --cc:#D87030; --cb:rgba(216,112,48,0.08);  --cg:rgba(216,112,48,0.3);   }
+    .sound-card.flute     { --cc:#A050D0; --cb:rgba(160,80,208,0.08);  --cg:rgba(160,80,208,0.3);   }
+    .sound-card.harp      { --cc:#B8980A; --cb:rgba(184,152,10,0.08);  --cg:rgba(184,152,10,0.28);  }
+    .sound-card.cello     { --cc:#A06040; --cb:rgba(160,96,64,0.08);   --cg:rgba(160,96,64,0.3);    }
+    .sound-card.xylophone { --cc:#28B868; --cb:rgba(40,184,104,0.08);  --cg:rgba(40,184,104,0.3);   }
+    .sound-card.synth     { --cc:#3878E8; --cb:rgba(56,120,232,0.08);  --cg:rgba(56,120,232,0.3);   }
 
     /* Icon */
     .sound-icon {
       font-size: 1.35rem; width: 38px; height: 38px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.04); transition: all 0.3s; flex-shrink: 0;
+      background: var(--gray-100); transition: all 0.3s; flex-shrink: 0;
     }
     .sound-card.active .sound-icon {
-      background: var(--cb, rgba(155,142,196,0.12));
-      box-shadow: 0 0 12px var(--cg, rgba(155,142,196,0.3));
+      background: var(--cb, rgba(155,142,196,0.15));
+      box-shadow: 0 0 10px var(--cg, rgba(155,142,196,0.25));
     }
-    /* Override global sound-icon colour classes to dark theme */
     .sound-icon.rain,.sound-icon.piano,.sound-icon.ocean,
     .sound-icon.fire,.sound-icon.wind,.sound-icon.birds,.sound-icon.thunder,
     .sound-icon.night,.sound-icon.river,.sound-icon.guitar,.sound-icon.flute,
     .sound-icon.harp,.sound-icon.cello,.sound-icon.xylophone,.sound-icon.synth
-    { background: rgba(255,255,255,0.04); }
+    { background: var(--gray-100); }
 
     /* Label */
     .sound-name {
-      font-size: 0.58rem; font-weight: 700; color: #3a4560;
+      font-size: 0.58rem; font-weight: 700; color: var(--text-muted);
       text-transform: uppercase; letter-spacing: 0.05em;
       text-align: center; line-height: 1.2;
     }
-    .sound-card.active .sound-name { color: #d0d8f0; }
+    .sound-card.active .sound-name { color: var(--text-primary); }
     .sound-desc { display: none; }
 
     /* Vertical fader — rotate approach (most cross-browser reliable) */
@@ -221,84 +216,63 @@
       -webkit-appearance: none; appearance: none;
       width: 86px;   /* becomes visual HEIGHT after rotate */
       height: 4px;   /* becomes visual WIDTH after rotate */
-      background: rgba(255,255,255,0.07);
+      background: var(--gray-200);
       border-radius: 2px; outline: none; cursor: pointer;
       transform: rotate(-90deg);
       flex-shrink: 0;
-      /* track fill colour is handled via box-shadow on thumb */
     }
     /* Track style */
     .sound-slider::-webkit-slider-runnable-track {
       height: 4px; border-radius: 2px;
-      background: rgba(255,255,255,0.07);
+      background: var(--gray-200);
     }
     /* Fader handle — wider than tall, like a real fader */
     .sound-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 24px; height: 8px; border-radius: 4px;
-      background: #3a4a6a;
-      border: 1px solid #5a6a8a;
+      background: var(--gray-400);
+      border: 1px solid var(--gray-300);
       cursor: grab;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
       margin-top: -2px;
     }
     .sound-card.active .sound-slider::-webkit-slider-thumb {
-      background: var(--cc, #9B8EC4);
-      border-color: var(--cc, #9B8EC4);
+      background: var(--cc, var(--lavender));
+      border-color: var(--cc, var(--lavender));
       box-shadow: 0 0 8px var(--cg, rgba(155,142,196,0.5));
     }
     .sound-slider::-moz-range-thumb {
       width: 24px; height: 8px; border-radius: 4px;
-      background: #3a4a6a; border: 1px solid #5a6a8a; cursor: grab;
+      background: var(--gray-400); border: 1px solid var(--gray-300); cursor: grab;
     }
     .sound-card.active .sound-slider::-moz-range-thumb {
-      background: var(--cc, #9B8EC4); border-color: var(--cc, #9B8EC4);
+      background: var(--cc, var(--lavender)); border-color: var(--cc, var(--lavender));
     }
 
     /* Vol % label */
     .vol-label {
       font-size: 0.6rem; font-weight: 700;
-      color: #2e3a52; font-variant-numeric: tabular-nums; text-align: center;
+      color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: center;
     }
-    .sound-card.active .vol-label { color: #8090b0; }
+    .sound-card.active .vol-label { color: var(--text-secondary); }
 
     /* Power button — LED style */
     .sound-toggle {
       width: 30px; height: 30px; border-radius: 50%;
-      border: 1.5px solid #2a3550; background: #0c0f1a;
+      border: 1.5px solid var(--gray-200); background: var(--gray-100);
       cursor: pointer; transition: all 0.2s; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0; /* hide default button text */
-      position: relative;
+      font-size: 0; position: relative;
     }
     .sound-toggle::after {
-      content: '⏻'; font-size: 0.82rem; color: #2a3550; transition: all 0.2s;
+      content: '⏻'; font-size: 0.82rem; color: var(--text-muted); transition: all 0.2s;
     }
     .sound-toggle.on {
-      border-color: var(--cc, #9B8EC4);
-      background: rgba(0,0,0,0.5);
-      box-shadow: 0 0 10px var(--cg, rgba(155,142,196,0.5)),
-                  inset 0 0 6px rgba(0,0,0,0.6);
+      border-color: var(--cc, var(--lavender));
+      background: white;
+      box-shadow: 0 0 10px var(--cg, rgba(155,142,196,0.4));
     }
-    .sound-toggle.on::after { color: var(--cc, #9B8EC4); }
-
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: #1a2235; color: #e0e8f8;
-      padding: 0.55rem 1.2rem; border-radius: 20px;
-      border: 1px solid #2a3550;
-      font-size: 0.83rem; font-weight: 600;
-      opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 9998;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Footer */
-    .footer { background: #0c0f1a !important; border-top: 1px solid #1e2840 !important; }
-    .footer h4 { color: #3a4560 !important; }
-    .footer a  { color: #3a4560 !important; }
-    .footer a:hover { color: #7080a0 !important; }
-    .footer-bottom { color: #2a3450 !important; border-top-color: #1a2340 !important; }
+    .sound-toggle.on::after { color: var(--cc, var(--lavender)); }
   </style>
 </head>
 <body>
