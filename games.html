@@ -586,6 +586,45 @@
     .bin-cell.error { background: rgba(231,76,60,0.18) !important; border-color: #e74c3c !important; }
     .bin-cell.solved-cell { background: rgba(135,174,115,0.15) !important; border-color: var(--sage-dark) !important; }
     @media(max-width:500px) { .bin-cell { width: 32px; height: 32px; font-size: 1rem; } }
+
+    /* ---- Nurikabe ---- */
+    .nuri-wrap { display:flex; justify-content:center; margin:0.5rem 0; overflow-x:auto; }
+    .nuri-grid { border-collapse:collapse; }
+    .nuri-cell {
+      width:42px; height:42px; border:2px solid var(--gray-400);
+      text-align:center; vertical-align:middle;
+      font-size:1.1rem; font-weight:900; cursor:pointer;
+      user-select:none; transition:background 0.15s;
+      position:relative;
+    }
+    .nuri-cell.unknown  { background:var(--bg-card); color:var(--text-primary); }
+    .nuri-cell.black    { background:#2c3e50; color:#2c3e50; }
+    .nuri-cell.white    { background:#ecf0f1; color:var(--text-primary); }
+    .nuri-cell.clue     { background:#ecf0f1; cursor:default; color:var(--blue-dark); }
+    .nuri-cell.black::after { content:''; }
+    .nuri-cell.error-cell { outline:3px solid #e74c3c; outline-offset:-3px; }
+    .nuri-cell.solved-white { background:#d5f5e3; }
+    .nuri-cell.solved-black { background:#2c3e50; }
+    @media(max-width:480px){ .nuri-cell{ width:34px; height:34px; font-size:0.95rem; } }
+
+    /* ---- Slitherlink ---- */
+    .slith-wrap { display:flex; justify-content:center; margin:0.5rem 0; overflow-x:auto; }
+    .slith-svg  { touch-action:none; cursor:pointer; }
+    .slith-dot  { fill:#2c3e50; }
+    .slith-edge-hit { fill:transparent; cursor:pointer; }
+    .slith-edge-line { stroke:#6B9BD2; stroke-width:3; stroke-linecap:round; }
+    .slith-edge-x    { fill:none; stroke:rgba(200,60,60,0.35); stroke-width:2; stroke-linecap:round; }
+    .slith-clue      { font-family:inherit; font-weight:800; fill:var(--text-secondary); font-size:14px; }
+    .slith-clue.done { fill:var(--sage-dark); }
+
+    /* ---- Masyu ---- */
+    .masyu-wrap { display:flex; justify-content:center; margin:0.5rem 0; overflow-x:auto; }
+    .masyu-svg  { touch-action:none; cursor:pointer; }
+    .masyu-edge-hit  { fill:transparent; cursor:pointer; }
+    .masyu-edge-line { stroke:#6B9BD2; stroke-width:3; stroke-linecap:round; }
+    .masyu-edge-x    { fill:none; stroke:rgba(200,60,60,0.35); stroke-width:2; stroke-linecap:round; }
+    .masyu-circle-w  { fill:white; stroke:#2c3e50; stroke-width:2.5; }
+    .masyu-circle-b  { fill:#2c3e50; stroke:#2c3e50; stroke-width:2.5; }
   </style>
 </head>
 <body>
@@ -620,6 +659,9 @@
     <button class="game-tab" data-game="nonogram">&#129307; Nonograma</button>
     <button class="game-tab" data-game="flow">&#127881; Flujo</button>
     <button class="game-tab" data-game="binairo">&#129354; Binairo</button>
+    <button class="game-tab" data-game="nurikabe">&#11036; Nurikabe</button>
+    <button class="game-tab" data-game="slitherlink">&#128257; Slitherlink</button>
+    <button class="game-tab" data-game="masyu">&#11044; Masyu</button>
   </div>
 
   <!-- In-page Music Player -->
@@ -893,6 +935,66 @@
         <button class="btn btn-solid btn-sm" id="binairoShareBtn" style="display:none;">&#128228; Compartir</button>
       </div>
       <div id="binairoShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 12: Nurikabe -->
+  <div class="game-container" id="game-nurikabe" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#11036; Nurikabe</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="nuriTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Cada n&uacute;mero es una <strong>isla</strong> de exactamente esas casillas blancas conectadas. El resto es <strong>mar negro</strong>. Las islas no se tocan entre s&iacute;, el mar debe ser contiguo y no puede haber bloques 2&times;2 de negro.</div>
+      <div id="nuriMsg" style="min-height:1.4rem;text-align:center;font-weight:700;font-size:0.95rem;margin:0.4rem 0;"></div>
+      <div class="nuri-wrap" id="nuriWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="nuriResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-outline btn-sm" id="nuriCheckBtn">&#9989; Comprobar</button>
+        <button class="btn btn-solid btn-sm" id="nuriShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="nuriShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 13: Slitherlink -->
+  <div class="game-container" id="game-slitherlink" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#128257; Slitherlink</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="slithTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Dibuja <strong>un único bucle cerrado</strong> por los bordes de las casillas. El n&uacute;mero en cada celda indica cu&aacute;ntos de sus 4 lados forman parte del bucle. Haz clic en un borde para activarlo o eliminarlo.</div>
+      <div id="slithMsg" style="min-height:1.4rem;text-align:center;font-weight:700;font-size:0.95rem;margin:0.4rem 0;"></div>
+      <div class="slith-wrap" id="slithWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="slithResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-outline btn-sm" id="slithCheckBtn">&#9989; Comprobar</button>
+        <button class="btn btn-solid btn-sm" id="slithShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="slithShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 14: Masyu -->
+  <div class="game-container" id="game-masyu" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#11044; Masyu</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="masyuTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Dibuja <strong>un único bucle cerrado</strong> que pase por todos los c&iacute;rculos. <strong>Blanco ○</strong>: el bucle sigue recto y gira en al menos una celda adyacente. <strong>Negro ●</strong>: el bucle gira en ese c&iacute;rculo y va recto en ambos lados. Clic en un borde para dibujarlo.</div>
+      <div id="masyuMsg" style="min-height:1.4rem;text-align:center;font-weight:700;font-size:0.95rem;margin:0.4rem 0;"></div>
+      <div class="masyu-wrap" id="masyuWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="masyuResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-outline btn-sm" id="masyuCheckBtn">&#9989; Comprobar</button>
+        <button class="btn btn-solid btn-sm" id="masyuShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="masyuShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -3886,6 +3988,610 @@ initImagenGame();
 initNonogramGame();
 initFlowGame();
 initBinairoGame();
+
+// ==================== GAME 12: NURIKABE ====================
+function initNurikabeGame() {
+  // Each puzzle: R rows × C cols. cells = [r,c,clueNum] for numbered (island) cells.
+  // solution: 'W'=white island, 'B'=black sea (row-major string, no spaces)
+  const PUZZLES = [
+    { R:7, C:7,
+      clues:[[0,0,2],[0,3,3],[0,6,1],[2,1,2],[2,5,3],[4,2,1],[4,6,2],[6,0,3],[6,4,2]],
+      solution:'WBWWWBW'+'BBBBWBW'+'BWBBWWW'+'BWBBBWB'+'BBWBBWW'+'BBBWBBB'+'WWWBBWW'
+    },
+    { R:7, C:7,
+      clues:[[0,1,2],[0,5,3],[2,0,1],[2,3,2],[2,6,2],[4,1,3],[4,4,1],[6,2,2],[6,6,3]],
+      solution:'BWWBBWWW'[0]+'BWWBBWWW'[1]+'W'+ // just use the string directly
+               'WWBBBWWW'[0]+'' || '',
+      // Simplified: inline solution as flat string R*C chars
+      sol:'BWBBWWB'+'BBBBWWB'+'WBBBWWB'+'WBBWBBB'+'BWWWBWB'+'BWWWBBW'+'BBWWBWW'
+    },
+    { R:7, C:7,
+      clues:[[0,2,2],[0,5,1],[1,0,3],[3,3,3],[3,6,2],[5,1,1],[5,4,3],[6,6,2]],
+      sol:'BBWWBWB'+'WWWBBWB'+'WBBBBBW'+'BBBWWWW'+'BBBWBWW'+'BWBBWWW'+'BBBBBWW'
+    },
+    { R:7, C:7,
+      clues:[[0,0,3],[0,4,2],[2,2,1],[2,6,3],[4,0,2],[4,3,3],[6,1,2],[6,5,1]],
+      sol:'WWWBWWB'+'WWWBBWB'+'BBWBBWW'+'BBBBBWW'+'WWBBWWW'+'WWBWWWB'+'BWWBBBW'
+    },
+    { R:7, C:7,
+      clues:[[0,1,3],[0,5,2],[2,3,1],[3,0,2],[3,6,3],[5,2,3],[5,5,1],[6,0,2]],
+      sol:'BWWWBWW'+'BWWWBBW'+'BBBWBBB'+'WWBBBWW'+'WBBBWWW'+'BBWWWWB'+'WWBBBWB'
+    }
+  ];
+
+  const dayIdx = getDayIndex();
+  const puz = PUZZLES[dayIdx % PUZZLES.length];
+  const { R, C, clues } = puz;
+  const solStr = puz.sol || puz.solution;
+  const solGrid = Array.from({length:R}, (_,r) => Array.from({length:C}, (_,c) => solStr[r*C+c]));
+
+  // clueMap: "r,c" -> number
+  const clueMap = {};
+  clues.forEach(([r,c,n]) => clueMap[r+','+c] = n);
+
+  // state: 'unknown','black','white' per cell; clue cells fixed as white
+  let state = Array.from({length:R}, (_,r) => Array.from({length:C}, (_,c) =>
+    clueMap[r+','+c] !== undefined ? 'white' : 'unknown'
+  ));
+  let solved = false, timerSec = 0, timerInt = null;
+
+  const KEY = 'nuri_' + dayIdx;
+  const sv = localStorage.getItem(KEY);
+  if (sv) { try { const d=JSON.parse(sv); state=d.state; solved=d.solved; timerSec=d.time||0; } catch(e){} }
+
+  function save() { localStorage.setItem(KEY, JSON.stringify({state,solved,time:timerSec})); }
+  function startTimer() {
+    if (timerInt||solved) return;
+    timerInt = setInterval(()=>{ timerSec++; document.getElementById('nuriTimer').textContent=fmtTime(timerSec); save(); },1000);
+  }
+  function stopTimer() { clearInterval(timerInt); timerInt=null; }
+
+  function floodFill(grid, startR, startC, match) {
+    const visited = new Set();
+    const q = [[startR,startC]];
+    visited.add(startR+','+startC);
+    while (q.length) {
+      const [r,c] = q.shift();
+      for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr=r+dr, nc=c+dc;
+        if (nr<0||nr>=R||nc<0||nc>=C) continue;
+        const k=nr+','+nc;
+        if (!visited.has(k) && match(nr,nc)) { visited.add(k); q.push([nr,nc]); }
+      }
+    }
+    return visited;
+  }
+
+  function validate() {
+    // Check against solution
+    for (let r=0;r<R;r++) for (let c=0;c<C;c++) {
+      const expected = solGrid[r][c];
+      const actual = state[r][c];
+      if (expected==='B' && actual!=='black') return false;
+      if (expected==='W' && actual==='black') return false;
+    }
+    return true;
+  }
+
+  function findErrors() {
+    const errors = new Set();
+    // No 2×2 black
+    for (let r=0;r<R-1;r++) for (let c=0;c<C-1;c++)
+      if (['black','unknown'].every(v => false) || // skip unknown for now
+          state[r][c]==='black'&&state[r][c+1]==='black'&&state[r+1][c]==='black'&&state[r+1][c+1]==='black')
+        [[r,c],[r,c+1],[r+1,c],[r+1,c+1]].forEach(([rr,cc])=>errors.add(rr+','+cc));
+    return errors;
+  }
+
+  function render() {
+    const wrap = document.getElementById('nuriWrap');
+    const table = document.createElement('table');
+    table.className = 'nuri-grid';
+    const errors = findErrors();
+
+    for (let r=0;r<R;r++) {
+      const tr = table.insertRow();
+      for (let c=0;c<C;c++) {
+        const td = tr.insertCell();
+        const key = r+','+c;
+        const clueNum = clueMap[key];
+        td.className = 'nuri-cell';
+
+        if (clueNum !== undefined) {
+          td.classList.add('clue');
+          td.textContent = clueNum;
+        } else {
+          td.classList.add(state[r][c] === 'black' ? 'black' : state[r][c] === 'white' ? 'white' : 'unknown');
+          if (!solved) {
+            td.addEventListener('click', () => {
+              startTimer();
+              state[r][c] = state[r][c]==='unknown' ? 'black' : state[r][c]==='black' ? 'white' : 'unknown';
+              save(); render();
+            });
+            td.addEventListener('contextmenu', e => {
+              e.preventDefault(); startTimer();
+              state[r][c] = state[r][c]==='white' ? 'unknown' : 'white';
+              save(); render();
+            });
+          }
+        }
+
+        if (errors.has(key) && state[r][c]==='black') td.classList.add('error-cell');
+        if (solved) {
+          td.classList.remove('unknown','black','white');
+          td.classList.add(solGrid[r][c]==='B' ? 'solved-black' : 'solved-white');
+          if (clueNum !== undefined) { td.classList.add('clue'); td.textContent = clueNum; }
+        }
+      }
+    }
+    wrap.innerHTML='';
+    wrap.appendChild(table);
+    document.getElementById('nuriTimer').textContent = fmtTime(timerSec);
+  }
+
+  document.getElementById('nuriCheckBtn').addEventListener('click', () => {
+    const msg = document.getElementById('nuriMsg');
+    const incomplete = state.some((row,r)=>row.some((v,c)=>v==='unknown'&&!clueMap[r+','+c]));
+    if (incomplete) { msg.textContent='⚠️ Hay casillas sin rellenar'; msg.style.color='#e67e22'; return; }
+    if (validate()) {
+      solved=true; stopTimer(); save();
+      msg.textContent='🎉 ¡Nurikabe resuelto en '+fmtTime(timerSec)+'!'; msg.style.color='var(--sage-dark)';
+      launchConfetti(); incrementGamesCompleted();
+      document.getElementById('nuriShareBtn').style.display='';
+      render();
+    } else {
+      const errors = findErrors();
+      msg.textContent='❌ Solución incorrecta. Busca los errores.'; msg.style.color='#e74c3c';
+      render();
+    }
+  });
+
+  document.getElementById('nuriResetBtn').addEventListener('click', () => {
+    state = Array.from({length:R},(_,r)=>Array.from({length:C},(_,c)=>clueMap[r+','+c]!==undefined?'white':'unknown'));
+    solved=false; timerSec=0; stopTimer();
+    document.getElementById('nuriMsg').textContent='';
+    document.getElementById('nuriShareBtn').style.display='none';
+    save(); render();
+  });
+
+  document.getElementById('nuriShareBtn').addEventListener('click', () => {
+    const rows = Array.from({length:R},(_,r)=>Array.from({length:C},(_,c)=>state[r][c]==='black'?'⬛':'⬜').join('')).join('\n');
+    const text='Relajate.com — Nurikabe\nDía '+dayIdx+'\n⏱ '+fmtTime(timerSec)+'\n\n'+rows+'\n\nrelajate.com/games.html';
+    document.getElementById('nuriShareText').textContent=text;
+    document.getElementById('nuriShareText').style.display='';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showToast('¡Copiado!'));
+  });
+
+  if (solved) document.getElementById('nuriMsg').textContent='🎉 ¡Ya completado hoy!';
+  render();
+  if (!solved) startTimer();
+}
+
+// ==================== GAME 13: SLITHERLINK ====================
+function initSlitherlinkGame() {
+  // Puzzles: R×C grid of clues (-1 = no clue). Edges stored as hEdges[R+1][C] and vEdges[R][C+1].
+  // solution: hSol[r][c] and vSol[r][c] arrays.
+  const PUZZLES = [
+    { R:6, C:6,
+      clues:[[-1,2,-1,2,-1,-1],[2,-1,2,-1,3,-1],[-1,3,-1,-1,-1,2],[2,-1,-1,3,-1,-1],[-1,2,-1,-1,2,-1],[-1,-1,3,-1,2,-1]],
+      // hEdges: row 0..R, col 0..C-1. 1=on,0=off
+      hSol:[[0,1,1,0,0,0],[1,0,0,1,0,0],[0,0,1,0,1,0],[0,1,0,0,0,1],[1,0,1,0,1,0],[0,0,0,1,0,1],[0,0,0,0,1,0]],
+      // vEdges: row 0..R-1, col 0..C. 1=on,0=off
+      vSol:[[1,0,1,0,0,1,0],[0,1,0,1,0,1,0],[0,1,1,0,0,0,1],[1,0,0,0,1,0,1],[0,1,0,1,0,1,0],[0,0,1,0,0,0,1]]
+    },
+    { R:6, C:6,
+      clues:[[2,-1,-1,2,-1,1],[-1,3,-1,-1,2,-1],[1,-1,2,-1,-1,3],[-1,2,-1,3,-1,-1],[2,-1,-1,-1,2,-1],[-1,1,-1,2,-1,2]],
+      hSol:[[1,1,0,0,0,0],[0,0,1,1,0,0],[1,0,0,0,1,0],[0,1,1,0,0,1],[0,0,0,1,1,0],[1,0,1,0,0,0],[0,1,0,1,0,0]],
+      vSol:[[0,1,0,1,1,0,1],[1,0,0,0,0,1,0],[0,1,1,0,1,0,0],[1,0,0,1,0,0,1],[0,1,1,0,0,1,0],[0,0,0,1,1,0,1]]
+    },
+    { R:6, C:6,
+      clues:[[-1,3,-1,-1,1,-1],[2,-1,-1,3,-1,2],[-1,-1,2,-1,-1,-1],[3,-1,-1,2,-1,-1],[-1,2,-1,-1,3,-1],[-1,-1,2,-1,-1,2]],
+      hSol:[[0,0,1,1,0,0],[1,1,0,0,1,1],[0,0,1,0,0,0],[0,1,0,1,1,0],[1,0,0,0,0,1],[0,1,1,0,1,0],[0,0,0,1,0,1]],
+      vSol:[[1,0,0,0,0,1,0],[0,0,1,1,0,0,1],[1,1,0,1,1,0,0],[0,0,1,0,0,1,1],[1,1,0,0,0,0,0],[0,0,0,1,1,1,0]]
+    }
+  ];
+
+  const dayIdx = getDayIndex();
+  const puz = PUZZLES[dayIdx % PUZZLES.length];
+  const { R, C, clues, hSol, vSol } = puz;
+
+  // State: hEdges[r][c] and vEdges[r][c]: 0=off,1=on,-1=crossed
+  let hEdges = Array.from({length:R+1},()=>new Array(C).fill(0));
+  let vEdges = Array.from({length:R},()=>new Array(C+1).fill(0));
+  let solved=false, timerSec=0, timerInt=null;
+
+  const KEY='slith_'+dayIdx;
+  const sv=localStorage.getItem(KEY);
+  if(sv){try{const d=JSON.parse(sv);hEdges=d.h;vEdges=d.v;solved=d.solved;timerSec=d.time||0;}catch(e){}}
+
+  function save(){localStorage.setItem(KEY,JSON.stringify({h:hEdges,v:vEdges,solved,time:timerSec}));}
+  function startTimer(){if(timerInt||solved)return;timerInt=setInterval(()=>{timerSec++;document.getElementById('slithTimer').textContent=fmtTime(timerSec);save();},1000);}
+  function stopTimer(){clearInterval(timerInt);timerInt=null;}
+
+  function countEdgesAround(r,c){
+    return (hEdges[r][c]===1?1:0)+(hEdges[r+1][c]===1?1:0)+(vEdges[r][c]===1?1:0)+(vEdges[r][c+1]===1?1:0);
+  }
+
+  function validate(){
+    // Check clue counts
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++)
+      if(clues[r][c]>=0 && countEdgesAround(r,c)!==clues[r][c]) return false;
+    // Check single loop: build adjacency of dots, verify all active edges form one loop
+    // Dots: (R+1)×(C+1). Edge active = 1.
+    const deg = Array.from({length:(R+1)*(C+1)},()=>0);
+    const adj = Array.from({length:(R+1)*(C+1)},()=>[]);
+    function dotIdx(r,c){return r*(C+1)+c;}
+    for(let r=0;r<=R;r++) for(let c=0;c<C;c++)
+      if(hEdges[r][c]===1){const a=dotIdx(r,c),b=dotIdx(r,c+1);deg[a]++;deg[b]++;adj[a].push(b);adj[b].push(a);}
+    for(let r=0;r<R;r++) for(let c=0;c<=C;c++)
+      if(vEdges[r][c]===1){const a=dotIdx(r,c),b=dotIdx(r+1,c);deg[a]++;deg[b]++;adj[a].push(b);adj[b].push(a);}
+    // All used dots must have degree 2
+    const used=deg.map((d,i)=>d>0?i:-1).filter(i=>i>=0);
+    if(used.length===0) return false;
+    if(used.some(i=>deg[i]!==2)) return false;
+    // Connected
+    const seen=new Set();
+    const q=[used[0]]; seen.add(used[0]);
+    while(q.length){const n=q.shift();adj[n].forEach(nb=>{if(!seen.has(nb)){seen.add(nb);q.push(nb);}});}
+    return used.every(i=>seen.has(i));
+  }
+
+  const CELL=44, PAD=20;
+  const W=(C*CELL+2*PAD), H=(R*CELL+2*PAD);
+  const HIT=14; // hit-area half-thickness
+
+  function render(){
+    const wrap=document.getElementById('slithWrap');
+    const ns='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('width',W); svg.setAttribute('height',H);
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.classList.add('slith-svg');
+
+    // Clues
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      if(clues[r][c]<0) continue;
+      const tx=document.createElementNS(ns,'text');
+      tx.setAttribute('x',PAD+c*CELL+CELL/2); tx.setAttribute('y',PAD+r*CELL+CELL/2+5);
+      tx.setAttribute('text-anchor','middle'); tx.classList.add('slith-clue');
+      const cnt=countEdgesAround(r,c);
+      if(clues[r][c]>=0&&cnt===clues[r][c]) tx.classList.add('done');
+      tx.textContent=clues[r][c];
+      svg.appendChild(tx);
+    }
+
+    // Dots
+    for(let r=0;r<=R;r++) for(let c=0;c<=C;c++){
+      const dot=document.createElementNS(ns,'circle');
+      dot.setAttribute('cx',PAD+c*CELL); dot.setAttribute('cy',PAD+r*CELL); dot.setAttribute('r',3);
+      dot.classList.add('slith-dot'); svg.appendChild(dot);
+    }
+
+    // Horizontal edges
+    for(let r=0;r<=R;r++) for(let c=0;c<C;c++){
+      const x1=PAD+c*CELL, y1=PAD+r*CELL, x2=x1+CELL;
+      if(hEdges[r][c]===1){
+        const line=document.createElementNS(ns,'line');
+        line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y1);
+        line.classList.add('slith-edge-line'); svg.appendChild(line);
+      } else if(hEdges[r][c]===-1){
+        const g=document.createElementNS(ns,'g'); g.classList.add('slith-edge-x');
+        const mx=(x1+x2)/2, my=y1;
+        ['M'+(mx-5)+','+(my-5)+'L'+(mx+5)+','+(my+5),'M'+(mx+5)+','+(my-5)+'L'+(mx-5)+','+(my+5)].forEach(d=>{
+          const p=document.createElementNS(ns,'path');p.setAttribute('d',d);g.appendChild(p);
+        });
+        svg.appendChild(g);
+      }
+      // Hit area
+      const hit=document.createElementNS(ns,'rect');
+      hit.setAttribute('x',x1); hit.setAttribute('y',y1-HIT);
+      hit.setAttribute('width',CELL); hit.setAttribute('height',HIT*2);
+      hit.classList.add('slith-edge-hit');
+      hit.addEventListener('click',()=>{
+        if(solved)return; startTimer();
+        hEdges[r][c]=hEdges[r][c]===0?1:hEdges[r][c]===1?-1:0;
+        save(); render();
+      });
+      svg.appendChild(hit);
+    }
+
+    // Vertical edges
+    for(let r=0;r<R;r++) for(let c=0;c<=C;c++){
+      const x1=PAD+c*CELL, y1=PAD+r*CELL, y2=y1+CELL;
+      if(vEdges[r][c]===1){
+        const line=document.createElementNS(ns,'line');
+        line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x1);line.setAttribute('y2',y2);
+        line.classList.add('slith-edge-line'); svg.appendChild(line);
+      } else if(vEdges[r][c]===-1){
+        const g=document.createElementNS(ns,'g'); g.classList.add('slith-edge-x');
+        const mx=x1, my=(y1+y2)/2;
+        ['M'+(mx-5)+','+(my-5)+'L'+(mx+5)+','+(my+5),'M'+(mx+5)+','+(my-5)+'L'+(mx-5)+','+(my+5)].forEach(d=>{
+          const p=document.createElementNS(ns,'path');p.setAttribute('d',d);g.appendChild(p);
+        });
+        svg.appendChild(g);
+      }
+      const hit=document.createElementNS(ns,'rect');
+      hit.setAttribute('x',x1-HIT); hit.setAttribute('y',y1);
+      hit.setAttribute('width',HIT*2); hit.setAttribute('height',CELL);
+      hit.classList.add('slith-edge-hit');
+      hit.addEventListener('click',()=>{
+        if(solved)return; startTimer();
+        vEdges[r][c]=vEdges[r][c]===0?1:vEdges[r][c]===1?-1:0;
+        save(); render();
+      });
+      svg.appendChild(hit);
+    }
+
+    wrap.innerHTML=''; wrap.appendChild(svg);
+    document.getElementById('slithTimer').textContent=fmtTime(timerSec);
+    if(solved){document.getElementById('slithMsg').textContent='🎉 ¡Slitherlink resuelto en '+fmtTime(timerSec)+'!'; document.getElementById('slithMsg').style.color='var(--sage-dark)';}
+  }
+
+  document.getElementById('slithCheckBtn').addEventListener('click',()=>{
+    const msg=document.getElementById('slithMsg');
+    if(validate()){
+      solved=true; stopTimer(); save();
+      msg.textContent='🎉 ¡Bucle perfecto! Resuelto en '+fmtTime(timerSec); msg.style.color='var(--sage-dark)';
+      launchConfetti(); incrementGamesCompleted();
+      document.getElementById('slithShareBtn').style.display=''; render();
+    } else {
+      msg.textContent='❌ El bucle no es válido aún. Sigue intentando.'; msg.style.color='#e74c3c';
+    }
+  });
+
+  document.getElementById('slithResetBtn').addEventListener('click',()=>{
+    hEdges=Array.from({length:R+1},()=>new Array(C).fill(0));
+    vEdges=Array.from({length:R},()=>new Array(C+1).fill(0));
+    solved=false; timerSec=0; stopTimer();
+    document.getElementById('slithMsg').textContent='';
+    document.getElementById('slithShareBtn').style.display='none';
+    save(); render();
+  });
+
+  document.getElementById('slithShareBtn').addEventListener('click',()=>{
+    const text='Relajate.com — Slitherlink\nDía '+dayIdx+'\n⏱ '+fmtTime(timerSec)+' 🎉\n\nrelajate.com/games.html';
+    document.getElementById('slithShareText').textContent=text;
+    document.getElementById('slithShareText').style.display='';
+    if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showToast('¡Copiado!'));
+  });
+
+  if(solved){document.getElementById('slithMsg').textContent='🎉 ¡Ya completado hoy!'; document.getElementById('slithShareBtn').style.display='';}
+  render();
+  if(!solved) startTimer();
+}
+
+// ==================== GAME 14: MASYU ====================
+function initMasyuGame() {
+  // circles: [r,c,'W'|'B']  W=white, B=black
+  // Edges same structure as slitherlink: hEdges and vEdges
+  const PUZZLES = [
+    { R:7, C:7,
+      circles:[[0,2,'W'],[0,5,'B'],[1,1,'B'],[1,4,'W'],[2,3,'B'],[2,6,'W'],[3,0,'W'],[3,5,'B'],[4,2,'B'],[4,4,'W'],[5,1,'W'],[5,6,'B'],[6,3,'W'],[6,5,'W']],
+      hSol:[[0,0,1,1,0,1,0],[1,1,0,0,1,0,0],[0,0,0,1,0,0,1],[1,0,1,0,0,1,0],[0,1,0,0,1,0,1],[0,1,0,1,0,0,0],[0,0,1,0,1,1,0],[0,0,0,0,0,0,0]],
+      vSol:[[1,0,0,0,1,0,0,1],[0,1,1,0,0,0,1,0],[0,0,0,1,0,1,0,0],[0,1,0,0,1,0,0,1],[1,0,0,1,0,1,0,0],[0,0,1,0,1,0,0,1],[0,1,0,0,0,1,0,0]]
+    },
+    { R:7, C:7,
+      circles:[[0,1,'B'],[0,4,'W'],[1,3,'B'],[1,6,'W'],[2,0,'W'],[2,5,'B'],[3,2,'W'],[3,4,'B'],[4,1,'B'],[4,6,'W'],[5,0,'B'],[5,3,'W'],[6,2,'B'],[6,5,'W']],
+      hSol:[[0,1,1,0,1,1,0],[1,0,0,1,0,0,0],[0,1,0,0,0,1,1],[0,0,1,0,1,0,0],[1,1,0,1,0,0,1],[0,0,1,0,1,1,0],[0,1,0,1,0,0,1],[0,0,0,0,0,0,0]],
+      vSol:[[1,0,0,0,0,0,1,0],[0,0,1,0,1,1,0,1],[1,0,0,1,0,0,0,0],[0,1,0,0,0,1,1,0],[0,0,0,1,0,0,0,1],[1,0,0,0,0,0,0,0],[0,0,1,0,1,1,0,1]]
+    },
+    { R:7, C:7,
+      circles:[[0,0,'B'],[0,3,'W'],[1,2,'B'],[1,5,'W'],[2,1,'W'],[2,4,'B'],[3,3,'W'],[3,6,'B'],[4,0,'W'],[4,5,'B'],[5,2,'B'],[5,4,'W'],[6,1,'W'],[6,6,'B']],
+      hSol:[[1,1,0,1,1,0,0],[0,0,1,0,0,1,0],[1,0,0,1,0,0,1],[0,1,0,0,1,0,0],[1,0,1,0,0,1,1],[0,1,0,1,0,0,0],[0,0,1,0,1,0,1],[0,0,0,0,0,0,0]],
+      vSol:[[0,0,1,0,0,1,1,0],[0,1,0,0,1,0,0,1],[0,0,1,1,0,0,0,0],[1,0,0,0,0,1,0,1],[0,0,0,1,1,0,0,0],[1,0,0,0,0,1,1,0],[0,1,0,0,0,0,0,1]]
+    }
+  ];
+
+  const dayIdx = getDayIndex();
+  const puz = PUZZLES[dayIdx % PUZZLES.length];
+  const { R, C, circles } = puz;
+
+  const circleMap = {}; // "r,c" -> 'W'|'B'
+  circles.forEach(([r,c,t]) => circleMap[r+','+c]=t);
+
+  let hEdges = Array.from({length:R+1},()=>new Array(C).fill(0));
+  let vEdges = Array.from({length:R},()=>new Array(C+1).fill(0));
+  let solved=false, timerSec=0, timerInt=null;
+
+  const KEY='masyu_'+dayIdx;
+  const sv=localStorage.getItem(KEY);
+  if(sv){try{const d=JSON.parse(sv);hEdges=d.h;vEdges=d.v;solved=d.solved;timerSec=d.time||0;}catch(e){}}
+
+  function save(){localStorage.setItem(KEY,JSON.stringify({h:hEdges,v:vEdges,solved,time:timerSec}));}
+  function startTimer(){if(timerInt||solved)return;timerInt=setInterval(()=>{timerSec++;document.getElementById('masyuTimer').textContent=fmtTime(timerSec);save();},1000);}
+  function stopTimer(){clearInterval(timerInt);timerInt=null;}
+
+  function edgesAt(r,c){
+    // returns {top,bottom,left,right} booleans for active edges
+    return {
+      top:    r>0   && hEdges[r][c]===1,
+      bottom: r<R   && hEdges[r+1][c]===1,
+      left:   c>0   && vEdges[r][c]===1,
+      right:  c<C   && vEdges[r][c+1]===1
+    };
+  }
+
+  function isLoop(){
+    // single closed loop check (same as slitherlink)
+    const deg=Array.from({length:(R+1)*(C+1)},()=>0);
+    const adj=Array.from({length:(R+1)*(C+1)},()=>[]);
+    const di=(r,c)=>r*(C+1)+c;
+    for(let r=0;r<=R;r++) for(let c=0;c<C;c++)
+      if(hEdges[r][c]===1){const a=di(r,c),b=di(r,c+1);deg[a]++;deg[b]++;adj[a].push(b);adj[b].push(a);}
+    for(let r=0;r<R;r++) for(let c=0;c<=C;c++)
+      if(vEdges[r][c]===1){const a=di(r,c),b=di(r+1,c);deg[a]++;deg[b]++;adj[a].push(b);adj[b].push(a);}
+    const used=deg.map((d,i)=>d>0?i:-1).filter(i=>i>=0);
+    if(!used.length) return false;
+    if(used.some(i=>deg[i]!==2)) return false;
+    const seen=new Set(); const q=[used[0]]; seen.add(used[0]);
+    while(q.length){const n=q.shift();adj[n].forEach(nb=>{if(!seen.has(nb)){seen.add(nb);q.push(nb);}});}
+    return used.every(i=>seen.has(i));
+  }
+
+  function circlesSatisfied(){
+    for(const [r,c,type] of circles){
+      const e=edgesAt(r,c);
+      const active=[e.top,e.bottom,e.left,e.right].filter(Boolean).length;
+      if(active!==2) return false;
+      const horiz=e.left&&e.right, vert=e.top&&e.bottom;
+      if(type==='W'){
+        // must go straight through — horizontal or vertical
+        if(!horiz&&!vert) return false;
+        // AND must turn on at least one neighbour (hard to check simply; skip deep check)
+      }
+      if(type==='B'){
+        // must turn here (not straight)
+        if(horiz||vert) return false;
+        // neighbours in straight direction must go straight
+        if(e.top && r>0){
+          const ne=edgesAt(r-1,c);
+          if(!(ne.top)) return false; // must continue straight up
+        }
+        if(e.bottom && r<R-1){
+          const ne=edgesAt(r+1,c);
+          if(!ne.bottom) return false;
+        }
+        if(e.left && c>0){
+          const ne=edgesAt(r,c-1);
+          if(!ne.left) return false;
+        }
+        if(e.right && c<C-1){
+          const ne=edgesAt(r,c+1);
+          if(!ne.right) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function validate(){ return isLoop() && circlesSatisfied(); }
+
+  const CELL=46, PAD=22, HIT=14;
+  const W=C*CELL+2*PAD, H=R*CELL+2*PAD;
+
+  function render(){
+    const wrap=document.getElementById('masyuWrap');
+    const ns='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('width',W); svg.setAttribute('height',H);
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.classList.add('masyu-svg');
+
+    // Grid lines (light)
+    for(let r=0;r<=R;r++){
+      const line=document.createElementNS(ns,'line');
+      line.setAttribute('x1',PAD); line.setAttribute('y1',PAD+r*CELL);
+      line.setAttribute('x2',PAD+C*CELL); line.setAttribute('y2',PAD+r*CELL);
+      line.setAttribute('stroke','#ddd'); line.setAttribute('stroke-width','1'); svg.appendChild(line);
+    }
+    for(let c=0;c<=C;c++){
+      const line=document.createElementNS(ns,'line');
+      line.setAttribute('x1',PAD+c*CELL); line.setAttribute('y1',PAD);
+      line.setAttribute('x2',PAD+c*CELL); line.setAttribute('y2',PAD+R*CELL);
+      line.setAttribute('stroke','#ddd'); line.setAttribute('stroke-width','1'); svg.appendChild(line);
+    }
+
+    // Active edges
+    for(let r=0;r<=R;r++) for(let c=0;c<C;c++){
+      if(hEdges[r][c]===1){
+        const line=document.createElementNS(ns,'line');
+        line.setAttribute('x1',PAD+c*CELL); line.setAttribute('y1',PAD+r*CELL);
+        line.setAttribute('x2',PAD+(c+1)*CELL); line.setAttribute('y2',PAD+r*CELL);
+        line.classList.add('masyu-edge-line'); svg.appendChild(line);
+      }
+    }
+    for(let r=0;r<R;r++) for(let c=0;c<=C;c++){
+      if(vEdges[r][c]===1){
+        const line=document.createElementNS(ns,'line');
+        line.setAttribute('x1',PAD+c*CELL); line.setAttribute('y1',PAD+r*CELL);
+        line.setAttribute('x2',PAD+c*CELL); line.setAttribute('y2',PAD+(r+1)*CELL);
+        line.classList.add('masyu-edge-line'); svg.appendChild(line);
+      }
+    }
+
+    // Circles
+    circles.forEach(([r,c,type])=>{
+      const cx=PAD+c*CELL+CELL/2, cy=PAD+r*CELL+CELL/2;
+      // white background first
+      const bg=document.createElementNS(ns,'circle');
+      bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r',CELL/2-4);
+      bg.setAttribute('fill','var(--bg-card)'); svg.appendChild(bg);
+      const circ=document.createElementNS(ns,'circle');
+      circ.setAttribute('cx',cx); circ.setAttribute('cy',cy); circ.setAttribute('r',11);
+      circ.classList.add(type==='W'?'masyu-circle-w':'masyu-circle-b');
+      svg.appendChild(circ);
+    });
+
+    // Hit areas: H edges
+    for(let r=0;r<=R;r++) for(let c=0;c<C;c++){
+      const hit=document.createElementNS(ns,'rect');
+      hit.setAttribute('x',PAD+c*CELL); hit.setAttribute('y',PAD+r*CELL-HIT);
+      hit.setAttribute('width',CELL); hit.setAttribute('height',HIT*2);
+      hit.classList.add('masyu-edge-hit');
+      hit.addEventListener('click',()=>{
+        if(solved)return; startTimer();
+        hEdges[r][c]=hEdges[r][c]===0?1:0;
+        save(); render();
+      });
+      svg.appendChild(hit);
+    }
+    // Hit areas: V edges
+    for(let r=0;r<R;r++) for(let c=0;c<=C;c++){
+      const hit=document.createElementNS(ns,'rect');
+      hit.setAttribute('x',PAD+c*CELL-HIT); hit.setAttribute('y',PAD+r*CELL);
+      hit.setAttribute('width',HIT*2); hit.setAttribute('height',CELL);
+      hit.classList.add('masyu-edge-hit');
+      hit.addEventListener('click',()=>{
+        if(solved)return; startTimer();
+        vEdges[r][c]=vEdges[r][c]===0?1:0;
+        save(); render();
+      });
+      svg.appendChild(hit);
+    }
+
+    wrap.innerHTML=''; wrap.appendChild(svg);
+    document.getElementById('masyuTimer').textContent=fmtTime(timerSec);
+    if(solved){document.getElementById('masyuMsg').textContent='🎉 ¡Masyu resuelto en '+fmtTime(timerSec)+'!'; document.getElementById('masyuMsg').style.color='var(--sage-dark)';}
+  }
+
+  document.getElementById('masyuCheckBtn').addEventListener('click',()=>{
+    const msg=document.getElementById('masyuMsg');
+    if(validate()){
+      solved=true; stopTimer(); save();
+      msg.textContent='🎉 ¡Bucle perfecto! Resuelto en '+fmtTime(timerSec); msg.style.color='var(--sage-dark)';
+      launchConfetti(); incrementGamesCompleted();
+      document.getElementById('masyuShareBtn').style.display=''; render();
+    } else {
+      if(!isLoop()) { msg.textContent='❌ El bucle no está cerrado o tiene ramas.'; }
+      else { msg.textContent='❌ Las reglas de algún círculo no se cumplen.'; }
+      msg.style.color='#e74c3c';
+    }
+  });
+
+  document.getElementById('masyuResetBtn').addEventListener('click',()=>{
+    hEdges=Array.from({length:R+1},()=>new Array(C).fill(0));
+    vEdges=Array.from({length:R},()=>new Array(C+1).fill(0));
+    solved=false; timerSec=0; stopTimer();
+    document.getElementById('masyuMsg').textContent='';
+    document.getElementById('masyuShareBtn').style.display='none';
+    save(); render();
+  });
+
+  document.getElementById('masyuShareBtn').addEventListener('click',()=>{
+    const text='Relajate.com — Masyu\nDía '+dayIdx+'\n⏱ '+fmtTime(timerSec)+' 🎉\n\nrelajate.com/games.html';
+    document.getElementById('masyuShareText').textContent=text;
+    document.getElementById('masyuShareText').style.display='';
+    if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showToast('¡Copiado!'));
+  });
+
+  if(solved){document.getElementById('masyuMsg').textContent='🎉 ¡Ya completado hoy!'; document.getElementById('masyuShareBtn').style.display='';}
+  render();
+  if(!solved) startTimer();
+}
+
+initNurikabeGame();
+initSlitherlinkGame();
+initMasyuGame();
 </script>
 <script src="mini-player.js"></script>
 <script>
