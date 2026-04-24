@@ -1079,7 +1079,7 @@ document.getElementById('masterVolume').addEventListener('input', (e) => {
   saveState();
 });
 
-// Master play/pause
+// Master play/pause — also controls the mini-player so both buttons stay in sync
 document.getElementById('masterPlay').addEventListener('click', () => {
   if (isPlaying) {
     Object.keys(soundConfigs).forEach(name => {
@@ -1089,6 +1089,8 @@ document.getElementById('masterPlay').addEventListener('click', () => {
     document.getElementById('masterPlay').classList.remove('playing');
     document.getElementById('masterPlay').innerHTML = '&#9654;';
     stopVisualizer();
+    // Keep mini-player in sync
+    if (window._relajateAudio) window._relajateAudio.stop();
   } else {
     initAudio(); // also resumes if suspended
     const anyActive = Object.values(soundConfigs).some(s => s.active);
@@ -1111,6 +1113,8 @@ document.getElementById('masterPlay').addEventListener('click', () => {
     document.getElementById('masterPlay').innerHTML = '&#10074;&#10074;';
     startVisualizer();
     updateUI();
+    // Keep mini-player in sync
+    if (window._relajateAudio) window._relajateAudio.play();
   }
 });
 
@@ -1275,6 +1279,24 @@ function restoreState() {
 }
 
 restoreState();
+
+// Sync DJ masterPlay with mini-player state on load.
+// mini-player.js auto-resumes after 300ms; we check at 450ms to catch that.
+setTimeout(function() {
+  var miniOn = window._relajateAudio && window._relajateAudio.isPlaying();
+  if (miniOn && !isPlaying) {
+    isPlaying = true;
+    document.getElementById('masterPlay').classList.add('playing');
+    document.getElementById('masterPlay').innerHTML = '&#10074;&#10074;';
+    startVisualizer();
+  } else if (!miniOn && isPlaying) {
+    // edge case: DJ was playing but mini stopped (unlikely on load)
+    isPlaying = false;
+    document.getElementById('masterPlay').classList.remove('playing');
+    document.getElementById('masterPlay').innerHTML = '&#9654;';
+    stopVisualizer();
+  }
+}, 450);
 </script>
 <script src="mini-player.js"></script>
 </body>
