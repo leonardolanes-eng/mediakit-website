@@ -85,8 +85,9 @@
       text-align: center;
     }
     .mem-card-front {
-      background: linear-gradient(135deg, var(--blue), var(--lavender));
-      font-size: 1.3rem; color: white;
+      background: white;
+      overflow: hidden;
+      padding: 0;
     }
     .mem-card-back {
       background: var(--bg-card); transform: rotateY(180deg);
@@ -605,7 +606,7 @@
         <span class="game-score">Movimientos: <span id="memMoves">0</span></span>
         <span class="game-score" style="font-size:0.75rem;opacity:0.7;">&#127942; Mejor: <span id="memBest">--</span></span>
       </div>
-      <div class="game-instructions">Voltea dos cartas por turno y encuentra los <strong>pares de cada pa&iacute;s</strong> (nombre + bandera, capital o &iacute;cono). Compl&eacute;talo en la <strong>menor cantidad de movimientos</strong>. &iexcl;Entrena tu memoria!</div>
+      <div class="game-instructions">Voltea dos cartas por turno y encuentra los <strong>pares de cada pa&iacute;s</strong>: nombre &harr; bandera, capital o moneda. &iexcl;Compl&eacute;talo en la <strong>menor cantidad de movimientos</strong> y entrena tu memoria!</div>
       <div class="community-stats" id="statsMemory"></div>
       <div class="mem-grid" id="memGrid"></div>
       <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
@@ -1448,29 +1449,29 @@ function flagImg(code) {
   return 'https://flagcdn.com/w80/' + code + '.png';
 }
 const MEM_COUNTRIES = [
-  { id: 'mx', code: 'mx', name: 'México', capital: 'Ciudad de México', icon: '🌮' },
-  { id: 'ar', code: 'ar', name: 'Argentina', capital: 'Buenos Aires', icon: '🥩' },
-  { id: 'co', code: 'co', name: 'Colombia', capital: 'Bogotá', icon: '☕' },
-  { id: 'es', code: 'es', name: 'España', capital: 'Madrid', icon: '🏰' },
-  { id: 'pe', code: 'pe', name: 'Perú', capital: 'Lima', icon: '🏔️' },
-  { id: 'cl', code: 'cl', name: 'Chile', capital: 'Santiago', icon: '🍷' },
-  { id: 'cu', code: 'cu', name: 'Cuba', capital: 'La Habana', icon: '🎺' },
-  { id: 've', code: 've', name: 'Venezuela', capital: 'Caracas', icon: '⛰️' },
-  { id: 'ec', code: 'ec', name: 'Ecuador', capital: 'Quito', icon: '🌋' },
-  { id: 'gt', code: 'gt', name: 'Guatemala', capital: 'Ciudad de Guatemala', icon: '🌽' },
-  { id: 'bo', code: 'bo', name: 'Bolivia', capital: 'La Paz', icon: '🦙' },
-  { id: 'uy', code: 'uy', name: 'Uruguay', capital: 'Montevideo', icon: '🧉' },
-  { id: 'cr', code: 'cr', name: 'Costa Rica', capital: 'San José', icon: '🦜' },
-  { id: 'pa', code: 'pa', name: 'Panamá', capital: 'Ciudad de Panamá', icon: '🚢' },
-  { id: 'do', code: 'do', name: 'Rep. Dominicana', capital: 'Santo Domingo', icon: '🏖️' },
-  { id: 'hn', code: 'hn', name: 'Honduras', capital: 'Tegucigalpa', icon: '🌴' },
-  { id: 'py', code: 'py', name: 'Paraguay', capital: 'Asunción', icon: '🎶' },
-  { id: 'sv', code: 'sv', name: 'El Salvador', capital: 'San Salvador', icon: '🌊' },
-  { id: 'ni', code: 'ni', name: 'Nicaragua', capital: 'Managua', icon: '🏝️' },
-  { id: 'pr', code: 'pr', name: 'Puerto Rico', capital: 'San Juan', icon: '🎵' },
-  { id: 'us', code: 'us', name: 'Estados Unidos', capital: 'Washington D.C.', icon: '🗽' },
-  { id: 'br', code: 'br', name: 'Brasil', capital: 'Brasilia', icon: '⚽' },
-  { id: 'pt', code: 'pt', name: 'Portugal', capital: 'Lisboa', icon: '🚋' },
+  { id: 'mx', code: 'mx', name: 'México',          capital: 'Ciudad de México',    currency: 'Peso Mexicano' },
+  { id: 'ar', code: 'ar', name: 'Argentina',        capital: 'Buenos Aires',        currency: 'Peso Argentino' },
+  { id: 'co', code: 'co', name: 'Colombia',         capital: 'Bogotá',              currency: 'Peso Colombiano' },
+  { id: 'es', code: 'es', name: 'España',           capital: 'Madrid',              currency: 'Euro' },
+  { id: 'pe', code: 'pe', name: 'Perú',             capital: 'Lima',                currency: 'Sol' },
+  { id: 'cl', code: 'cl', name: 'Chile',            capital: 'Santiago',            currency: 'Peso Chileno' },
+  { id: 'cu', code: 'cu', name: 'Cuba',             capital: 'La Habana',           currency: 'Peso Cubano' },
+  { id: 've', code: 've', name: 'Venezuela',        capital: 'Caracas',             currency: 'Bolívar' },
+  { id: 'ec', code: 'ec', name: 'Ecuador',          capital: 'Quito',               currency: 'Dólar' },
+  { id: 'gt', code: 'gt', name: 'Guatemala',        capital: 'Ciudad de Guatemala', currency: 'Quetzal' },
+  { id: 'bo', code: 'bo', name: 'Bolivia',          capital: 'La Paz',              currency: 'Boliviano' },
+  { id: 'uy', code: 'uy', name: 'Uruguay',          capital: 'Montevideo',          currency: 'Peso Uruguayo' },
+  { id: 'cr', code: 'cr', name: 'Costa Rica',       capital: 'San José',            currency: 'Colón' },
+  { id: 'pa', code: 'pa', name: 'Panamá',           capital: 'Ciudad de Panamá',    currency: 'Balboa' },
+  { id: 'do', code: 'do', name: 'Rep. Dominicana',  capital: 'Santo Domingo',       currency: 'Peso Dominicano' },
+  { id: 'hn', code: 'hn', name: 'Honduras',         capital: 'Tegucigalpa',         currency: 'Lempira' },
+  { id: 'py', code: 'py', name: 'Paraguay',         capital: 'Asunción',            currency: 'Guaraní' },
+  { id: 'sv', code: 'sv', name: 'El Salvador',      capital: 'San Salvador',        currency: 'Dólar' },
+  { id: 'ni', code: 'ni', name: 'Nicaragua',        capital: 'Managua',             currency: 'Córdoba' },
+  { id: 'pr', code: 'pr', name: 'Puerto Rico',      capital: 'San Juan',            currency: 'Dólar' },
+  { id: 'us', code: 'us', name: 'Estados Unidos',   capital: 'Washington D.C.',     currency: 'Dólar' },
+  { id: 'br', code: 'br', name: 'Brasil',           capital: 'Brasilia',            currency: 'Real' },
+  { id: 'pt', code: 'pt', name: 'Portugal',         capital: 'Lisboa',              currency: 'Euro' },
 ];
 
 let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memLocked = false;
@@ -1515,12 +1516,12 @@ function initMemoryGame() {
   // Pick 8 random countries
   const picked = shuffle([...MEM_COUNTRIES], rng).slice(0, 8);
 
-  // For each country, pick a random pair type: flag, capital, or icon
-  const pairTypes = ['flag', 'capital', 'icon'];
+  // For each country, pick a random pair type: flag, capital, or currency
+  const pairTypes = ['flag', 'capital', 'currency'];
   memCards = [];
   picked.forEach(country => {
     const pairType = pairTypes[Math.floor(rng() * pairTypes.length)];
-    // Card A: country name with flag image
+    // Card A: country name
     memCards.push({ countryId: country.id, type: 'name', text: country.name, flagCode: country.code });
     // Card B: the paired attribute
     if (pairType === 'flag') {
@@ -1528,7 +1529,7 @@ function initMemoryGame() {
     } else if (pairType === 'capital') {
       memCards.push({ countryId: country.id, type: 'capital', text: country.capital, emoji: '🏛️', label: 'Capital' });
     } else {
-      memCards.push({ countryId: country.id, type: 'icon', emoji: country.icon, label: country.name });
+      memCards.push({ countryId: country.id, type: 'currency', text: country.currency, emoji: '💰', label: 'Moneda' });
     }
   });
 
@@ -1547,7 +1548,18 @@ function renderMemoryGame() {
 
     const front = document.createElement('div');
     front.className = 'mem-card-front';
-    front.textContent = '?';
+    // Logo mosaic: each card shows a different section of the Relajate.com logo.
+    // background-size: 400% 400% spans the full logo across the 4×4 grid.
+    var col = i % 4;
+    var row = Math.floor(i / 4);
+    var pctX = (col / 3 * 100).toFixed(1);
+    var pctY = (row / 3 * 100).toFixed(1);
+    front.style.cssText =
+      'background-image:url("images/logo.png");' +
+      'background-size:400% 400%;' +
+      'background-position:' + pctX + '% ' + pctY + '%;' +
+      'background-repeat:no-repeat;' +
+      'background-color:#f5f0ff;';
 
     const back = document.createElement('div');
     back.className = 'mem-card-back';
@@ -1582,14 +1594,18 @@ function renderMemoryGame() {
       back.appendChild(em);
       back.appendChild(tx);
       back.appendChild(lb);
-    } else {
+    } else if (card.type === 'currency') {
       const em = document.createElement('span');
       em.className = 'mem-emoji';
       em.textContent = card.emoji;
+      const tx = document.createElement('span');
+      tx.className = 'mem-text';
+      tx.textContent = card.text;
       const lb = document.createElement('span');
       lb.className = 'mem-label';
       lb.textContent = card.label;
       back.appendChild(em);
+      back.appendChild(tx);
       back.appendChild(lb);
     }
 
