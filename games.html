@@ -504,6 +504,88 @@
       background: var(--gray-200); border: 2px solid var(--gray-300); transition: all 0.3s;
     }
     .imagen-mistake-dot.used { background: #e74c3c; border-color: #e74c3c; }
+
+    /* ---- Nonograma ---- */
+    .nono-wrap { overflow-x: auto; display: flex; justify-content: center; margin: 0.5rem 0; }
+    .nono-table { border-collapse: collapse; }
+    .nono-clue {
+      font-size: 0.75rem; font-weight: 800; color: var(--text-secondary);
+      padding: 2px 5px; text-align: center; vertical-align: bottom; min-width: 28px; min-height: 28px;
+      line-height: 1.3;
+    }
+    .nono-clue-row { text-align: right; vertical-align: middle; white-space: nowrap; }
+    .nono-clue span { display: block; }
+    .nono-cell {
+      width: 32px; height: 32px; border: 1px solid var(--gray-300);
+      background: var(--bg-card); cursor: pointer;
+      transition: background 0.1s; position: relative;
+      box-sizing: border-box;
+    }
+    .nono-cell:hover { background: rgba(107,155,210,0.15); }
+    .nono-cell.filled { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .nono-cell.crossed::after {
+      content: '✕'; position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; color: #e74c3c; font-weight: 900;
+    }
+    .nono-cell.error { background: rgba(231,76,60,0.25) !important; }
+    .nono-clue.done { color: var(--sage-dark); }
+    /* thick borders every 5 cells */
+    .nono-cell.border-right { border-right: 2px solid var(--gray-400); }
+    .nono-cell.border-bottom { border-bottom: 2px solid var(--gray-400); }
+
+    /* ---- Flujo de Colores ---- */
+    .flow-wrap { display: flex; justify-content: center; margin: 0.5rem 0; }
+    .flow-grid {
+      display: grid; gap: 2px;
+      background: var(--gray-300); border: 2px solid var(--gray-300);
+      border-radius: var(--radius-sm); touch-action: none; user-select: none;
+    }
+    .flow-cell {
+      width: 46px; height: 46px; background: var(--bg-card);
+      position: relative; cursor: crosshair;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-dot {
+      width: 34px; height: 34px; border-radius: 50%;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      z-index: 2; border: 3px solid rgba(255,255,255,0.4);
+    }
+    .flow-path {
+      position: absolute; inset: 0; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-path-fill {
+      position: absolute; background: currentColor; opacity: 0.45;
+      border-radius: 4px;
+    }
+    .flow-cell.has-path { }
+    @media(max-width:500px) {
+      .flow-cell { width: 38px; height: 38px; }
+      .flow-dot { width: 28px; height: 28px; }
+    }
+
+    /* ---- Binairo ---- */
+    .bin-wrap { display: flex; justify-content: center; margin: 0.5rem 0; }
+    .bin-grid {
+      display: grid; gap: 3px;
+      background: var(--gray-200); border: 2px solid var(--gray-300); border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+    .bin-cell {
+      width: 38px; height: 38px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 900; cursor: pointer;
+      background: var(--bg-card); border: 2px solid var(--gray-200);
+      transition: all 0.15s; user-select: none;
+    }
+    .bin-cell.given { cursor: default; background: var(--gray-100); color: var(--text-primary); border-color: var(--gray-300); }
+    .bin-cell.val-0 { color: #6B9BD2; border-color: rgba(107,155,210,0.4); background: rgba(107,155,210,0.08); }
+    .bin-cell.val-1 { color: #9B8EC4; border-color: rgba(155,142,196,0.4); background: rgba(155,142,196,0.08); }
+    .bin-cell:not(.given):hover { transform: scale(1.08); border-color: var(--blue-light); }
+    .bin-cell.error { background: rgba(231,76,60,0.18) !important; border-color: #e74c3c !important; }
+    .bin-cell.solved-cell { background: rgba(135,174,115,0.15) !important; border-color: var(--sage-dark) !important; }
+    @media(max-width:500px) { .bin-cell { width: 32px; height: 32px; font-size: 1rem; } }
   </style>
 </head>
 <body>
@@ -535,6 +617,9 @@
     <button class="game-tab" data-game="emojizen">&#128513; Emoji Zen</button>
     <button class="game-tab" data-game="schulte">&#128290; Escalera Zen</button>
     <button class="game-tab" data-game="imagen">&#128444;&#65039; Imagen Zen</button>
+    <button class="game-tab" data-game="nonogram">&#129307; Nonograma</button>
+    <button class="game-tab" data-game="flow">&#127881; Flujo</button>
+    <button class="game-tab" data-game="binairo">&#129354; Binairo</button>
   </div>
 
   <!-- In-page Music Player -->
@@ -750,6 +835,64 @@
         <button class="btn btn-solid btn-sm" id="imagenShareBtn">&#128228; Compartir resultado</button>
         <div id="imagenShareText" class="share-result" style="display:none;margin-top:0.5rem;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Game 9: Nonograma -->
+  <div class="game-container" id="game-nonogram" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#129307; Nonograma</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="nonogramTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Rellena las casillas para que los n&uacute;meros de cada <strong>fila y columna</strong> indiquen los grupos consecutivos de casillas rellenas. Haz clic para rellenar, clic derecho para marcar con X.</div>
+      <div id="nonogramComplete" style="display:none;text-align:center;padding:1rem;font-weight:700;font-size:1.1rem;color:var(--sage-dark);"></div>
+      <div class="nono-wrap" id="nonogramWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="nonogramResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-solid btn-sm" id="nonogramShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="nonogramShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 10: Flujo de Colores -->
+  <div class="game-container" id="game-flow" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#127881; Flujo de Colores</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="flowTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Conecta los pares de puntos del <strong>mismo color</strong> trazando un camino. Los caminos no pueden cruzarse y debes <strong>rellenar todas las casillas</strong>.</div>
+      <div id="flowComplete" style="display:none;text-align:center;padding:1rem;font-weight:700;font-size:1.1rem;color:var(--sage-dark);"></div>
+      <div class="flow-wrap" id="flowWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="flowResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-solid btn-sm" id="flowShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="flowShareText" class="share-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Game 11: Binairo -->
+  <div class="game-container" id="game-binairo" style="display:none;">
+    <div class="game-board">
+      <div class="game-header">
+        <h3>&#129354; Binairo</h3>
+        <div class="game-timer"><span class="timer-icon">&#9201;</span><span id="binairoTimer">0:00</span></div>
+        <span class="game-score">Puzzle del d&iacute;a</span>
+      </div>
+      <div class="game-instructions">Rellena la cuadr&iacute;cula con <strong>0</strong> y <strong>1</strong>. Reglas: no tres iguales seguidos en fila o columna, igual cantidad de 0s y 1s por fila/columna, y sin filas ni columnas duplicadas.</div>
+      <div id="binairoMsg" style="min-height:1.4rem;text-align:center;font-weight:700;font-size:0.95rem;margin:0.5rem 0;"></div>
+      <div class="bin-wrap" id="binairoWrap"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
+        <button class="btn btn-outline btn-sm" id="binairoResetBtn">&#128260; Reiniciar</button>
+        <button class="btn btn-outline btn-sm" id="binairoCheckBtn">&#9989; Comprobar</button>
+        <button class="btn btn-solid btn-sm" id="binairoShareBtn" style="display:none;">&#128228; Compartir</button>
+      </div>
+      <div id="binairoShareText" class="share-result" style="display:none;"></div>
     </div>
   </div>
 
@@ -3107,6 +3250,631 @@ function initImagenGame() {
   loadPuzzle(0);
 }
 
+// ==================== GAME 9: NONOGRAMA ====================
+function initNonogramGame() {
+  // Each puzzle: rows clues, col clues, solution grid (1=filled, 0=empty)
+  const PUZZLES = [
+    { // Heart
+      solution: [
+        [0,1,1,0,0,1,1,0,0,0],
+        [1,1,1,1,1,1,1,1,0,0],
+        [1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,1,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0]
+      ]
+    },
+    { // Sailboat
+      solution: [
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,1,0,0,0,0],
+        [0,1,1,1,0,0,0,0],
+        [1,1,1,1,0,0,0,0],
+        [0,1,1,1,1,1,0,0],
+        [0,0,1,1,1,0,0,0],
+        [0,1,1,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0]
+      ]
+    },
+    { // Simple house
+      solution: [
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,1,1,0,0,0],
+        [0,1,1,1,1,1,0,0],
+        [1,1,1,1,1,1,1,0],
+        [0,1,1,1,1,1,0,0],
+        [0,1,0,1,1,0,0,0],
+        [0,1,1,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0]
+      ]
+    },
+    { // Star
+      solution: [
+        [0,0,0,1,1,0,0,0],
+        [0,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1],
+        [0,0,1,1,1,1,0,0],
+        [0,1,1,0,0,1,1,0],
+        [1,1,0,0,0,0,1,1],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0]
+      ]
+    },
+    { // Tree
+      solution: [
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,1,1,0,0,0],
+        [0,1,1,1,1,1,0,0],
+        [1,1,1,1,1,1,1,0],
+        [0,0,0,1,0,0,0,0],
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0]
+      ]
+    }
+  ];
+
+  function getClues(line) {
+    const clues = [];
+    let count = 0;
+    for (let v of line) {
+      if (v === 1) count++;
+      else if (count > 0) { clues.push(count); count = 0; }
+    }
+    if (count > 0) clues.push(count);
+    return clues.length ? clues : [0];
+  }
+
+  const dayIdx = getDayIndex();
+  const puzzle = PUZZLES[dayIdx % PUZZLES.length];
+  const sol = puzzle.solution;
+  const ROWS = sol.length, COLS = sol[0].length;
+
+  const rowClues = sol.map(r => getClues(r));
+  const colClues = Array.from({length: COLS}, (_, c) => getClues(sol.map(r => r[c])));
+
+  // State: 0=empty, 1=filled, -1=crossed
+  let grid = Array.from({length: ROWS}, () => new Array(COLS).fill(0));
+  let solved = false;
+  let timerSec = 0, timerInt = null;
+
+  const savedKey = 'nono_' + dayIdx;
+  const saved = localStorage.getItem(savedKey);
+  if (saved) {
+    try { const d = JSON.parse(saved); grid = d.grid; solved = d.solved; timerSec = d.time || 0; } catch(e) {}
+  }
+
+  function saveState() {
+    localStorage.setItem(savedKey, JSON.stringify({grid, solved, time: timerSec}));
+  }
+
+  function startTimer() {
+    if (timerInt || solved) return;
+    timerInt = setInterval(() => {
+      timerSec++;
+      document.getElementById('nonogramTimer').textContent = fmtTime(timerSec);
+      saveState();
+    }, 1000);
+  }
+
+  function stopTimer() { clearInterval(timerInt); timerInt = null; }
+
+  function checkSolved() {
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if ((grid[r][c] === 1) !== (sol[r][c] === 1)) return false;
+    return true;
+  }
+
+  function render() {
+    const wrap = document.getElementById('nonogramWrap');
+    const table = document.createElement('table');
+    table.className = 'nono-table';
+
+    // Header row: top clues
+    const maxColClueLen = Math.max(...colClues.map(c => c.length));
+    for (let cr = 0; cr < maxColClueLen; cr++) {
+      const tr = table.insertRow();
+      // Corner cell(s)
+      if (cr === 0) {
+        const maxRowClueLen = Math.max(...rowClues.map(r => r.length));
+        const corner = tr.insertCell();
+        corner.rowSpan = maxColClueLen;
+        corner.colSpan = maxRowClueLen;
+      }
+      for (let c = 0; c < COLS; c++) {
+        const td = tr.insertCell();
+        td.className = 'nono-clue';
+        const offset = maxColClueLen - colClues[c].length;
+        if (cr >= offset) {
+          td.textContent = colClues[c][cr - offset];
+          // check if col clue satisfied
+          const colVals = grid.map(r => r[c] === 1 ? 1 : 0);
+          if (JSON.stringify(getClues(colVals)) === JSON.stringify(colClues[c])) td.classList.add('done');
+        }
+      }
+    }
+
+    // Data rows
+    for (let r = 0; r < ROWS; r++) {
+      const tr = table.insertRow();
+      // Row clues
+      const maxRowClueLen = Math.max(...rowClues.map(r => r.length));
+      for (let k = 0; k < maxRowClueLen; k++) {
+        const td = tr.insertCell();
+        td.className = 'nono-clue nono-clue-row';
+        const offset = maxRowClueLen - rowClues[r].length;
+        if (k >= offset) td.textContent = rowClues[r][k - offset];
+        // done?
+        const rowVals = grid[r].map(v => v === 1 ? 1 : 0);
+        if (JSON.stringify(getClues(rowVals)) === JSON.stringify(rowClues[r])) td.classList.add('done');
+      }
+      // Cells
+      for (let c = 0; c < COLS; c++) {
+        const td = tr.insertCell();
+        td.className = 'nono-cell';
+        if (grid[r][c] === 1) td.classList.add('filled');
+        if (grid[r][c] === -1) td.classList.add('crossed');
+
+        td.addEventListener('click', () => {
+          if (solved) return;
+          startTimer();
+          grid[r][c] = grid[r][c] === 1 ? 0 : 1;
+          if (checkSolved()) { solved = true; stopTimer(); saveState(); onSolved(); }
+          else { saveState(); render(); }
+        });
+        td.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          if (solved) return;
+          startTimer();
+          grid[r][c] = grid[r][c] === -1 ? 0 : -1;
+          saveState(); render();
+        });
+      }
+    }
+
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+    document.getElementById('nonogramTimer').textContent = fmtTime(timerSec);
+    if (solved) showNonogramComplete();
+  }
+
+  function onSolved() {
+    launchConfetti();
+    incrementGamesCompleted();
+    showNonogramComplete();
+    document.getElementById('nonogramShareBtn').style.display = '';
+    render();
+  }
+
+  function showNonogramComplete() {
+    const el = document.getElementById('nonogramComplete');
+    el.style.display = '';
+    el.textContent = '🎉 ¡Nonograma completado en ' + fmtTime(timerSec) + '!';
+  }
+
+  document.getElementById('nonogramResetBtn').addEventListener('click', () => {
+    grid = Array.from({length: ROWS}, () => new Array(COLS).fill(0));
+    solved = false; timerSec = 0; stopTimer();
+    document.getElementById('nonogramComplete').style.display = 'none';
+    document.getElementById('nonogramShareBtn').style.display = 'none';
+    saveState(); render();
+  });
+
+  document.getElementById('nonogramShareBtn').addEventListener('click', () => {
+    const rows = grid.map(r => r.map(v => v === 1 ? '⬛' : '⬜').join('')).join('\n');
+    const text = 'Relajate.com — Nonograma\nDía ' + dayIdx + '\n⏱ ' + fmtTime(timerSec) + '\n\n' + rows + '\n\nrelajate.com/games.html';
+    const el = document.getElementById('nonogramShareText');
+    el.textContent = text; el.style.display = '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('¡Copiado!'));
+  });
+
+  if (solved) showNonogramComplete();
+  render();
+  if (!solved) startTimer();
+}
+
+// ==================== GAME 10: FLUJO DE COLORES ====================
+function initFlowGame() {
+  const COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c'];
+  const COLOR_NAMES = ['rojo','azul','verde','naranja','morado','turquesa'];
+
+  // Each puzzle: SIZE, dots = [[r1,c1,r2,c2], ...] per color
+  const PUZZLES = [
+    { size: 6, dots: [[0,0,5,4],[0,2,4,2],[0,5,5,0],[2,0,4,5],[2,3,3,1],[1,4,3,5]] },
+    { size: 6, dots: [[0,0,4,0],[0,3,5,5],[0,5,2,5],[1,1,5,1],[1,2,3,3],[2,0,4,4]] },
+    { size: 6, dots: [[0,1,5,1],[0,4,5,4],[1,0,4,0],[1,5,4,5],[2,2,3,2],[2,3,3,3]] },
+    { size: 7, dots: [[0,0,6,0],[0,3,6,6],[0,6,5,0],[1,1,5,5],[1,4,4,1],[2,2,4,4],[2,5,3,2]] },
+    { size: 6, dots: [[0,0,5,5],[0,2,5,2],[0,4,4,0],[1,1,4,4],[1,3,3,1],[2,0,3,5]] },
+  ];
+
+  const dayIdx = getDayIndex();
+  const puz = PUZZLES[dayIdx % PUZZLES.length];
+  const SIZE = puz.size;
+  const dotMap = {}; // key "r,c" -> colorIdx
+
+  puz.dots.forEach((pair, ci) => {
+    dotMap[pair[0]+','+pair[1]] = ci;
+    dotMap[pair[2]+','+pair[3]] = ci;
+  });
+
+  // paths[ci] = array of [r,c]
+  let paths = puz.dots.map(() => []);
+  let drawing = false, activeColor = -1, lastCell = null;
+  let solved = false, timerSec = 0, timerInt = null;
+
+  const savedKey = 'flow_' + dayIdx;
+  const saved = localStorage.getItem(savedKey);
+  if (saved) {
+    try { const d = JSON.parse(saved); paths = d.paths; solved = d.solved; timerSec = d.time || 0; } catch(e) {}
+  }
+
+  function saveState() { localStorage.setItem(savedKey, JSON.stringify({paths, solved, time: timerSec})); }
+  function startTimer() {
+    if (timerInt || solved) return;
+    timerInt = setInterval(() => { timerSec++; document.getElementById('flowTimer').textContent = fmtTime(timerSec); saveState(); }, 1000);
+  }
+  function stopTimer() { clearInterval(timerInt); timerInt = null; }
+
+  // Build a cell->colorIdx map from paths
+  function buildCellMap() {
+    const map = {};
+    paths.forEach((path, ci) => { path.forEach(([r,c]) => { map[r+','+c] = ci; }); });
+    return map;
+  }
+
+  function checkSolved() {
+    const cellMap = buildCellMap();
+    // All cells covered
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (cellMap[r+','+c] === undefined && dotMap[r+','+c] === undefined) return false;
+    // All pairs connected
+    return puz.dots.every((pair, ci) => {
+      const p = paths[ci];
+      if (p.length < 2) return false;
+      const last = p[p.length-1];
+      return (p[0][0]===pair[0]&&p[0][1]===pair[1]&&last[0]===pair[2]&&last[1]===pair[3]) ||
+             (p[0][0]===pair[2]&&p[0][1]===pair[3]&&last[0]===pair[0]&&last[1]===pair[1]);
+    });
+  }
+
+  function getPathForCell(r, c) {
+    const k = r+','+c;
+    for (let ci = 0; ci < paths.length; ci++)
+      if (paths[ci].some(([pr,pc]) => pr===r && pc===c)) return ci;
+    return -1;
+  }
+
+  function render() {
+    const wrap = document.getElementById('flowWrap');
+    const grid = document.createElement('div');
+    grid.className = 'flow-grid';
+    grid.style.gridTemplateColumns = 'repeat('+SIZE+', 1fr)';
+
+    const cellMap = buildCellMap();
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'flow-cell';
+        cell.dataset.r = r; cell.dataset.c = c;
+
+        const key = r+','+c;
+        const dotCI = dotMap[key];
+        const pathCI = cellMap[key] !== undefined ? cellMap[key] : (dotCI !== undefined ? dotCI : -1);
+
+        if (pathCI >= 0) {
+          cell.style.background = COLORS[pathCI] + '22';
+        }
+
+        if (dotCI !== undefined) {
+          const dot = document.createElement('div');
+          dot.className = 'flow-dot';
+          dot.style.background = COLORS[dotCI];
+          cell.appendChild(dot);
+        } else if (pathCI >= 0) {
+          cell.style.background = COLORS[pathCI] + '33';
+          // draw path segment connectors
+          const path = paths[pathCI];
+          const idx = path.findIndex(([pr,pc]) => pr===r&&pc===c);
+          if (idx >= 0) {
+            const dirs = {top:false,right:false,bottom:false,left:false};
+            if (idx > 0) {
+              const prev = path[idx-1];
+              if (prev[0]===r-1) dirs.top=true;
+              if (prev[0]===r+1) dirs.bottom=true;
+              if (prev[1]===c-1) dirs.left=true;
+              if (prev[1]===c+1) dirs.right=true;
+            }
+            if (idx < path.length-1) {
+              const next = path[idx+1];
+              if (next[0]===r-1) dirs.top=true;
+              if (next[0]===r+1) dirs.bottom=true;
+              if (next[1]===c-1) dirs.left=true;
+              if (next[1]===c+1) dirs.right=true;
+            }
+            const hBar = document.createElement('div');
+            hBar.style.cssText = 'position:absolute;top:50%;left:0;right:0;height:10px;transform:translateY(-50%);background:'+COLORS[pathCI]+';opacity:0.5;border-radius:5px;display:'+(dirs.left||dirs.right?'block':'none');
+            const vBar = document.createElement('div');
+            vBar.style.cssText = 'position:absolute;left:50%;top:0;bottom:0;width:10px;transform:translateX(-50%);background:'+COLORS[pathCI]+';opacity:0.5;border-radius:5px;display:'+(dirs.top||dirs.bottom?'block':'none');
+            cell.appendChild(vBar); cell.appendChild(hBar);
+          }
+        }
+
+        // Events
+        cell.addEventListener('mousedown', e => { e.preventDefault(); onCellDown(r, c); });
+        cell.addEventListener('mousemove', e => { if (drawing) onCellEnter(r, c); });
+        cell.addEventListener('touchstart', e => { e.preventDefault(); onCellDown(r, c); }, {passive:false});
+        cell.addEventListener('touchmove', e => {
+          e.preventDefault();
+          const t = e.touches[0];
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          if (el && el.dataset.r !== undefined) onCellEnter(+el.dataset.r, +el.dataset.c);
+        }, {passive:false});
+
+        wrap.innerHTML !== '' && null;
+        grid.appendChild(cell);
+      }
+    }
+
+    document.addEventListener('mouseup', () => { drawing = false; activeColor = -1; lastCell = null; }, {once:false});
+    document.addEventListener('touchend', () => { drawing = false; activeColor = -1; lastCell = null; }, {once:false});
+
+    wrap.innerHTML = '';
+    wrap.appendChild(grid);
+    document.getElementById('flowTimer').textContent = fmtTime(timerSec);
+    if (solved) showFlowComplete();
+  }
+
+  function onCellDown(r, c) {
+    if (solved) return;
+    startTimer();
+    const key = r+','+c;
+    const dotCI = dotMap[key];
+    const pathCI = getPathForCell(r, c);
+
+    if (dotCI !== undefined) {
+      // Start new path from this dot
+      activeColor = dotCI;
+      paths[dotCI] = [[r, c]];
+      drawing = true; lastCell = [r, c];
+    } else if (pathCI >= 0) {
+      // Resume from this point on existing path (truncate)
+      const path = paths[pathCI];
+      const idx = path.findIndex(([pr,pc]) => pr===r&&pc===c);
+      // Don't allow resuming from a dot cell that's not a dot
+      activeColor = pathCI;
+      paths[pathCI] = path.slice(0, idx + 1);
+      drawing = true; lastCell = [r, c];
+    }
+    saveState(); render();
+  }
+
+  function onCellEnter(r, c) {
+    if (!drawing || activeColor < 0 || !lastCell) return;
+    const [lr, lc] = lastCell;
+    // Must be adjacent
+    if (Math.abs(r-lr) + Math.abs(c-lc) !== 1) return;
+    const key = r+','+c;
+
+    // If cell is already on our path, truncate to here
+    const path = paths[activeColor];
+    const existIdx = path.findIndex(([pr,pc]) => pr===r&&pc===c);
+    if (existIdx >= 0) {
+      paths[activeColor] = path.slice(0, existIdx + 1);
+      lastCell = [r, c];
+      saveState(); render(); return;
+    }
+
+    // If cell belongs to another path, clear that path
+    const otherCI = getPathForCell(r, c);
+    if (otherCI >= 0 && otherCI !== activeColor) paths[otherCI] = [];
+
+    // If cell is the endpoint dot for this color, snap and finish
+    const dotCI = dotMap[key];
+    if (dotCI !== undefined && dotCI !== activeColor) return; // can't step on another color's dot
+    paths[activeColor].push([r, c]);
+    lastCell = [r, c];
+
+    if (checkSolved()) { solved = true; stopTimer(); saveState(); onSolved(); return; }
+    saveState(); render();
+  }
+
+  function onSolved() {
+    launchConfetti();
+    incrementGamesCompleted();
+    showFlowComplete();
+    document.getElementById('flowShareBtn').style.display = '';
+    render();
+  }
+
+  function showFlowComplete() {
+    const el = document.getElementById('flowComplete');
+    el.style.display = '';
+    el.textContent = '🎉 ¡Flujo completado en ' + fmtTime(timerSec) + '!';
+  }
+
+  document.getElementById('flowResetBtn').addEventListener('click', () => {
+    paths = puz.dots.map(() => []);
+    solved = false; timerSec = 0; stopTimer();
+    document.getElementById('flowComplete').style.display = 'none';
+    document.getElementById('flowShareBtn').style.display = 'none';
+    saveState(); render();
+  });
+
+  document.getElementById('flowShareBtn').addEventListener('click', () => {
+    const text = 'Relajate.com — Flujo de Colores\nDía ' + dayIdx + '\n⏱ ' + fmtTime(timerSec) + ' 🎉\n\nrelajate.com/games.html';
+    const el = document.getElementById('flowShareText');
+    el.textContent = text; el.style.display = '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('¡Copiado!'));
+  });
+
+  if (solved) showFlowComplete();
+  render();
+  if (!solved) startTimer();
+}
+
+// ==================== GAME 11: BINAIRO ====================
+function initBinairoGame() {
+  // Puzzles: 8×8 grid. given = [r,c,val] where val is 0 or 1.
+  // Solutions stored as strings row by row ("01101001...")
+  const PUZZLES = [
+    {
+      solution: ['01101001','10010110','01101001','10010110','00110101','11001010','01011010','10100101'],
+      given: [[0,0,0],[0,3,0],[0,6,0],[1,1,1],[1,4,1],[1,7,1],[2,2,0],[2,5,0],[3,0,1],[3,3,1],[3,6,1],
+              [4,1,0],[4,4,1],[5,2,1],[5,5,0],[6,0,0],[6,3,1],[6,6,1],[7,1,1],[7,4,0],[7,7,1]]
+    },
+    {
+      solution: ['10010110','01101001','10010110','01101001','11001010','00110101','11001010','00110101'],
+      given: [[0,0,1],[0,3,1],[0,6,1],[1,1,1],[1,4,0],[1,7,0],[2,0,1],[2,5,1],[3,2,1],[3,6,1],
+              [4,0,1],[4,3,0],[4,7,0],[5,1,0],[5,4,1],[5,7,1],[6,2,1],[6,5,0],[7,0,0],[7,3,1],[7,6,1]]
+    },
+    {
+      solution: ['00110101','11001010','00110101','11001010','01101001','10010110','01101001','10010110'],
+      given: [[0,0,0],[0,2,1],[0,5,0],[0,7,1],[1,1,1],[1,3,0],[1,6,1],[2,0,0],[2,4,1],[2,7,1],
+              [3,0,1],[3,3,0],[3,5,0],[4,1,1],[4,4,0],[4,6,0],[5,0,1],[5,3,1],[5,7,1],[6,2,1],[7,0,1],[7,5,1]]
+    }
+  ];
+
+  const dayIdx = getDayIndex();
+  const puz = PUZZLES[dayIdx % PUZZLES.length];
+  const SIZE = 8;
+  const solGrid = puz.solution.map(row => row.split('').map(Number));
+  const givenSet = new Set(puz.given.map(([r,c]) => r+','+c));
+
+  let userGrid = Array.from({length: SIZE}, () => new Array(SIZE).fill(-1));
+  let solved = false, timerSec = 0, timerInt = null;
+
+  // Place given cells
+  puz.given.forEach(([r,c,v]) => { userGrid[r][c] = v; });
+
+  const savedKey = 'bin_' + dayIdx;
+  const saved = localStorage.getItem(savedKey);
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      solved = d.solved; timerSec = d.time || 0;
+      d.userGrid.forEach((row, r) => row.forEach((v, c) => {
+        if (!givenSet.has(r+','+c)) userGrid[r][c] = v;
+      }));
+    } catch(e) {}
+  }
+
+  function saveState() { localStorage.setItem(savedKey, JSON.stringify({userGrid, solved, time: timerSec})); }
+  function startTimer() {
+    if (timerInt || solved) return;
+    timerInt = setInterval(() => { timerSec++; document.getElementById('binairoTimer').textContent = fmtTime(timerSec); saveState(); }, 1000);
+  }
+  function stopTimer() { clearInterval(timerInt); timerInt = null; }
+
+  function findErrors() {
+    const errors = new Set();
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE - 2; c++) {
+        if (userGrid[r][c] >= 0 && userGrid[r][c] === userGrid[r][c+1] && userGrid[r][c] === userGrid[r][c+2])
+          [c, c+1, c+2].forEach(cc => errors.add(r+','+cc));
+      }
+    }
+    for (let c = 0; c < SIZE; c++) {
+      for (let r = 0; r < SIZE - 2; r++) {
+        if (userGrid[r][c] >= 0 && userGrid[r][c] === userGrid[r+1][c] && userGrid[r][c] === userGrid[r+2][c])
+          [r, r+1, r+2].forEach(rr => errors.add(rr+','+c));
+      }
+    }
+    return errors;
+  }
+
+  function checkFullSolution() {
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (userGrid[r][c] !== solGrid[r][c]) return false;
+    return true;
+  }
+
+  function render(highlightErrors) {
+    const wrap = document.getElementById('binairoWrap');
+    const g = document.createElement('div');
+    g.className = 'bin-grid';
+    g.style.gridTemplateColumns = 'repeat('+SIZE+', 1fr)';
+
+    const errors = highlightErrors ? findErrors() : new Set();
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'bin-cell';
+        const isGiven = givenSet.has(r+','+c);
+        if (isGiven) cell.classList.add('given');
+        const v = userGrid[r][c];
+        if (v === 0) { cell.classList.add('val-0'); cell.textContent = '0'; }
+        else if (v === 1) { cell.classList.add('val-1'); cell.textContent = '1'; }
+        if (errors.has(r+','+c)) cell.classList.add('error');
+        if (solved) cell.classList.add('solved-cell');
+
+        if (!isGiven && !solved) {
+          cell.addEventListener('click', () => {
+            startTimer();
+            userGrid[r][c] = userGrid[r][c] < 0 ? 0 : (userGrid[r][c] === 0 ? 1 : -1);
+            saveState(); render(false);
+          });
+        }
+        g.appendChild(cell);
+      }
+    }
+    wrap.innerHTML = '';
+    wrap.appendChild(g);
+    document.getElementById('binairoTimer').textContent = fmtTime(timerSec);
+  }
+
+  document.getElementById('binairoCheckBtn').addEventListener('click', () => {
+    const errors = findErrors();
+    const msg = document.getElementById('binairoMsg');
+    if (errors.size > 0) {
+      msg.textContent = '❌ Hay errores marcados en rojo';
+      msg.style.color = '#e74c3c';
+      render(true);
+      setTimeout(() => { msg.textContent = ''; msg.style.color = ''; render(false); }, 2500);
+    } else {
+      const empty = userGrid.some(row => row.some(v => v < 0));
+      if (empty) { msg.textContent = '⚠️ Faltan casillas por rellenar'; msg.style.color = '#e67e22'; return; }
+      if (checkFullSolution()) {
+        solved = true; stopTimer(); saveState();
+        msg.textContent = '🎉 ¡Correcto! Completado en ' + fmtTime(timerSec);
+        msg.style.color = 'var(--sage-dark)';
+        launchConfetti(); incrementGamesCompleted();
+        document.getElementById('binairoShareBtn').style.display = '';
+        render(false);
+      } else {
+        msg.textContent = '❌ Solución incorrecta. Revisa las reglas.';
+        msg.style.color = '#e74c3c';
+      }
+    }
+  });
+
+  document.getElementById('binairoResetBtn').addEventListener('click', () => {
+    userGrid = Array.from({length: SIZE}, () => new Array(SIZE).fill(-1));
+    puz.given.forEach(([r,c,v]) => { userGrid[r][c] = v; });
+    solved = false; timerSec = 0; stopTimer();
+    document.getElementById('binairoMsg').textContent = '';
+    document.getElementById('binairoShareBtn').style.display = 'none';
+    saveState(); render(false);
+  });
+
+  document.getElementById('binairoShareBtn').addEventListener('click', () => {
+    const rows = userGrid.map(r => r.map(v => v === 0 ? '⬜' : '🟪').join('')).join('\n');
+    const text = 'Relajate.com — Binairo\nDía ' + dayIdx + '\n⏱ ' + fmtTime(timerSec) + '\n\n' + rows + '\n\nrelajate.com/games.html';
+    const el = document.getElementById('binairoShareText');
+    el.textContent = text; el.style.display = '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('¡Copiado!'));
+  });
+
+  render(false);
+  if (!solved) startTimer();
+}
+
 // Init all games
 initWordGame();
 initPatternGame();
@@ -3115,6 +3883,9 @@ initWordleGame();
 initEmojiGame();
 initSchulteGame();
 initImagenGame();
+initNonogramGame();
+initFlowGame();
+initBinairoGame();
 </script>
 <script src="mini-player.js"></script>
 <script>
